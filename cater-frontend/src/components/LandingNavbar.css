@@ -1,0 +1,64 @@
+nav{
+    font-family: 'Lora', serif;
+}
+.navbar {
+  width: 100%;
+  height: 12%;
+  position: absolute;
+  padding: 0 20px;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+.logo-landing {
+  height: 40px;
+  object-fit: contain;
+}
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 100px;
+  font-weight: bold;
+  font-size: 18px;
+  margin: 0;
+  padding: 0;
+}
+.nav-links li {
+  cursor: pointer;
+  position: relative;
+  cursor: pointer;
+}
+.nav-links li::after {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  left: 0;
+  bottom: -4px;
+  background-color: #f3c623;
+  transition: width 0.2s ease-in-out;
+}
+.nav-links li:hover::after {
+  width: 100%;
+}
+.login-button {
+  background-color: #fff86b;
+  border: none;
+  padding: 8px 32px;
+  font-weight: bold;
+  font-size: 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Lora', serif;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.login-button:hover {
+  background-color: #F9EC3F;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}

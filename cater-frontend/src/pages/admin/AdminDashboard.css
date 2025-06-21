@@ -1,0 +1,95 @@
+body {
+  margin: 0;
+  font-family: 'Lora', serif;
+  background-color: #f0f0f0;
+}
+
+a ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  position: relative;
+  background: #f9f9f9;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff176;
+  padding: 1rem;
+  margin-top: -1%;
+  border-radius: 8px;
+}
+
+.user-name {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.notif-icon {
+  font-size: 20px;
+}
+
+.welcome-section {
+  margin: 1.5rem 0;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-box {
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.stat-box span {
+  display: block;
+  font-size: 24px;
+  margin-top: 5px;
+}
+
+.audit-log {
+  position: absolute;
+  top: 130px;
+  right: 20px;
+  width: 220px;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.audit-log h3 {
+  margin-top: 0;
+}
+
+.audit-log ul li {
+  font-size: 14px;
+  margin-bottom: 0.5rem;
+}
+
+.audit-log ul li span {
+  display: block;
+  color: #555;
+  margin-left: 10px;
+}

@@ -1,0 +1,94 @@
+div{
+    font-family: 'Lora', serif;
+}
+.login-page {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  font-family: 'Georgia', serif;
+}
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(2px);
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+.login-box {
+  position: absolute;
+  top: 54%;
+  left: 50%;
+  height: 60%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  width: 22%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+.login-box h3 {
+  margin-bottom: 20px;
+}
+.input-group {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+  margin: 13% 0;
+}
+.input-group i {
+  margin-right: 10px;
+  color: gray;
+}
+.input-group input {
+  flex: 1;
+  font-family: 'Lora', serif;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+.forgot {
+    margin-top: -8%;
+  text-align: right;
+  font-size: 12px;
+}
+.forgot a {
+  text-decoration: none;
+  color: black;
+  position: relative;
+}
+.forgot a::after {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  left: 0;
+  bottom: -4px;
+  background-color: #f3c623;
+  transition: width 0.2s ease-in-out;
+}
+.forgot a:hover::after {
+  width: 100%;
+}
+.login-submit {
+  margin-top: 20%;
+  background-color: #fff86b;
+  border: none;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: 'Lora', serif;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.login-submit:hover {
+  background-color: #F9EC3F;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
