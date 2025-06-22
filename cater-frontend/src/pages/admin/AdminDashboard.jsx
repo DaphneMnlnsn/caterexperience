@@ -19,7 +19,7 @@ function AdminDashboard() {
         </header>
 
         <section className="welcome-section">
-          <h2>Welcome, Jen!</h2>
+          <h3>Welcome, Jen!</h3>
           <p>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           <div className="stats">
             <div className="stat-box">Total of Events <span>2</span></div>
@@ -29,18 +29,22 @@ function AdminDashboard() {
           </div>
         </section>
 
-        <section className="calendar-section">
-          <DashboardCalendar />
-        </section>
+        <section className="dashboard-bottom">
+          <div className="calendar-section">
+            <DashboardCalendar />
+          </div>
 
-        <aside className="audit-log">
-          <h3>Audit Log</h3>
-          <ul>
-            {Array.from({ length: 7 }, (_, i) => (
-              <li key={i}>Staff {i + 1} <span>finished a task</span></li>
-            ))}
-          </ul>
-        </aside>
+          <aside className="audit-log">
+            <h3>Audit Log</h3>
+            <ul>
+              {Array.from({ length: 10 }, (_, i) => (
+                <li key={i}>
+                  Staff {i + 1} <span>finished a task</span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        </section>
       </div>
     </div>
   );

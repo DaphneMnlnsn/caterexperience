@@ -14,7 +14,7 @@ function LandingNavbar() {
         <li>Menu</li>
         <li>Packages</li>
       </ul>
-      <button className="login-button" onClick={navigate('/')}>Login</button>
+      <button className="login-button" onClick={() => navigate('/')}>Login</button>
     </nav>
   );
 }

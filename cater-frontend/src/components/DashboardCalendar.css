@@ -1,42 +1,45 @@
-/* DashboardCalendar.css */
 .calendar-container {
-  margin-top: 2rem;
   padding: 1rem;
-  background: #fff;
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.fc {
+  background-color: #ffffff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
   font-family: 'Lora', serif;
 }
 
-.fc-toolbar-title {
+.calendar-container h2 {
   font-size: 20px;
-  font-weight: bold;
-  color: #444;
+  margin-bottom: 0.8rem;
+}
+
+.fc {
+  font-size: 12px;
+}
+
+.fc-toolbar-title {
+  font-size: 16px;
 }
 
 .fc-button {
-  background-color: #fff176;
-  border: none;
-  color: #333;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.fc-col-header-cell-cushion {
+  padding: 4px 0;
   font-weight: bold;
-  padding: 0.4rem 0.8rem;
-  transition: background 0.2s;
-  border-radius: 5px;
 }
 
-.fc-button:hover {
-  background-color: #ffe066;
+.fc-daygrid-day-number {
+  font-size: 11px;
+  padding-right: 4px;
 }
 
-.fc-daygrid-event {
-  background-color: #fff59d;
-  border: none;
-  color: #222;
-  padding: 2px 4px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 4px;
+.fc-event {
+  font-size: 11px;
+  padding: 1px 4px;
+}
+
+.calendar-container .fc {
+  max-width: 100%;
 }
