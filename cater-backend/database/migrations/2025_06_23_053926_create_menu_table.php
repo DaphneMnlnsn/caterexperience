@@ -9,10 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('client');
+        Schema::create('menu', function (Blueprint $table) {
+            $table->id('menu_id');
+            $table->string('menu_name');
+            $table->text('menu_description')->nullable();
+            $table->decimal('menu_price', 10, 2);
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('menu');
     }
 };
