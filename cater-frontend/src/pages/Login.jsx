@@ -33,7 +33,7 @@ function Login() {
                 
                 const user = response.data.user;
                 if (user.role === 'admin') {
-                    navigate('/admin')
+                    navigate('/admin/dashboard')
                 } else {
                     // Redirect to user/client page
                 }
@@ -45,7 +45,7 @@ function Login() {
             Swal.fire({
             icon: 'error',
             title: 'Login Failed',
-            text: 'Invalid email or password.',
+            text: error,
             });
         }
     };

@@ -19,20 +19,69 @@ export default function Sidebar() {
         <nav>
         <ul>
             <li className="section-header">Main</li>
-            <li className={location.pathname === '/admin' ? 'active' : ''}><FaHome /> Dashboard</li>
-            <li className={location.pathname === '/bookings' ? 'active' : ''}><FaCalendarAlt /> Event Bookings</li>
-            <li className={location.pathname === '/clients' ? 'active' : ''}><FaUser /> Clients</li>
-            <li className={location.pathname === '/payment' ? 'active' : ''}><FaMoneyCheckAlt /> Payment Records</li>
 
+            <li className={location.pathname === '/admin/dashboard' ? 'active' : ''}>
+                <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaHome /> Dashboard
+                </NavLink>
+            </li>
+
+            <li className={location.pathname === '/admin/bookings' ? 'active' : ''}>
+                <NavLink to="/admin/bookings" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaCalendarAlt /> Event Bookings
+                </NavLink>
+            </li>
+            
+            <li className={location.pathname === '/admin/clients' ? 'active' : ''}>
+                <NavLink to="/admin/clients" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaUser /> Clients
+                </NavLink>
+            </li>
+            
+            <li className={location.pathname === '/admin/payment' ? 'active' : ''}>
+                <NavLink to="/admin/payment" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaMoneyCheckAlt /> Payment Records
+                </NavLink>
+            </li>
+        
             <li className="section-header">Management</li>
-            <li className={location.pathname === '/menu' ? 'active' : ''}><FaUtensils /> Menu</li>
-            <li className={location.pathname === '/package' ? 'active' : ''}><FaBox /> Packages</li>
-            <li className={location.pathname === '/setup' ? 'active' : ''}><FaMapMarkedAlt /> Venue Setups</li>
-            <li className={location.pathname === '/inventory' ? 'active' : ''}><FaWarehouse /> Inventory</li>
-            <li className={location.pathname === '/staff' ? 'active' : ''}><FaUsersCog /> Staff Management</li>
+            <li className={location.pathname === '/admin/menu' ? 'active' : ''}>
+                <NavLink to="/admin/menu" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaUtensils /> Menu
+                </NavLink>
+            </li>
+            
+            <li className={location.pathname === '/admin/package' ? 'active' : ''}>
+                <NavLink to="/admin/package" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaBox /> Packages
+                </NavLink>
+            </li>
+
+            <li className={location.pathname === '/admin/setup' ? 'active' : ''}>
+                <NavLink to="/admin/setup" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaMapMarkedAlt /> Venue Setups
+                </NavLink>
+            </li>
+            
+            <li className={location.pathname === '/admin/inventory' ? 'active' : ''}>
+                <NavLink to="/admin/inventory" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaWarehouse /> Inventory
+                </NavLink>
+            </li>
+            
+            <li className={location.pathname === '/admin/users' ? 'active' : ''}>
+                <NavLink to="/admin/users" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaUsersCog /> Staff Management
+                </NavLink>
+            </li>
 
             <li className="section-header">System</li>
-            <li className={location.pathname === '/audit' ? 'active' : ''}><FaClipboardList /> Audit Log</li>
+            <li className={location.pathname === '/admin/audit' ? 'active' : ''}>
+                <NavLink to="/admin/audit" className={({ isActive }) => isActive ? 'active' : ''}>
+                    <FaClipboardList /> Audit Log
+                </NavLink>
+            </li>
+            
             <li onClick={handleLogout}><FaSignOutAlt /> Log Out</li>
         </ul>
         </nav>

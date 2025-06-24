@@ -45,7 +45,9 @@
   font-size: 15px;
 }
 .sidebar nav ul li:hover,
-.sidebar nav ul li.active {
+.sidebar nav ul li.active,
+.nav-link,
+.nav-link:hover {
   background-color: #fff176;
 }
 .sidebar nav ul li svg {
@@ -54,6 +56,31 @@
 }
 .sidebar nav ul li:last-child {
   margin-bottom: 20%;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: bold;
+  transition: background 0.3s ease;
+  font-size: 15px;
+  width: 100%;
+}
+.sidebar nav a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.sidebar nav a:visited {
+  color: inherit;
+}
+
+.sidebar nav a.active li {
+  background-color: #fff176;
 }
 .section-header {
   font-size: 12px;

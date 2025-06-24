@@ -2,6 +2,15 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminClients from './pages/admin/AdminClients';
+import AdminBookings from './pages/admin/AdminBookings';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminMenu from './pages/admin/AdminMenu';
+import AdminPackages from './pages/admin/AdminPackages';
+import AdminVenue from './pages/admin/AdminVenue';
+import AdminInventory from './pages/admin/AdminInventory';
+import AdminAudit from './pages/admin/AdminAudit';
 import Login from './pages/Login';
 import Unauthorized from './pages/Unauthorized';
 
@@ -14,10 +23,91 @@ export default function App(){
 
         {/* ADMIN ONLY */}
         <Route
-          path="/admin"
+          path="/admin/dashboard"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminUsers />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/clients"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminClients />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/bookings"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminBookings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/payments"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminPayments />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/menu"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminMenu />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/package"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminPackages />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/setup"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminVenue />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/inventory"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminInventory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/audit"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminAudit />
             </ProtectedRoute>
           }
         />
