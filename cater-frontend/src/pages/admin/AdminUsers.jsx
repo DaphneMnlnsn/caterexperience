@@ -1,14 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './AdminUsers.css';
+import AddUserModal from '../../components/AddUserModal';
+import EditUserModal from '../../components/EditUserModal';
 import Sidebar from '../../components/Sidebar';
+import Swal from 'sweetalert2';
 import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
 
 function AdminUsers() {
-    const staffData = [
-        { name: 'Kiana Landau', contact: '09876524321', role: 'Cook', tasks: 10 },
-        { name: 'Lance Lot', contact: '09876542324', role: 'Head Waiter', tasks: 7 },
-        { name: 'Reggie Estrella', contact: '09328482732', role: 'Stylist', tasks: 6 },
-    ];
+    const [staffData, setStaffData] = React.useState([]);
+    const [showModal, setShowModal] = React.useState(false);
+    const [showEditModal, setShowEditModal] = React.useState(false);
+    const [selectedUser, setSelectedUser] = React.useState(null);
+
+    const handleSaveUser = () => {
+        fetch('http://localhost:8000/api/users')
+            .then(res => res.json())
+            .then(data => {
+            setStaffData(data.users);
+        });
+    };
+
+    useEffect(() => {
+        fetch('http://localhost:8000/api/users')
+            .then(res => res.json())
+            .then(data => {
+                setStaffData(data.users);
+            })
+            .catch(err => console.error('Failed to fetch users:', err));
+    }, []);
+
+    const handleDeleteUser = (user) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `This will permanently delete ${user.first_name} ${user.last_name}.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes, delete it!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+            fetch(`http://localhost:8000/api/users/${user.id}`, {
+                method: 'DELETE',
+            })
+                .then(res => {
+                if (!res.ok) throw new Error('Failed to delete user');
+                return res.json();
+                })
+                .then(() => {
+                Swal.fire('Deleted!', 'User has been deleted.', 'success');
+                setStaffData(prev => prev.filter(u => u.id !== user.id));
+                })
+                .catch(err => {
+                console.error('Delete error:', err);
+                Swal.fire('Error', 'Could not delete user.', 'error');
+                });
+            }
+        });
+    };
+
     return (
         <div className="dashboard-container">
             <Sidebar />
@@ -30,7 +80,7 @@ function AdminUsers() {
                         </div>
                         <div className="spacer" />
                         <div className="button-group">
-                            <button className="add-btn">+ Add New Staff</button>
+                            <button className="add-btn" onClick={() => {setShowModal(true);}}>+ Add New Staff</button>
                             <button className="filter-btn"><FaFilter /></button>
                         </div>
                     </div>
@@ -49,16 +99,19 @@ function AdminUsers() {
                             </tr>
                             </thead>
                             <tbody>
-                                {staffData.map((staff, index) => (
+                                {staffData.map((user, index) => (
                                     <tr key={index}>
-                                        <td>{staff.name}</td>
-                                        <td>{staff.contact}</td>
-                                        <td>{staff.role}</td>
-                                        <td>{staff.tasks}</td>
-                                        <td className="actions">
-                                            <FaPen className="icon edit-icon" />
-                                            <FaTrash className="icon delete-icon" />
-                                        </td>
+                                    <td>{user.first_name} {user.last_name}</td>
+                                    <td>{user.user_phone}</td>
+                                    <td>{user.role}</td>
+                                    <td>{user.tasks || 0}</td>
+                                    <td className="actions">
+                                        <FaPen className="icon edit-icon" onClick={() => {
+                                        setSelectedUser(user);
+                                        setShowEditModal(true);
+                                        }}/>
+                                        <FaTrash className="icon delete-icon" onClick={() => handleDeleteUser(user)} />
+                                    </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -66,6 +119,17 @@ function AdminUsers() {
                     </div>
                 </section>
             </div>
+            <AddUserModal
+            show={showModal}
+            onClose={() => setShowModal(false)}
+            onSave={handleSaveUser}
+            />
+            <EditUserModal
+            show={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onSave={handleSaveUser}
+            user={selectedUser}
+            />
         </div>
     );
 }

@@ -1,0 +1,93 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.3rem;
+  height: 100%;
+  background-color: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal h2{
+    font-size: 20px;
+}
+.modal {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  width: 30%;
+  max-height: 80%;
+  overflow-y: auto;
+  position: relative;
+  font-family: 'Lora', serif;
+}
+
+.modal-close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.add-user-form label {
+  display: block;
+  font-weight: bold;
+  font-size: 14px;
+  margin: 0.8rem 0 0.3rem;
+}
+
+.add-user-form input,
+.add-user-form select {
+  width: 100%;
+  padding: 0.5rem;
+  font-family: 'Lora', serif;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 0.3rem;
+}
+
+.add-user-form input{
+  width: 95%;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancel-btn {
+  background: white;
+  border: 1px solid black;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.save-btn {
+  background-color: #fff176;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.name-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.half {
+  flex: 1;
+}
