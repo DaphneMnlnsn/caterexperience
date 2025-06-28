@@ -24,4 +24,9 @@ class Customer extends Model
     protected $hidden = [
         'customer_password',
     ];
+
+    public function bookings()
+    {
+        return $this->hasMany(EventBooking::class, 'customer_id');
+    }
 }

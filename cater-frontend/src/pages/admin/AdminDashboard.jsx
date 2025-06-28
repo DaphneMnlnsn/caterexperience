@@ -5,6 +5,7 @@ import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
 
 function AdminDashboard() {
+  const user = JSON.parse(localStorage.getItem('user'));
   return (
     <div className="dashboard-container">
       <Sidebar />
@@ -13,7 +14,9 @@ function AdminDashboard() {
         <header className="topbar">
           <div className="topbar-left"></div>
           <div className="topbar-right">
-            <span className="user-name">Jen Tarriela</span>
+            <span className="user-name">
+              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
+            </span>           
             <FaBell className="notif-icon" />
           </div>
         </header>

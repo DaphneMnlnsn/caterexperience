@@ -13,6 +13,7 @@ import AdminInventory from './pages/admin/AdminInventory';
 import AdminAudit from './pages/admin/AdminAudit';
 import Login from './pages/Login';
 import Unauthorized from './pages/Unauthorized';
+import ClientDetails from "./pages/admin/ClientDetails";
 
 export default function App(){
   return(
@@ -45,6 +46,15 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminClients />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/clients/:id"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ClientDetails />
             </ProtectedRoute>
           }
         />

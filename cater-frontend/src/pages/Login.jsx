@@ -37,6 +37,7 @@ function Login() {
                 } else {
                     // Redirect to user/client page
                 }
+                localStorage.setItem('user', JSON.stringify(response.data.user));
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('role', response.data.user.role);
 

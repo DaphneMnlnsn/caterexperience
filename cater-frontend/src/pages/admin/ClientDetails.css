@@ -1,0 +1,188 @@
+.main-content.scrollable {
+  overflow-y: auto;
+  height: 100vh;
+  padding: 1.5rem 2rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.2rem;
+}
+
+.user-name {
+  margin-right: 1rem;
+  font-weight: bold;
+}
+
+.notif-icon {
+  font-size: 20px;
+}
+
+.client-section {
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gray-bg {
+  background-color: #ebebeb;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-btn {
+  background-color: #fff176;
+  font-family: 'Lora', serif;
+  border: 1px solid #ccc;
+  padding: 0.4rem 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.info-grid {
+  margin-top: 1rem;
+  line-height: 1.8;
+}
+
+.credentials-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.reset-btn {
+  background-color: #fff176;
+  font-family: 'Lora', serif;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.total-bookings {
+  font-weight: bold;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.booking-table-wrapper {
+  background-color: white;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.booking-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4%;
+  min-width: 700px;
+}
+
+.booking-table th, .booking-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.booking-table th {
+  background-color: #f8f8f8;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.view-btn {
+  background-color: #fff176;
+  font-family: 'Lora', serif;
+  padding: 0.3rem 0.8rem;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.delete-section {
+  margin-top: 1rem;
+  text-align: center;
+  margin-bottom: 1%;
+}
+
+.delete-btn {
+  background-color: #c62828;
+  color: white;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Lora', serif;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.edit-form {
+  margin-top: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.form-grid input {
+  padding: 0.5rem;
+  font-size: 14px;
+  border-radius: 6px;
+  font-family: 'Lora', serif;
+  border: 1px solid #ccc;
+  margin-top: 0.25rem;
+}
+
+.form-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.save-btn, .cancel-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Lora', serif;
+}
+
+.save-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+}
+
+.cancel-btn {
+  background-color: #f2f2f2;
+  color: #333;
+  border: 1px solid #ccc;
+}

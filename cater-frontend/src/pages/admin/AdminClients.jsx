@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './AdminClients.css';
 import Sidebar from '../../components/Sidebar';
+import { Link } from 'react-router-dom';
 import { FaBell, FaInfoCircle } from 'react-icons/fa';
 
 function AdminClients() {
-    const staffData = [
-        { name: 'Kiana Landau', contact: '09876524321', address: 'Pandi, Bulacan' },
-        { name: 'Lance Lot', contact: '09876542324', address: 'Obando, Bulacan' },
-        { name: 'Reggie Estrella', contact: '09328482732', address: 'Pandi, Bulacan' },
-    ];
+    
+    const [customerData, setCustomerData] = React.useState([]);
+    const user = JSON.parse(localStorage.getItem('user'));
+    const [selectedCustomer, setSelectedCustomer] = React.useState(null);
+
+    useEffect(() => {
+        fetch('http://localhost:8000/api/customers')
+            .then(res => res.json())
+            .then(data => {
+                setCustomerData(data.customers);
+            })
+            .catch(err => console.error('Failed to fetch customers:', err));
+    }, []);
+    
+    
     return (
         <div className="dashboard-container">
             <Sidebar />
@@ -17,7 +28,9 @@ function AdminClients() {
                 <header className="topbar">
                 <div className="topbar-left"></div>
                 <div className="topbar-right">
-                    <span className="user-name">Jen Tarriela</span>
+                    <span className="user-name">
+                        {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
+                    </span>
                     <FaBell className="notif-icon" />
                 </div>
                 </header>
@@ -43,13 +56,15 @@ function AdminClients() {
                             </tr>
                             </thead>
                             <tbody>
-                                {staffData.map((staff, index) => (
+                                {customerData.map((customer, index) => (
                                     <tr key={index}>
-                                        <td>{staff.name}</td>
-                                        <td>{staff.contact}</td>
-                                        <td>{staff.address}</td>
+                                        <td>{customer.customer_firstname} {customer.customer_middlename} {customer.customer_lastname}</td>
+                                        <td>{customer.customer_phone}</td>
+                                        <td>{customer.customer_address}</td>
                                         <td className="actions">
-                                            <FaInfoCircle className="icon edit-icon" />
+                                            <Link to={`/admin/clients/${customer.customer_id}`}>
+                                                <FaInfoCircle className="icon edit-icon" />
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}

@@ -9,6 +9,7 @@ import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
 function AdminUsers() {
     const [staffData, setStaffData] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
+    const user = JSON.parse(localStorage.getItem('user'));
     const [showEditModal, setShowEditModal] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState(null);
 
@@ -67,7 +68,9 @@ function AdminUsers() {
                 <header className="topbar">
                 <div className="topbar-left"></div>
                 <div className="topbar-right">
-                    <span className="user-name">Jen Tarriela</span>
+                    <span className="user-name">
+                        {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
+                    </span>                    
                     <FaBell className="notif-icon" />
                 </div>
                 </header>
