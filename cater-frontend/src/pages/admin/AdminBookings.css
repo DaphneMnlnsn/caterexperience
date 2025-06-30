@@ -1,0 +1,140 @@
+.bookings-bottom {
+  display: flex;
+  gap: 1rem;
+  padding: 2% 0.5%;
+}
+.calendar-section {
+  flex: 2;
+}
+.booking-sidebar {
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  flex: 1;
+  min-width: 30%;
+  overflow-y: auto;
+  transform: translateX(100%);
+  opacity: 0;
+  animation: slideInSidebar 0.3s ease-out forwards;
+}
+
+@keyframes slideInSidebar {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.booking-sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.booking-sidebar li {
+  margin-bottom: 1rem;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  border-left: 4px solid #ffe066;
+  padding: 0.5rem;
+  border-radius: 5px;
+}
+
+.status-badge {
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-badge.pending {
+  background-color: #fff59d;
+}
+
+.status-badge.done {
+  background-color: #a5f5b4;
+}
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+.add-event-btn {
+  width: 100%;
+  font-family: 'Lora', serif;
+  background-color: #fff176;
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.add-event-btn:hover {
+  background-color: #ffe066;
+}
+.clickable-event {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-event:hover {
+  background-color: #f9f1a8;
+}
+.search-box-bookings {
+  margin-bottom: 1rem;
+  position: relative;
+  width: 100%;
+}
+
+.search-box-bookings input {
+  width: 95%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Lora', serif;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 91%;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  z-index: 20;
+  max-height: 200px;
+  overflow-y: auto;
+  border-radius: 0 0 6px 6px;
+  font-size: 14px;
+}
+
+.search-results li {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-results li:hover {
+  background-color: #fff59d;
+}

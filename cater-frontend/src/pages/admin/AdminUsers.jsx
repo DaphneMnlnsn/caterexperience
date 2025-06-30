@@ -12,6 +12,14 @@ function AdminUsers() {
     const user = JSON.parse(localStorage.getItem('user'));
     const [showEditModal, setShowEditModal] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    const formatRole = (role) => {
+        return role
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
 
     const handleSaveUser = () => {
         fetch('http://localhost:8000/api/users')
@@ -29,6 +37,15 @@ function AdminUsers() {
             })
             .catch(err => console.error('Failed to fetch users:', err));
     }, []);
+
+    const filteredUsers = staffData.filter(user => {
+        const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+        return (
+            fullName.includes(searchTerm.toLowerCase()) ||
+            user.user_phone.includes(searchTerm) ||
+            user.role.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
 
     const handleDeleteUser = (user) => {
         Swal.fire({
@@ -79,12 +96,16 @@ function AdminUsers() {
                     <h3>Staff Management</h3>
                     <div className="staff-header-actions">
                         <div className="search-box">
-                            <input type="text" placeholder="🔍 Search" />
+                            <input
+                            type="text"
+                            placeholder="🔍 Search staff by name, phone, or role..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
                         <div className="spacer" />
                         <div className="button-group">
                             <button className="add-btn" onClick={() => {setShowModal(true);}}>+ Add New Staff</button>
-                            <button className="filter-btn"><FaFilter /></button>
                         </div>
                     </div>
                 </section>
@@ -102,11 +123,11 @@ function AdminUsers() {
                             </tr>
                             </thead>
                             <tbody>
-                                {staffData.map((user, index) => (
+                                {filteredUsers.map((user, index) => (
                                     <tr key={index}>
                                     <td>{user.first_name} {user.last_name}</td>
                                     <td>{user.user_phone}</td>
-                                    <td>{user.role}</td>
+                                    <td>{formatRole(user.role)}</td>
                                     <td>{user.tasks || 0}</td>
                                     <td className="actions">
                                         <FaPen className="icon edit-icon" onClick={() => {

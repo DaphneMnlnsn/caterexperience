@@ -1,0 +1,81 @@
+.booking-calendar-container {
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  font-family: 'Lora', serif;
+}
+
+.booking-calendar-title {
+  font-size: 22px;
+  margin-bottom: 0.8rem;
+}
+
+.fc-daygrid-day {
+  cursor: pointer;
+  position: relative;
+}
+
+.day-event-count-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffca28;
+  color: black;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 50%;
+  z-index: 10;
+}
+
+.booking-calendar-container .fc {
+  font-size: 14px;
+}
+
+.booking-calendar-container .fc-toolbar-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.booking-calendar-container .fc-button {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.booking-calendar-container .fc-col-header-cell-cushion {
+  padding: 6px 0;
+  font-weight: bold;
+}
+
+.booking-calendar-container .fc-daygrid-day-number {
+  font-size: 13px;
+  padding-right: 6px;
+}
+
+.booking-calendar-container .fc-event {
+  font-size: 12px;
+  padding: 2px 6px;
+  background-color: #ffe082;
+  border: none;
+  border-radius: 4px;
+  color: #000;
+}
+
+.fc-daygrid-day-frame {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  width: 100%;
+}
+
+.fc-daygrid-day-top {
+  z-index: 2;
+  position: relative;
+}
+
+.fc-daygrid-day-events {
+  flex-grow: 1;
+}

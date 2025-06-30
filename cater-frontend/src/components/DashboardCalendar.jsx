@@ -15,6 +15,11 @@ export default function DashboardCalendar() {
           { title: 'Wedding Booking', date: '2025-06-23' },
           { title: 'Corporate Catering', date: '2025-06-27' },
         ]}
+        headerToolbar={{
+          left: '',
+          center: 'title',
+          right: '',
+        }}
         dayMaxEventRows={2}
       />
     </div>

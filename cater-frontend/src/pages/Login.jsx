@@ -30,7 +30,6 @@ function Login() {
             });
 
             if (response.data.status === 'success') {
-                
                 const user = response.data.user;
                 if (user.role === 'admin') {
                     navigate('/admin/dashboard')

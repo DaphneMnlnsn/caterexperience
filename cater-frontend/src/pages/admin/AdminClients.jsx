@@ -9,6 +9,7 @@ function AdminClients() {
     const [customerData, setCustomerData] = React.useState([]);
     const user = JSON.parse(localStorage.getItem('user'));
     const [selectedCustomer, setSelectedCustomer] = React.useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetch('http://localhost:8000/api/customers')
@@ -19,6 +20,15 @@ function AdminClients() {
             .catch(err => console.error('Failed to fetch customers:', err));
     }, []);
     
+    const filteredCustomers = customerData.filter(customer => {
+        const fullName = `${customer.customer_firstname} ${customer.customer_middlename} ${customer.customer_lastname}`.toLowerCase();
+        return (
+            fullName.includes(searchTerm.toLowerCase()) ||
+            customer.customer_phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.customer_address.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
+
     
     return (
         <div className="dashboard-container">
@@ -39,7 +49,12 @@ function AdminClients() {
                     <h3>Client Management</h3>
                     <div className="client-header-actions">
                         <div className="client-search-box">
-                            <input type="text" placeholder="🔍 Search" />
+                            <input
+                            type="text"
+                            placeholder="🔍 Search client by name, phone, or address..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
                     </div>
                 </section>
@@ -56,7 +71,7 @@ function AdminClients() {
                             </tr>
                             </thead>
                             <tbody>
-                                {customerData.map((customer, index) => (
+                                {filteredCustomers.map((customer, index) => (
                                     <tr key={index}>
                                         <td>{customer.customer_firstname} {customer.customer_middlename} {customer.customer_lastname}</td>
                                         <td>{customer.customer_phone}</td>
