@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AdminBookings.css';
 import Sidebar from '../../components/Sidebar';
@@ -8,10 +8,21 @@ import { FaBell } from 'react-icons/fa';
 function AdminBookings() {
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
+  const [bookingData, setBookingData] = React.useState([]);
+  
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/bookings')
+    .then(res => res.json())
+    .then(data => {
+      setBookingData(data.bookings);
+    })
+    .catch(err => console.error('Failed to fetch bookings:', err));
+  }, []);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -25,45 +36,17 @@ function AdminBookings() {
       return;
     }
 
-    const results = allEvents.filter(event =>
-      event.title.toLowerCase().includes(term) ||
-      event.client.toLowerCase().includes(term) ||
-      event.date.includes(term)
+    const results = bookingData.filter(event =>
+      event.event_name.toLowerCase().includes(term) ||
+      event.customer_name.toLowerCase().includes(term) ||
+      event.event_date.includes(term)
     );
 
     setSearchResults(results);
   };
 
-
-  const allEvents = [
-    {
-      title: "Kate’s Debut",
-      client: "Kate Liang",
-      date: "2025-07-13",
-      time: "4:00am - 8:00pm",
-      venue: "Pavilion",
-      status: "Done"
-    },
-    {
-      title: "Grace & Kurt’s 50th",
-      client: "Grace Judith Papruz",
-      date: "2025-07-20",
-      time: "4:00am - 8:00pm",
-      venue: "Pavilion",
-      status: "Done"
-    },
-    {
-      title: "Lance’s 50th Birthday",
-      client: "Lance Cedric Bulan",
-      date: "2025-07-20",
-      time: "11:00am - 3:00pm",
-      venue: "Pavilion",
-      status: "Pending"
-    },
-  ];
-
   const selectedBookings = selectedDate
-    ? allEvents.filter(e => e.date === selectedDate)
+    ? bookingData.filter(e => e.event_date === selectedDate)
     : [];
 
   return (
@@ -94,11 +77,11 @@ function AdminBookings() {
                 <ul className="search-results">
                   {searchResults.map((result, index) => (
                     <li key={index} onClick={() => {
-                      setSelectedDate(result.date);
+                      setSelectedDate(result.event_date);
                       setSearchResults([]);
                       setSearchTerm('');
                     }}>
-                      <strong>{result.title}</strong> - {result.client} ({result.date})
+                      <strong>{result.event_name}</strong> - {result.customer.customer_firstname} {result.customer.customer_middlename ? result.customer.customer_middlename + ' ' : ''}{result.customer.customer_lastname} ({result.event_date})
                     </li>
                   ))}
                 </ul>
@@ -106,7 +89,7 @@ function AdminBookings() {
             </div>
 
             <BookingCalendar
-              allEvents={allEvents}
+              allEvents={bookingData}
               onDateClick={(dateStr) => {
                 console.log("Clicked date:", dateStr);
                 setSelectedDate(dateStr);
@@ -126,15 +109,15 @@ function AdminBookings() {
               {selectedBookings.length > 0 ? (
                 <ul>
                   {selectedBookings.map((b, index) => (
-                    <li 
+                    <li
                       key={index}
                       className="clickable-event"
                       onClick={() => navigate(`/admin/events/${b.id}`)}>
-                      <strong>{b.title}</strong><br />
-                      Client: {b.client}<br />
-                      Time: {b.time}<br />
-                      Venue: {b.venue}<br />
-                      Status: <span className={`status-badge ${b.status.toLowerCase()}`}>{b.status}</span>
+                      <strong>{b.event_name}</strong><br />
+                      Client: {b.customer.customer_firstname} {b.customer.customer_middlename ? b.customer.customer_middlename + ' ' : ''}{b.customer.customer_lastname}<br />
+                      Time: {b.event_start_time} - {b.event_end_time}<br />
+                      Venue: {b.event_location}<br />
+                      Status: <span className={`status-badge ${b.booking_status.toLowerCase()}`}>{b.booking_status}</span>
                     </li>
                   ))}
                 </ul>

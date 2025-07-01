@@ -33,7 +33,7 @@ return new class extends Migration
             $table->decimal('event_total_price', 10, 2);
             $table->json('price_breakdown')->nullable();
             $table->text('special_request')->nullable();
-            $table->string('booking_status')->default('pending');
+            $table->string('booking_status')->default('Pending');
             
             $table->timestamps();
 

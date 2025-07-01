@@ -9,6 +9,7 @@ export default function BookingCalendar({ onDateClick, allEvents }) {
     <div className="booking-calendar-container">
       <h2 className="booking-calendar-title">Event Calendar</h2>
       <FullCalendar
+        key={allEvents.length}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         height="auto"
@@ -19,7 +20,7 @@ export default function BookingCalendar({ onDateClick, allEvents }) {
         }}
         dayCellDidMount={(arg) => {
           const dateStr = arg.date.toLocaleDateString('en-CA');
-          const count = allEvents.filter(ev => ev.date === dateStr).length;
+          const count = allEvents.filter(ev => ev.event_date === dateStr).length;
 
           if (count > 0) {
             const badge = document.createElement('div');
