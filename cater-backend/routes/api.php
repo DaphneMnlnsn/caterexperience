@@ -20,3 +20,5 @@ Route::get('/customers/{id}', [CustomerController::class, 'indexSelected']);
 Route::put('/customers/{id}', [CustomerController::class, 'update']);
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
 Route::get('/bookings', action: [EventBookingController::class, 'index']);
+Route::get('/bookings/{id}', [EventBookingController::class, 'indexSelected']);
+Route::post('/bookings', [EventBookingController::class, 'store']);

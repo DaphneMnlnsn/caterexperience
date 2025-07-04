@@ -14,6 +14,7 @@ import AdminAudit from './pages/admin/AdminAudit';
 import Login from './pages/Login';
 import Unauthorized from './pages/Unauthorized';
 import ClientDetails from "./pages/admin/ClientDetails";
+import BookingDetails from "./pages/admin/BookingDetails";
 
 export default function App(){
   return(
@@ -64,6 +65,15 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminBookings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/bookings/:id"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <BookingDetails />
             </ProtectedRoute>
           }
         />

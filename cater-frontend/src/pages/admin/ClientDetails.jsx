@@ -215,7 +215,7 @@ function ClientDetails() {
               <table className="booking-table">
                 <thead>
                   <tr>
-                    <th>Event #</th>
+                    <th>Event Name</th>
                     <th>Event Date</th>
                     <th>Event Type</th>
                     <th>Status</th>
@@ -225,10 +225,10 @@ function ClientDetails() {
                 <tbody>
                   {client.bookings.map((event, index) => (
                     <tr key={index}>
-                      <td>{event.event_id || event.id}</td>
+                      <td>{event.event_name}</td>
                       <td>{event.event_date || 'TBD'}</td>
                       <td>{event.event_type}</td>
-                      <td>{event.status}</td>
+                      <td>{event.booking_status}</td>
                       <td><button className="view-btn">View Booking</button></td>
                     </tr>
                   ))}

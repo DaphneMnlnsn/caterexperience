@@ -25,7 +25,8 @@ return new class extends Migration
             $table->time('event_start_time');
             $table->time('event_end_time');
             $table->string('event_location');
-
+            $table->string('event_code')->unique();
+            
             $table->string('celebrant_name')->nullable();
             $table->integer('age')->nullable();
 

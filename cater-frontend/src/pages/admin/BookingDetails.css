@@ -1,0 +1,37 @@
+.venue-preview {
+  background-color: #eee;
+  padding: 2rem;
+  text-align: center;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.payments-info {
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.booking-table-wrapper {
+  overflow-x: auto;
+  background-color: #fff;
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+
+.booking-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.booking-table th,
+.booking-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.booking-table th {
+  background-color: #f8f8f8;
+}

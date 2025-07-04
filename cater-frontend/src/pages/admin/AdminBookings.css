@@ -73,7 +73,19 @@
 .close-btn:hover {
   color: #000;
 }
-
+.event-limit-warning {
+  width: 100%;
+  font-family: 'Lora', serif;
+  background-color: #ffcdd2;
+  color: #b71c1c;
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
 .add-event-btn {
   width: 100%;
   font-family: 'Lora', serif;

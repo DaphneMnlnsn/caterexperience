@@ -104,7 +104,11 @@ function AdminBookings() {
                 <button className="close-btn" onClick={() => setSelectedDate(null)}>×</button>
               </div>
 
-              <button className="add-event-btn">+ Add Event</button>
+              {selectedBookings.length >= 3 ? (
+                <div className="event-limit-warning">⚠ Cannot handle more events on this day</div>
+              ) : (
+                <button className="add-event-btn">+ Add Event</button>
+              )}
 
               {selectedBookings.length > 0 ? (
                 <ul>
@@ -112,7 +116,7 @@ function AdminBookings() {
                     <li
                       key={index}
                       className="clickable-event"
-                      onClick={() => navigate(`/admin/events/${b.id}`)}>
+                      onClick={() => navigate(`/admin/bookings/${b.booking_id}`)}>
                       <strong>{b.event_name}</strong><br />
                       Client: {b.customer.customer_firstname} {b.customer.customer_middlename ? b.customer.customer_middlename + ' ' : ''}{b.customer.customer_lastname}<br />
                       Time: {b.event_start_time} - {b.event_end_time}<br />

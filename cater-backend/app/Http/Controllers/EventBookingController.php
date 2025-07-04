@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EventBooking;
 use Illuminate\Http\Request;
+use App\Models\EventBooking;
+use App\Models\Customer;
+use App\Models\Task;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use App\Models\StaffAssignment;
+use App\Models\Menu;
 
 class EventBookingController extends Controller
 {
@@ -25,7 +32,7 @@ class EventBookingController extends Controller
     }
     public function indexSelected($id)
     {
-        $booking = EventBooking::find($id);
+        $booking = EventBooking::with('customer', 'menu.foods')->find($id);
 
         if (!$booking) {
             return response()->json(['message' => 'Event booking not found'], 404);
@@ -34,5 +41,169 @@ class EventBookingController extends Controller
         return response()->json([
             'booking' => $booking
         ]);
+    }
+    protected function generateAutoTasks($booking, $assignedUserIds, $creatorId)
+    {
+        $users = User::whereIn('id', $assignedUserIds)->get();
+
+        foreach ($users as $user) {
+            switch ($user->role) {
+                case 'admin':
+                    $tasks = [
+                        'Explain Menu and Packages',
+                        'Setup Group Chat',
+                        'Log Downpayment',
+                        'Monitor Event',
+                        'Collect Feedback',
+                    ];
+                    break;
+
+                case 'stylist':
+                    $tasks = [
+                        'Sketch Layout Based on Client Preferences',
+                        'Inventory Check (Stylist)',
+                        'Setup Venue and Send Photo',
+                    ];
+                    break;
+
+                case 'cook':
+                    $tasks = [
+                        'Prepare Food for Event',
+                        'Deliver Food to Venue',
+                    ];
+                    break;
+
+                case 'head waiter':
+                    $tasks = [
+                        'Check Venue Setup',
+                        'Inventory Check (Waiter)',
+                        'Setup Equipment at Venue',
+                        'Serve Food During Event',
+                        'Pack-up Equipment',
+                    ];
+                    break;
+
+                default:
+                    $tasks = [];
+            }
+
+            foreach ($tasks as $title) {
+                Task::create([
+                    'booking_id' => $booking->booking_id,
+                    'assigned_to' => $user->id,
+                    'created_by' => $creatorId,
+                    'title' => $title,
+                    'description' => null,
+                    'status' => 'Pending',
+                    'priority' => 'Normal',
+                    'due_date' => $booking->event_date,
+                    'auto_generated' => true,
+                ]);
+            }
+        }
+    }
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'event_name' => 'required|string',
+            'event_type' => 'nullable|string',
+            'event_date' => 'required|date',
+            'event_start_time' => 'required',
+            'event_end_time' => 'required',
+            'event_location' => 'required|string',
+            'celebrant_name' => 'nullable|string',
+            'age' => 'nullable|integer',
+            'pax' => 'required|integer',
+            'package_id' => 'required|integer',
+            'food_ids' => 'required|array',
+            'food_ids.*' => 'integer|exists:food,food_id',
+            'theme_id' => 'required|integer',
+            'event_total_price' => 'required|numeric',
+            'price_breakdown' => 'required|array',
+            'special_request' => 'nullable|string',
+
+            'customer_email' => 'required|email',
+            'customer_firstname' => 'required|string',
+            'customer_lastname' => 'required|string',
+            'customer_phone' => 'required|string',
+            'customer_address' => 'required|string',
+
+            'assigned_user_ids' => 'required|array',
+            'assigned_user_ids.*' => 'integer',
+
+            'created_by' => 'required|integer|exists:users,id',
+        ]);
+        
+        DB::beginTransaction();
+
+        try {
+
+            $menu = Menu::create([
+                'menu_name' => $validated['event_name'] . ' Menu',
+                'menu_description' => 'Auto-generated menu for this booking',
+                'menu_price' => $validated['event_total_price']
+            ]);
+
+            $menu->foods()->sync($validated['food_ids']);
+
+            $conflict = EventBooking::where('event_date', $validated['event_date'])
+                ->where(function ($q) use ($validated) {
+                    $q->whereBetween('event_start_time', [$validated['event_start_time'], $validated['event_end_time']])
+                    ->orWhereBetween('event_end_time', [$validated['event_start_time'], $validated['event_end_time']]);
+                })->exists();
+
+            if ($conflict) {
+                return response()->json(['message' => 'Time slot not available'], 409);
+            }
+
+            $customer = Customer::firstOrCreate(
+                ['customer_email' => $validated['customer_email']],
+                [
+                    'customer_firstname' => $validated['customer_firstname'],
+                    'customer_lastname' => $validated['customer_lastname'],
+                    'customer_middlename' => $request->customer_middlename,
+                    'customer_password' => Hash::make($validated['customer_lastname'] . '.123'),
+                    'customer_phone' => $validated['customer_phone'],
+                    'customer_address' => $validated['customer_address'],
+                ]
+            );
+
+            $booking = EventBooking::create([
+                'customer_id' => $customer->customer_id,
+                'package_id' => $validated['package_id'],
+                'menu_id' => $menu->menu_id,
+                'theme_id' => $validated['theme_id'],
+                'event_name' => $validated['event_name'],
+                'event_type' => $request->event_type,
+                'event_date' => $validated['event_date'],
+                'event_start_time' => $validated['event_start_time'],
+                'event_end_time' => $validated['event_end_time'],
+                'event_location' => $validated['event_location'],
+                'celebrant_name' => $request->celebrant_name,
+                'age' => $request->age,
+                'pax' => $validated['pax'],
+                'event_total_price' => $validated['event_total_price'],
+                'price_breakdown' => $validated['price_breakdown'],
+                'special_request' => $request->special_request,
+                'booking_status' => 'Pending',
+            ]);
+
+            foreach ($validated['assigned_user_ids'] as $userId) {
+                StaffAssignment::create([
+                    'booking_id' => $booking->booking_id,
+                    'user_id' => $userId
+                ]);
+            }
+
+            $this->generateAutoTasks($booking, $validated['assigned_user_ids'], $validated['created_by']);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Booking and tasks successfully created.', 'booking' => $booking]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Booking creation failed.', 'error' => $e->getMessage()], 500);
+        }
     }
 }
