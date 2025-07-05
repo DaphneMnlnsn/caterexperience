@@ -36,11 +36,21 @@ function AdminBookings() {
       return;
     }
 
-    const results = bookingData.filter(event =>
-      event.event_name.toLowerCase().includes(term) ||
-      event.customer_name.toLowerCase().includes(term) ||
-      event.event_date.includes(term)
-    );
+    const results = bookingData.filter(event => {
+      const title = event.event_name || '';
+      const titleMatch = title.toLowerCase().includes(term);
+
+      const first = event.customer?.customer_firstname || '';
+      const middle = event.customer?.customer_middlename || '';
+      const last = event.customer?.customer_lastname || '';
+      const fullName = `${first} ${middle} ${last}`.trim();
+      const nameMatch = fullName.toLowerCase().includes(term);
+
+      const date = event.event_date || '';
+      const dateMatch = date.includes(term);
+
+      return titleMatch || nameMatch || dateMatch;
+    });
 
     setSearchResults(results);
   };
@@ -107,7 +117,7 @@ function AdminBookings() {
               {selectedBookings.length >= 3 ? (
                 <div className="event-limit-warning">⚠ Cannot handle more events on this day</div>
               ) : (
-                <button className="add-event-btn">+ Add Event</button>
+                <button className="add-event-btn" onClick={() => navigate(`/admin/book`, { state: { eventDate: selectedDate } })}>+ Add Event</button>
               )}
 
               {selectedBookings.length > 0 ? (

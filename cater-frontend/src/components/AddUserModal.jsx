@@ -104,8 +104,8 @@ function AddUserModal({ show, onClose, onSave }) {
           </select>
 
           <div className="modal-buttons">
-            <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-            <button type="submit" className="save-btn">Save</button>
+            <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="submit" className="user-save-btn">Save</button>
           </div>
         </form>
       </div>

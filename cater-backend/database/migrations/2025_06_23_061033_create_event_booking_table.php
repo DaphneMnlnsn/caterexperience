@@ -31,8 +31,10 @@ return new class extends Migration
             $table->integer('age')->nullable();
 
             $table->integer('pax');
+            $table->decimal('downpayment_amount', 10, 2);
             $table->decimal('event_total_price', 10, 2);
             $table->json('price_breakdown')->nullable();
+            $table->text('freebies')->nullable();
             $table->text('special_request')->nullable();
             $table->string('booking_status')->default('Pending');
             
