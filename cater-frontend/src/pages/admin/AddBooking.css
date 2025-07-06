@@ -168,6 +168,15 @@
   margin-right: auto;
 }
 
+.availability {
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+.available { color: green; }
+.conflict { color: red; }
+.error { color: orange; }
+
+
 @media (max-width: 900px) {
   .booking-grid-3,
   .booking-grid-2 {

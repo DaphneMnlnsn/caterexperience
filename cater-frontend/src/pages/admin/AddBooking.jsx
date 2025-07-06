@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './AddBooking.css';
+import Swal from 'sweetalert2';
 import Sidebar from '../../components/Sidebar';
 import AddUserModal from '../../components/AddUserModal';
 import { FaBell } from 'react-icons/fa';
@@ -13,6 +14,12 @@ function AddBooking() {
     const [custSearchTerm, setCustSearchTerm] = useState('');
     const [custResults, setCustResults] = useState([]);
     const [customerPicked, setCustomerPicked] = useState(false);
+    const [packages, setPackages] = useState([]);
+    const [themes, setThemes] = useState([]);
+    const [addons, setAddons] = useState([]);
+    const [foods, setFoods] = useState([]);
+    const [staff, setStaff] = useState([]);
+    const [availabilityStatus, setAvailabilityStatus] = useState(null);
 
     const [bookingData, setBookingData] = useState([]);
     const [form, setForm] = useState({
@@ -30,6 +37,21 @@ function AddBooking() {
     const [customerType, setCustomerType] = useState('Add New Customer');
     const [showAddUser, setShowAddUser] = useState(false);
 
+    const handleStartChange = (e) => {
+        const value = e.target.value;
+        const start = new Date(`2000-01-01T${value}`);
+        
+        const end = new Date(start.getTime() + 4 * 60 * 60 * 1000);
+        const formattedEnd = end.toTimeString().slice(0, 5); // HH:MM
+
+        setForm(prev => ({
+            ...prev,
+            eventStart: value,
+            eventEnd: formattedEnd
+        }));
+    };
+
+
     useEffect(() => {
         fetch('http://localhost:8000/api/bookings')
         .then(res => res.json())
@@ -40,7 +62,75 @@ function AddBooking() {
         .then(res => res.json())
         .then(data => setCustomers(data.customers))
         .catch(err => console.error('Failed to fetch customers:', err));
+
+        fetch('http://localhost:8000/api/packages')
+        .then(res => res.json())
+        .then(data => setPackages(data.packages))
+        .catch(err => console.error('Failed to fetch packages:', err));
+
+        fetch('http://localhost:8000/api/themes')
+        .then(res => res.json())
+        .then(data => setThemes(data.themes))
+        .catch(err => console.error('Failed to fetch themes:', err));
+
+        fetch('http://localhost:8000/api/addons')
+        .then(res => res.json())
+        .then(data => setAddons(data.addons))
+        .catch(err => console.error('Failed to fetch addons:', err));
+
+        fetch('http://localhost:8000/api/foods')
+        .then(res => res.json())
+        .then(data => setFoods(data.foods))
+        .catch(err => console.error('Failed to fetch foods:', err));
+
+        fetch('http://localhost:8000/api/users')
+        .then(res => res.json())
+        .then(data => setStaff(data.users))
+        .catch(err => console.error('Failed to fetch users:', err));
     }, []);
+
+    useEffect(() => {
+        const checkAvailability = async () => {
+            if (!form.eventDate || !form.eventStart || !form.eventEnd) {
+            setAvailabilityStatus(null);
+            return;
+            }
+
+            const start = new Date(`2000-01-01T${form.eventStart}`);
+            const end = new Date(`2000-01-01T${form.eventEnd}`);
+            if (end <= start || (end - start) / (1000 * 60 * 60) < 4) {
+            setAvailabilityStatus(null); // Don't check if logic invalid
+            return;
+            }
+
+            try {
+            const res = await fetch(`http://localhost:8000/api/bookings/check-availability?event_date=${form.eventDate}&event_start_time=${form.eventStart}&event_end_time=${form.eventEnd}`);
+            const data = await res.json();
+            setAvailabilityStatus(data.available ? 'available' : 'conflict');
+            } catch (err) {
+            console.error('Check failed:', err);
+            setAvailabilityStatus('error');
+            }
+        };
+
+        checkAvailability();
+    }, [form.eventDate, form.eventStart, form.eventEnd]);
+
+    useEffect(() => {
+        const start = form.eventStart ? new Date(`2000-01-01T${form.eventStart}`) : null;
+        const end = form.eventEnd ? new Date(`2000-01-01T${form.eventEnd}`) : null;
+
+        if (start && end) {
+            const diffHours = (end - start) / (1000 * 60 * 60);
+
+            if (end <= start) {
+            setAvailabilityStatus('error-start-end'); // new custom status
+            } else if (diffHours < 4) {
+            setAvailabilityStatus('error-duration'); // new custom status
+            }
+        }
+    }, [form.eventStart, form.eventEnd]);
+
 
     const handleCustomerSearch = e => {
         const q = e.target.value.toLowerCase();
@@ -93,6 +183,173 @@ function AddBooking() {
         [name]: type === 'checkbox' ? checked : value
         }));
     };
+
+    const validateForm = () => {
+        const requiredFields = [
+            'firstName', 'lastName', 'email', 'contact', 'address',
+            'eventName', 'eventDate', 'eventStart', 'eventEnd', 'eventLocation',
+            'package', 'motif', 'pax', 'totalPrice'
+        ];
+
+        const missing = requiredFields.filter(field => !form[field] || form[field].trim() === '');
+
+        if (form.eventLocation === 'outside' && !form.customLocation.trim()) {
+            missing.push('customLocation');
+        }
+
+        if (missing.length > 0) {
+            Swal.fire({
+            icon: 'warning',
+            title: 'Missing Fields',
+            text: `Please complete the following fields: ${missing.join(', ')}`,
+            });
+            return false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.email)) {
+            Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Email',
+            text: 'Please enter a valid email address.',
+            });
+            return false;
+        }
+
+        if (isNaN(form.pax) || parseInt(form.pax) <= 0) {
+            Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Pax',
+            text: 'Pax must be a positive number.',
+            });
+            return false;
+        }
+
+        if (isNaN(form.totalPrice) || parseFloat(form.totalPrice) <= 0) {
+            Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Total Price',
+            text: 'Total price must be a positive number.',
+            });
+            return false;
+        }
+
+        if (!form.agree) {
+            Swal.fire({
+            icon: 'warning',
+            title: 'Terms Not Agreed',
+            text: 'You must agree to the Terms and Conditions.',
+            });
+            return false;
+        }
+
+        return true;
+    };
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const assignedUserIds = [];
+
+        if (form.stylist) assignedUserIds.push(parseInt(form.stylist));
+        if (form.cook) assignedUserIds.push(parseInt(form.cook));
+        if (form.headWaiter1) assignedUserIds.push(parseInt(form.headWaiter1));
+        if (form.headWaiter2) assignedUserIds.push(parseInt(form.headWaiter2));
+
+         const foodIds = [
+            form.beef,
+            form.pork,
+            form.chicken,
+            form.vegetables,
+            form.pastaFish,
+            form.dessert,
+        ]
+            .filter(id => id !== '')
+            .map(id => parseInt(id));
+
+        const payload = {
+            event_name: form.eventName,
+            event_type: form.eventType,
+            event_date: form.eventDate,
+            event_start_time: form.eventStart,
+            event_end_time: form.eventEnd,
+            event_location: form.eventLocation === 'outside' ? form.customLocation : form.eventLocation,
+            celebrant_name: form.celebrantName,
+            age: form.ageYear ? parseInt(form.ageYear) : null,
+            pax: parseInt(form.pax),
+            package_id: parseInt(form.package),
+            theme_id: parseInt(form.motif),
+            food_ids: foodIds,
+            event_total_price: parseFloat(form.totalPrice),
+            price_breakdown: {
+            package: form.package,
+            addons: form.addons,
+            freebies: form.freebies
+            },
+            special_request: form.specialRequests,
+
+            customer_email: form.email,
+            customer_firstname: form.firstName,
+            customer_lastname: form.lastName,
+            customer_middlename: form.middleName,
+            customer_phone: form.contact,
+            customer_address: form.address,
+
+            assigned_user_ids: assignedUserIds,
+            created_by: user.id,
+
+            downpayment: parseFloat(form.downpayment),
+        };
+
+        try {
+            if (form.eventStart && form.eventEnd) {
+                const start = new Date(`2000-01-01T${form.eventStart}`);
+                const end = new Date(`2000-01-01T${form.eventEnd}`);
+                const diffHours = (end - start) / (1000 * 60 * 60);
+
+                if (end <= start) {
+                    Swal.fire('Error', 'End time must be after start time.', 'error');
+                    return;
+                }
+
+                if (diffHours < 4) {
+                    Swal.fire('Error', 'Event duration must be at least 4 hours.', 'error');
+                    return;
+                }
+
+                if (availabilityStatus === 'conflict') {
+                    Swal.fire('Error', 'Selected time overlaps with another event.', 'error');
+                    return;
+                }
+            }
+            else{
+                const res = await fetch('http://localhost:8000/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    Swal.fire('Saved!', 'Event successfully booked.', 'success');
+                    navigate('/admin/bookings');
+                } else {
+                    console.error('Error:', result);
+                    Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
+                }    
+            }
+
+            
+        } catch (err) {
+            console.error('Submit error:', err);
+            Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
+        }
+        };
+
 
     return (
         <div className="dashboard-container">
@@ -262,8 +519,9 @@ function AddBooking() {
                                 onChange={handleChange}
                             >
                                 <option value="">Select Venue</option>
-                                <option value="Venue 1">Venue 1</option>
-                                <option value="Venue 2">Venue 2</option>
+                                <option value="Airconditioned Room">Airconditioned Room</option>
+                                <option value="Pavilion">Pavilion</option>
+                                <option value="Pool">Pool</option>
                                 <option value="outside">Outside Location</option>
                             </select>
                         </div>
@@ -290,9 +548,25 @@ function AddBooking() {
                                 id="eventStart"
                                 name="eventStart"
                                 type="time"
+                                min="05:00"
                                 value={form.eventStart}
-                                onChange={handleChange}
+                                onChange={handleStartChange}
                             />
+                            {availabilityStatus === 'available' && (
+                                <div className="availability available">✅ Time slot is available</div>
+                            )}
+                            {availabilityStatus === 'conflict' && (
+                                <div className="availability conflict">❌ Time slot is unavailable or overlaps another event</div>
+                            )}
+                            {availabilityStatus === 'error' && (
+                                <div className="availability error">⚠️ Failed to check availability</div>
+                            )}
+                            {availabilityStatus === 'error-start-end' && (
+                                <div className="availability conflict">❌ End time must be after start time</div>
+                            )}
+                            {availabilityStatus === 'error-duration' && (
+                                <div className="availability conflict">❌ Minimum event duration is 4 hours</div>
+                            )}
                         </div>
 
                         <div className="booking-field-group">
@@ -303,6 +577,7 @@ function AddBooking() {
                                 type="time"
                                 value={form.eventEnd}
                                 onChange={handleChange}
+                                min={form.eventStart}
                             />
                         </div>
 
@@ -339,13 +614,24 @@ function AddBooking() {
                             />
                         </div>
 
-                        <div className="booking-field-group" style={{ gridColumn: '1 / span 3' }}>
+                        <div className="booking-field-group" style={{ gridColumn: '1 / span 2' }}>
                             <label htmlFor="specialRequests" className="booking-field-label">Special Requests</label>
                             <input
                                 id="specialRequests"
                                 name="specialRequests"
                                 placeholder="e.g. vegetarian options, no peanuts"
                                 value={form.specialRequests}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="booking-field-group">
+                            <label htmlFor="pax" className="booking-field-label">Number of Pax</label>
+                            <input
+                                id="pax"
+                                name="pax"
+                                placeholder="e.g. 25"
+                                value={form.pax}
                                 onChange={handleChange}
                             />
                         </div>
@@ -368,8 +654,11 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Package</option>
-                        <option value="Basic">Basic</option>
-                        <option value="Premium">Premium</option>
+                        {packages.map(pkg => (
+                            <option key={pkg.package_id} value={pkg.package_id}>
+                            {pkg.package_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -382,8 +671,11 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Theme</option>
-                        <option value="Classic">Classic</option>
-                        <option value="Modern">Modern</option>
+                        {themes.map(theme => (
+                            <option key={theme.theme_id} value={theme.theme_id}>
+                            {theme.theme_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -396,8 +688,11 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Addon</option>
-                        <option value="Photo Booth">Photo Booth</option>
-                        <option value="Sound System">Sound System</option>
+                        {addons.map(addon => (
+                            <option key={addon.addon_id} value={addon.addon_id}>
+                            {addon.addon_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -419,8 +714,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Beef Dish</option>
-                        <option value="Roast Beef">Roast Beef</option>
-                        <option value="Beef Caldereta">Beef Caldereta</option>
+                        {foods
+                        .filter(f => f.food_type === 'Beef')
+                        .map(beef => (
+                            <option key={beef.food_id} value={beef.food_id}>
+                                {beef.food_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -433,8 +733,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Pork Dish</option>
-                        <option value="Lechon">Lechon</option>
-                        <option value="Pork BBQ">Pork BBQ</option>
+                        {foods
+                        .filter(f => f.food_type === 'Pork')
+                        .map(pork => (
+                            <option key={pork.food_id} value={pork.food_id}>
+                                {pork.food_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -447,8 +752,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Chicken Dish</option>
-                        <option value="Fried Chicken">Fried Chicken</option>
-                        <option value="Chicken Curry">Chicken Curry</option>
+                        {foods
+                        .filter(f => f.food_type === 'Chicken')
+                        .map(chicken => (
+                            <option key={chicken.food_id} value={chicken.food_id}>
+                                {chicken.food_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -461,8 +771,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Veg Dish</option>
-                        <option value="Chopsuey">Chopsuey</option>
-                        <option value="Pinakbet">Pinakbet</option>
+                        {foods
+                        .filter(f => f.food_type === 'Vegetables')
+                        .map(veg => (
+                            <option key={veg.food_id} value={veg.food_id}>
+                                {veg.food_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -475,8 +790,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Pasta/Fish</option>
-                        <option value="Spaghetti">Spaghetti</option>
-                        <option value="Fish Fillet">Fish Fillet</option>
+                        {foods
+                        .filter(f => f.food_type === 'Pasta or Fish')
+                        .map(pf => (
+                            <option key={pf.food_id} value={pf.food_id}>
+                                {pf.food_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -489,8 +809,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Dessert</option>
-                        <option value="Leche Flan">Leche Flan</option>
-                        <option value="Fruit Salad">Fruit Salad</option>
+                        {foods
+                        .filter(f => f.food_type === 'Dessert')
+                        .map(dessert => (
+                            <option key={dessert.food_id} value={dessert.food_id}>
+                                {dessert.food_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -556,8 +881,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Stylist</option>
-                        <option value="Stylist 1">Stylist 1</option>
-                        <option value="Stylist 2">Stylist 2</option>
+                        {staff
+                        .filter(s => s.role === 'stylist')
+                        .map(stylist => (
+                            <option key={stylist.id} value={stylist.id}>
+                                {stylist.first_name}{stylist.middle_name ? stylist.middle_name + ' ' : ''} {stylist.last_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -570,8 +900,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Waiter</option>
-                        <option value="Waiter 1">Waiter 1</option>
-                        <option value="Waiter 2">Waiter 2</option>
+                        {staff
+                        .filter(s => s.role === 'head waiter' && s.id !== parseInt(form.headWaiter2))
+                        .map(waiter => (
+                            <option key={waiter.id} value={waiter.id}>
+                                {waiter.first_name}{waiter.middle_name ? waiter.middle_name + ' ' : ''} {waiter.last_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -584,8 +919,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Cook</option>
-                        <option value="Cook 1">Cook 1</option>
-                        <option value="Cook 2">Cook 2</option>
+                        {staff
+                        .filter(s => s.role === 'cook')
+                        .map(cook => (
+                            <option key={cook.id} value={cook.id}>
+                                {cook.first_name} {cook.middle_name ? cook.middle_name + ' ' : ''}{cook.last_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -598,8 +938,13 @@ function AddBooking() {
                         onChange={handleChange}
                     >
                         <option value="">Select Waiter</option>
-                        <option value="Waiter 3">Waiter 3</option>
-                        <option value="Waiter 4">Waiter 4</option>
+                        {staff
+                        .filter(s => s.role === 'head waiter' && s.id !== parseInt(form.headWaiter1))
+                        .map(waiter => (
+                            <option key={waiter.id} value={waiter.id}>
+                                {waiter.first_name}{waiter.middle_name ? waiter.middle_name + ' ' : ''} {waiter.last_name}
+                            </option>
+                        ))}
                     </select>
                     </div>
 
@@ -621,7 +966,7 @@ function AddBooking() {
 
                 {/* Buttons */}
                 <div className="button-row">
-                <button className="submit-btn" type="submit">Schedule Booking</button>
+                <button className="submit-btn" type="submit" onClick={handleSubmit}>Schedule Booking</button>
                 <button className="cancel-btn" type="button" onClick={() => navigate(-1)}>Cancel</button>
                 </div>
 

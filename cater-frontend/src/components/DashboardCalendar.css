@@ -43,3 +43,9 @@
 .calendar-container .fc {
   max-width: 100%;
 }
+.event-badge {
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 300;
+  cursor: pointer;
+}

@@ -1,11 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
 import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
+import axios from 'axios';
 
 function AdminDashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
+
+  const [stats, setStats] = useState({
+    total_events: 0,
+    pending_bookings: 0,
+    pending_payments: 0,
+    staff_tasks: 0,
+  });
+
+  const [auditLog, setAuditLog] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/dashboard/stats')
+      .then(res => setStats(res.data))
+      .catch(err => console.error('Error fetching stats', err));
+
+    axios.get('http://localhost:8000/api/dashboard/audit-log')
+      .then(res => setAuditLog(res.data))
+      .catch(err => console.error('Error fetching audit log', err));
+  }, []);
+
   return (
     <div className="dashboard-container">
       <Sidebar />
@@ -16,19 +37,19 @@ function AdminDashboard() {
           <div className="topbar-right">
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>           
+            </span>
             <FaBell className="notif-icon" />
           </div>
         </header>
 
         <section className="welcome-section">
-          <h3>Welcome, Jen!</h3>
+          <h3>Welcome, {user ? user.first_name : 'User'}!</h3>
           <p>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           <div className="stats">
-            <div className="stat-box">Total of Events <span>2</span></div>
-            <div className="stat-box">Pending Booking <span>2</span></div>
-            <div className="stat-box">Pending Payments <span>2</span></div>
-            <div className="stat-box">Staff To-Do Tasks <span>2</span></div>
+            <div className="stat-box">Total of Events <span>{stats.total_events}</span></div>
+            <div className="stat-box">Pending Booking <span>{stats.pending_bookings}</span></div>
+            <div className="stat-box">Pending Payments <span>{stats.pending_payments}</span></div>
+            <div className="stat-box">Staff To-Do Tasks <span>{stats.staff_tasks}</span></div>
           </div>
         </section>
 
@@ -40,9 +61,9 @@ function AdminDashboard() {
           <aside className="audit-log">
             <h3>Audit Log</h3>
             <ul>
-              {Array.from({ length: 10 }, (_, i) => (
-                <li key={i}>
-                  Staff {i + 1} <span>finished a task</span>
+              {auditLog.map((log, index) => (
+                <li key={index}>
+                  {log.user_name} <span>{log.details ?? log.action}</span>
                 </li>
               ))}
             </ul>

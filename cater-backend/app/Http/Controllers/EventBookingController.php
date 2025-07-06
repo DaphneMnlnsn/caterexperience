@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Models\EventBooking;
 use App\Models\Customer;
+use App\Models\Payment;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,15 @@ use App\Models\Menu;
 
 class EventBookingController extends Controller
 {
+    public function calendarEvents()
+    {
+        $events = EventBooking::select('booking_id', 'event_name as title', 'event_date as date')
+            ->where('event_date', '>=', now())
+            ->get();
+
+        return response()->json($events);
+    }
+
     public function index(Request $request)
     {
         $bookings = EventBooking::with('customer')
@@ -197,6 +208,20 @@ class EventBookingController extends Controller
 
             $this->generateAutoTasks($booking, $validated['assigned_user_ids'], $validated['created_by']);
 
+            if ($request->filled('downpayment') && $request->downpayment > 0) {
+                Payment::create([
+                    'booking_id' => $booking->booking_id,
+                    'amount_paid' => $request->downpayment,
+                    'payment_method' => 'Cash',
+                    'payment_date' => now(),
+                    'payment_status' => 'Completed',
+                    'remarks' => 'Downpayment',
+                    'cash_given' => $request->downpayment,
+                    'change_given' => 0,
+                    'proof_image' => null,
+                ]);
+            }
+
             DB::commit();
 
             return response()->json(['message' => 'Booking and tasks successfully created.', 'booking' => $booking]);
@@ -206,4 +231,30 @@ class EventBookingController extends Controller
             return response()->json(['message' => 'Booking creation failed.', 'error' => $e->getMessage()], 500);
         }
     }
+    public function checkAvailability(Request $request)
+    {
+        $eventDate = $request->input('event_date');
+
+        $proposedStart = Carbon::parse($request->input('event_start_time'))->subHours(2);
+        $proposedEnd = Carbon::parse($request->input('event_end_time'));
+
+        $conflicts = EventBooking::where('event_date', $eventDate)
+            ->where(function ($query) use ($proposedStart, $proposedEnd) {
+                $query->where(function ($q) use ($proposedStart, $proposedEnd) {
+                    $q->whereRaw("ADDTIME(event_start_time, '-02:00:00') < ?", [$proposedEnd])
+                    ->whereRaw("event_end_time > ?", [$proposedStart]);
+                });
+            })
+            ->get();
+
+        if ($conflicts->isNotEmpty()) {
+            return response()->json([
+                'available' => false,
+                'conflicting_bookings' => $conflicts
+            ]);
+        }
+
+        return response()->json(['available' => true]);
+    }
+
 }

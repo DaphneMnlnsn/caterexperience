@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { useParams } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
+import TaskBoard from '../../components/TaskBoard';
+import VenuePreview from '../../components/VenuePreview';
 import './BookingDetails.css';
 
 function BookingDetails() {
@@ -23,14 +25,27 @@ function BookingDetails() {
   };
 
   const handleSave = () => {
-    // save
     setIsEditing(false);
   };
 
   const handleAddPayment = () => {
-    // modal for payment
     alert('Add payment clicked');
   };
+
+  const handleFinish = () => {
+    fetch(`http://localhost:8000/api/bookings/${id}/finish`, {
+      method: 'POST'
+    })
+    .then(res => {
+      if (!res.ok) throw new Error();
+      return res.json();
+    })
+    .then(() => {
+      setBooking(b => ({ ...b, status: 'finished' }));
+    })
+    .catch(() => alert('Unable to mark event as finished.'));
+  };
+
 
   if (!booking) return <div>Loading...</div>;
 
@@ -50,40 +65,66 @@ function BookingDetails() {
         <div className="section white-bg">
           <div className="section-title">
             <h3>Event Details</h3>
-            {!isEditing && <button onClick={handleEdit} className="edit-btn">Edit Details</button>}
+            <div className="action-buttons">
+              {!isEditing && (
+                <>
+                  <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
+                  <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>
+                </>
+              )}
+            </div>
+
             {isEditing && <button onClick={handleSave} className="save-btn">Save</button>}
           </div>
           <div className="info-grid">
-            <p><strong>Client Name:</strong> {booking.customer_firstname} {booking.customer_middlename} {booking.customer_lastname}</p>
-            <p><strong>Event Location:</strong> {booking.event_location}</p>
-            <p><strong>Event Type:</strong> {booking.event_type}</p>
-            <p><strong>Event Schedule:</strong> {/*booking.schedule*/}</p>
-            <p><strong>Assigned Staff:</strong> Cook - {/*booking.staff.cook*/}, Stylist - {/*booking.staff.stylist*/}</p>
+            <div><span>Client Name:</span><span>{booking.customer_firstname} {booking.customer_middlename} {booking.customer_lastname}</span></div>
+            <div><span>Client Address:</span><span>{booking.customer_address}</span></div>
+            <div><span>Client Contact Number:</span><span>{booking.customer_contact_number}</span></div>
+            <div><span>Event Location:</span><span>{booking.event_location}</span></div>
+            <div><span>Event Type:</span><span>{booking.event_type}</span></div>
+            <div><span>Event Schedule:</span><span>{new Date(booking.event_start).toLocaleString()} - {new Date(booking.event_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+            <div><span>Celebrant Name:</span><span>{booking.celebrant_name}</span></div>
+            <div><span>Celebrant Age:</span><span>{booking.celebrant_age}</span></div>
+            <div><span>Bantay:</span><span>{booking.bantay}</span></div>
+            <div><span>Cook:</span><span>{booking.staffs?.cook?.join(', ')}</span></div>
+            <div><span>Stylist:</span><span>{booking.staffs?.stylist?.join(', ')}</span></div>
+            <div><span>Head Waiters:</span><span>{booking.staffs?.head_waiter?.join(', ')}</span></div>
+            <div><span>Number of Waiters:</span><span>{booking.num_waiters}</span></div>
+            <div><span>Event Notes:</span><span>{booking.event_notes || "N/A"}</span></div>
           </div>
         </div>
+
+        <hr className="booking-section-divider" />
 
         {/* Menu & Packages */}
         <div className="section white-bg">
           <h3>Menu & Packages</h3>
-          <p><strong>Package:</strong> {/*booking.package.name*/}</p>
-          <p><strong>Theme:</strong> {/*booking.package.theme*/}</p>
-          <p><strong>Menu:</strong> {/*booking.package.menu.join(', ')*/}</p>
+          <p><strong>Package:</strong> {booking.package?.name} - {booking.package?.pax} pax</p>
+          <p><strong>Theme:</strong> {booking.theme?.name}</p>
+          <p><strong>Menu:</strong> {
+            Array.isArray(booking.menu)
+              ? booking.menu.map(item => item.food_name).join(', ')
+              : 'N/A'
+          }</p>
         </div>
 
-        {/* Task Board Placeholder */}
+        <hr className="booking-section-divider" />
+
+        {/* Task Board */}
         <div className="section black-bg">
           <h3>Task Board</h3>
-          <p style={{ color: '#ccc' }}>[Task board here]</p>
+          <TaskBoard tasks={booking.tasks || []} />
         </div>
+
+        <hr className="booking-section-divider" />
 
         {/* Venue Design Preview */}
         <div className="section white-bg">
           <h3>Venue Design</h3>
-          <div className="venue-preview">
-            [Preview here]
-            <button className="edit-btn">Edit 2D Design</button>
-          </div>
+          <VenuePreview imagePath={booking.venue_design_image} />
         </div>
+
+        <hr className="booking-section-divider" />
 
         {/* Payments Table */}
         <div className="section white-bg">
@@ -93,8 +134,8 @@ function BookingDetails() {
           </div>
 
           <div className="payments-info">
-            <p><strong>Down payment:</strong> Php {/*booking.down_payment.toLocaleString()*/}.00</p>
-            <p><strong>Remaining Balance:</strong> Php {/*booking.remaining_balance.toLocaleString()*/}.00</p>
+            <p><strong>Down payment:</strong> Php {parseFloat(booking.down_payment).toLocaleString()}.00</p>
+            <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.total_amount) - parseFloat(booking.amount_paid)).toLocaleString()}.00</p>
           </div>
 
           <div className="booking-table-wrapper">
@@ -109,20 +150,19 @@ function BookingDetails() {
                 </tr>
               </thead>
               <tbody>
-                {/*booking.payments.map((payment, index) => (
+                {booking.payments?.map((payment, index) => (
                   <tr key={index}>
                     <td>{payment.reference_no}</td>
                     <td>{parseFloat(payment.amount).toLocaleString()}</td>
-                    <td>{payment.date}</td>
+                    <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
                     <td>{payment.method}</td>
                     <td><i className="fa fa-receipt"></i></td>
                   </tr>
-                ))*/}
+                ))}
               </tbody>
             </table>
           </div>
         </div>
-
       </div>
     </div>
   );
