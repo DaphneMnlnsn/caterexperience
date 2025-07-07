@@ -25,7 +25,7 @@ function AddBooking() {
     const [form, setForm] = useState({
         firstName: '', middleName: '', lastName: '', email: '', address: '', contact: '',
         eventName: '', eventType: '', eventDate: location.state?.eventDate || '', eventLocation: '', eventStart: '', eventEnd: '',
-        celebrantName: '', ageYear: '', guardName: '',
+        celebrantName: '', ageYear: '', watcher: '', pax: '', waiters: '',
         package: '', motif: '', addons: '',
         beef: '', pork: '', chicken: '', vegetables: '', pastaFish: '', dessert: '',
         downpayment: '', totalPrice: '', specialRequests: '', freebies: '',
@@ -33,9 +33,6 @@ function AddBooking() {
         customLocation: '',
         agree: false,
     });
-
-    const [customerType, setCustomerType] = useState('Add New Customer');
-    const [showAddUser, setShowAddUser] = useState(false);
 
     const handleStartChange = (e) => {
         const value = e.target.value;
@@ -188,7 +185,7 @@ function AddBooking() {
         const requiredFields = [
             'firstName', 'lastName', 'email', 'contact', 'address',
             'eventName', 'eventDate', 'eventStart', 'eventEnd', 'eventLocation',
-            'package', 'motif', 'pax', 'totalPrice'
+            'package', 'motif', 'pax', 'watcher', 'waiters', 'totalPrice'
         ];
 
         const missing = requiredFields.filter(field => !form[field] || form[field].trim() === '');
@@ -250,6 +247,8 @@ function AddBooking() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!validateForm()) return;
+
         const assignedUserIds = [];
 
         if (form.stylist) assignedUserIds.push(parseInt(form.stylist));
@@ -257,16 +256,10 @@ function AddBooking() {
         if (form.headWaiter1) assignedUserIds.push(parseInt(form.headWaiter1));
         if (form.headWaiter2) assignedUserIds.push(parseInt(form.headWaiter2));
 
-         const foodIds = [
-            form.beef,
-            form.pork,
-            form.chicken,
-            form.vegetables,
-            form.pastaFish,
-            form.dessert,
-        ]
-            .filter(id => id !== '')
-            .map(id => parseInt(id));
+        const foodIds = [
+            form.beef, form.pork, form.chicken,
+            form.vegetables, form.pastaFish, form.dessert,
+        ].filter(id => id !== '').map(id => parseInt(id));
 
         const payload = {
             event_name: form.eventName,
@@ -277,79 +270,74 @@ function AddBooking() {
             event_location: form.eventLocation === 'outside' ? form.customLocation : form.eventLocation,
             celebrant_name: form.celebrantName,
             age: form.ageYear ? parseInt(form.ageYear) : null,
+            watcher: form.watcher,
+            waiter_count: parseInt(form.waiters),
             pax: parseInt(form.pax),
             package_id: parseInt(form.package),
             theme_id: parseInt(form.motif),
             food_ids: foodIds,
             event_total_price: parseFloat(form.totalPrice),
             price_breakdown: {
-            package: form.package,
-            addons: form.addons,
-            freebies: form.freebies
+                package: form.package,
+                addons: form.addons,
             },
+            freebies: form.freebies,
             special_request: form.specialRequests,
-
             customer_email: form.email,
             customer_firstname: form.firstName,
             customer_lastname: form.lastName,
             customer_middlename: form.middleName,
             customer_phone: form.contact,
             customer_address: form.address,
-
             assigned_user_ids: assignedUserIds,
             created_by: user.id,
-
             downpayment: parseFloat(form.downpayment),
         };
 
-        try {
-            if (form.eventStart && form.eventEnd) {
-                const start = new Date(`2000-01-01T${form.eventStart}`);
-                const end = new Date(`2000-01-01T${form.eventEnd}`);
-                const diffHours = (end - start) / (1000 * 60 * 60);
+        if (form.eventStart && form.eventEnd) {
+            const start = new Date(`2000-01-01T${form.eventStart}`);
+            const end = new Date(`2000-01-01T${form.eventEnd}`);
+            const diffHours = (end - start) / (1000 * 60 * 60);
 
-                if (end <= start) {
-                    Swal.fire('Error', 'End time must be after start time.', 'error');
-                    return;
-                }
-
-                if (diffHours < 4) {
-                    Swal.fire('Error', 'Event duration must be at least 4 hours.', 'error');
-                    return;
-                }
-
-                if (availabilityStatus === 'conflict') {
-                    Swal.fire('Error', 'Selected time overlaps with another event.', 'error');
-                    return;
-                }
+            if (end <= start) {
+                Swal.fire('Error', 'End time must be after start time.', 'error');
+                return;
             }
-            else{
-                const res = await fetch('http://localhost:8000/api/bookings', {
+
+            if (diffHours < 4) {
+                Swal.fire('Error', 'Event duration must be at least 4 hours.', 'error');
+                return;
+            }
+
+            if (availabilityStatus === 'conflict') {
+                Swal.fire('Error', 'Selected time overlaps with another event.', 'error');
+                return;
+            }
+        }
+
+        try {
+            const res = await fetch('http://localhost:8000/api/bookings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload)
-                });
+            });
 
-                const result = await res.json();
+            const result = await res.json();
 
-                if (res.ok) {
-                    Swal.fire('Saved!', 'Event successfully booked.', 'success');
-                    navigate('/admin/bookings');
-                } else {
-                    console.error('Error:', result);
-                    Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
-                }    
+            if (res.ok) {
+                Swal.fire('Saved!', 'Event successfully booked.', 'success');
+                navigate('/admin/bookings');
+            } else {
+                console.error('Error:', result);
+                Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
             }
-
-            
         } catch (err) {
             console.error('Submit error:', err);
             Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
         }
-        };
-
+    };
 
     return (
         <div className="dashboard-container">
@@ -604,17 +592,17 @@ function AddBooking() {
                         </div>
 
                         <div className="booking-field-group">
-                            <label htmlFor="guardName" className="booking-field-label">Name of Guard/Bantay</label>
+                            <label htmlFor="watcher" className="booking-field-label">Name of Watcher/Bantay</label>
                             <input
-                                id="guardName"
-                                name="guardName"
-                                placeholder="Guard Name"
-                                value={form.guardName}
+                                id="watcher"
+                                name="watcher"
+                                placeholder="Watcher Name"
+                                value={form.watcher}
                                 onChange={handleChange}
                             />
                         </div>
 
-                        <div className="booking-field-group" style={{ gridColumn: '1 / span 2' }}>
+                        <div className="booking-field-group">
                             <label htmlFor="specialRequests" className="booking-field-label">Special Requests</label>
                             <input
                                 id="specialRequests"
@@ -632,6 +620,17 @@ function AddBooking() {
                                 name="pax"
                                 placeholder="e.g. 25"
                                 value={form.pax}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="booking-field-group">
+                            <label htmlFor="waiters" className="booking-field-label">Number of Waiters</label>
+                            <input
+                                id="waiters"
+                                name="waiters"
+                                placeholder="e.g. 5"
+                                value={form.waiters}
                                 onChange={handleChange}
                             />
                         </div>

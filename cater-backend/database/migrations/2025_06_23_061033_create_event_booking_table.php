@@ -28,7 +28,9 @@ return new class extends Migration
             $table->string('event_code')->unique();
             
             $table->string('celebrant_name')->nullable();
-            $table->integer('age')->nullable();
+            $table->integer(column: 'age')->nullable();
+            $table->integer(column: 'watcher')->nullable();
+            $table->integer(column: 'waiter_count')->nullable();
 
             $table->integer('pax');
             $table->decimal('downpayment_amount', 10, 2);

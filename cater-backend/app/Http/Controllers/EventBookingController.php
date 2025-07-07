@@ -43,7 +43,16 @@ class EventBookingController extends Controller
     }
     public function indexSelected($id)
     {
-        $booking = EventBooking::with('customer', 'menu.foods')->find($id);
+        $booking = EventBooking::with([
+            'customer',
+            'menu.foods',
+            'package',
+            'theme',
+            'staffAssignments.user',
+            'tasks',
+            'payments'
+        ])->find($id);
+
 
         if (!$booking) {
             return response()->json(['message' => 'Event booking not found'], 404);
@@ -124,6 +133,8 @@ class EventBookingController extends Controller
             'event_location' => 'required|string',
             'celebrant_name' => 'nullable|string',
             'age' => 'nullable|integer',
+            'watcher' => 'required|string',
+            'waiter_count' => 'required|integer',
             'pax' => 'required|integer',
             'package_id' => 'required|integer',
             'food_ids' => 'required|array',
@@ -131,6 +142,7 @@ class EventBookingController extends Controller
             'theme_id' => 'required|integer',
             'event_total_price' => 'required|numeric',
             'price_breakdown' => 'required|array',
+            'freebies' => 'nullable|string',
             'special_request' => 'nullable|string',
 
             'customer_email' => 'required|email',
@@ -192,9 +204,12 @@ class EventBookingController extends Controller
                 'event_location' => $validated['event_location'],
                 'celebrant_name' => $request->celebrant_name,
                 'age' => $request->age,
+                'watcher' => $validated['watcher'],
+                'waiter_count' => $validated['waiter_count'],
                 'pax' => $validated['pax'],
                 'event_total_price' => $validated['event_total_price'],
-                'price_breakdown' => $validated['price_breakdown'],
+                'price_breakdown' => json_encode($validated['price_breakdown']),
+                'freebies' => $request->freebies,
                 'special_request' => $request->special_request,
                 'booking_status' => 'Pending',
             ]);

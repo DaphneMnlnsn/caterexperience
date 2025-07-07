@@ -24,9 +24,12 @@ class EventBooking extends Model
         'event_code',
         'celebrant_name',
         'age',
+        'watcher',
+        'waiter_count',
         'pax',
         'event_total_price',
         'price_breakdown',
+        'freebies',
         'special_request',
         'booking_status',
     ];
@@ -52,7 +55,16 @@ class EventBooking extends Model
     }
     public function staffAssignments()
     {
-        return $this->hasMany(StaffAssignment::class, 'booking_id', 'booking_id');
+        return $this->hasMany(StaffAssignment::class, 'booking_id', 'booking_id')->with('user');
+    }
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'booking_id', 'booking_id');
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'booking_id', 'booking_id');
     }
 
     protected static function generateReadableCode($length = 6)
