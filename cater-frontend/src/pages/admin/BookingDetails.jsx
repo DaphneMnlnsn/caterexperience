@@ -6,8 +6,10 @@ import Swal from 'sweetalert2';
 import TaskBoard from '../../components/TaskBoard';
 import VenuePreview from '../../components/VenuePreview';
 import './BookingDetails.css';
+import axiosClient from '../../axiosClient';
 
 function BookingDetails() {
+
   const { id } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
   const [booking, setBooking] = useState(null);
@@ -16,14 +18,16 @@ function BookingDetails() {
   const [foods, setFoods] = useState([]);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/bookings/${id}`)
-    .then(res => res.json())
-    .then(data => {console.log("RAW BOOKING RESPONSE:", data);setBooking(mapBookingData(data.booking))});
+    axiosClient.get(`/bookings/${id}`)
+    .then(res => {
+      setBooking(mapBookingData(res.data.booking));
+    });
 
-    fetch('http://localhost:8000/api/foods')
-      .then(res => res.json())
-      .then(data => setFoods(data.foods))
-      .catch(err => console.error('Failed to fetch foods:', err));
+    axiosClient.get('/foods')
+    .then(res => {
+      setFoods(res.data.foods);
+    })
+    .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
   }, [id]);
 
   function mapBookingData(raw) {
@@ -107,31 +111,26 @@ function BookingDetails() {
     })
     .filter(Boolean);
 
-    fetch(`http://localhost:8000/api/bookings/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event_name: editedData.event_name,
-        event_location: editedData.event_location === 'outside' ? editedData.custom_location : editedData.event_location,
-        event_type: editedData.event_type,
-        celebrant_name: editedData.celebrant_name,
-        age: editedData.age,
-        watcher: editedData.bantay,
-        special_request: editedData.special_request,
-        food_names: selectedFoodNames
-      }),
+    axiosClient.put(`/bookings/${id}`, {
+      event_name: editedData.event_name,
+      event_location: editedData.event_location === 'outside' ? editedData.custom_location : editedData.event_location,
+      event_type: editedData.event_type,
+      celebrant_name: editedData.celebrant_name,
+      age: editedData.age,
+      watcher: editedData.bantay,
+      special_request: editedData.special_request,
+      food_names: selectedFoodNames
     })
-      .then(res => res.json())
-      .then(data => {
-        Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
-          setIsEditing(false);
-          window.location.reload();
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        Swal.fire('Error', 'Could not save changes.', 'error');
+    .then(res => {
+      Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
+        setIsEditing(false);
+        window.location.reload();
       });
+    })
+    .catch(err => {
+      console.error(err.response?.data || err.message);
+      Swal.fire('Error', 'Could not save changes.', 'error');
+    });
   };
 
   const handleAddPayment = () => {
@@ -149,20 +148,14 @@ function BookingDetails() {
       confirmButtonText: 'Yes, finish it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/bookings/${id}/finish`, {
-          method: 'POST'
-        })
-        .then(res => {
-          if (!res.ok) throw new Error();
-          return res.json();
-        })
+        axiosClient.post(`/bookings/${id}/finish`)
         .then(() => {
-          Swal.fire('Marked as Done!', 'Event finished.', 'success').then(() =>{
+          Swal.fire('Marked as Done!', 'Event finished.', 'success').then(() => {
             window.location.reload();
           });
         })
         .catch(err => {
-          console.error('Update error:', err);
+          console.error('Update error:', err.response?.data || err.message);
           Swal.fire('Error', 'Could not update client.', 'error');
         });
       }

@@ -4,10 +4,13 @@ import './AddBooking.css';
 import Swal from 'sweetalert2';
 import Sidebar from '../../components/Sidebar';
 import AddUserModal from '../../components/AddUserModal';
+import axiosClient from '../../axiosClient';
 import { FaBell } from 'react-icons/fa';
 
 function AddBooking() {
+    const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user'));
+
     const navigate = useNavigate();
     const location = useLocation();
     const [customers, setCustomers] = useState([]);
@@ -50,40 +53,33 @@ function AddBooking() {
 
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/bookings')
-        .then(res => res.json())
-        .then(data => setBookingData(data.bookings))
-        .catch(err => console.error('Failed to fetch bookings:', err));
+        axiosClient.get('/bookings')
+        .then(res => setBookingData(res.data.bookings))
+        .catch(err => console.error('Failed to fetch bookings:', err.response?.data || err.message));
 
-        fetch('http://localhost:8000/api/customers')
-        .then(res => res.json())
-        .then(data => setCustomers(data.customers))
-        .catch(err => console.error('Failed to fetch customers:', err));
+        axiosClient.get('/customers')
+        .then(res => setCustomers(res.data.customers))
+        .catch(err => console.error('Failed to fetch customers:', err.response?.data || err.message));
 
-        fetch('http://localhost:8000/api/packages')
-        .then(res => res.json())
-        .then(data => setPackages(data.packages))
-        .catch(err => console.error('Failed to fetch packages:', err));
+        axiosClient.get('/packages')
+        .then(res => setPackages(res.data.packages))
+        .catch(err => console.error('Failed to fetch packages:', err.response?.data || err.message));
 
-        fetch('http://localhost:8000/api/themes')
-        .then(res => res.json())
-        .then(data => setThemes(data.themes))
-        .catch(err => console.error('Failed to fetch themes:', err));
+        axiosClient.get('/themes')
+        .then(res => setThemes(res.data.themes))
+        .catch(err => console.error('Failed to fetch themes:', err.response?.data || err.message));
 
-        fetch('http://localhost:8000/api/addons')
-        .then(res => res.json())
-        .then(data => setAddons(data.addons))
-        .catch(err => console.error('Failed to fetch addons:', err));
+        axiosClient.get('/addons')
+        .then(res => setAddons(res.data.addons))
+        .catch(err => console.error('Failed to fetch addons:', err.response?.data || err.message));
 
-        fetch('http://localhost:8000/api/foods')
-        .then(res => res.json())
-        .then(data => setFoods(data.foods))
-        .catch(err => console.error('Failed to fetch foods:', err));
+        axiosClient.get('/foods')
+        .then(res => setFoods(res.data.foods))
+        .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
 
-        fetch('http://localhost:8000/api/users')
-        .then(res => res.json())
-        .then(data => setStaff(data.users))
-        .catch(err => console.error('Failed to fetch users:', err));
+        axiosClient.get('/users')
+        .then(res => setStaff(res.data.users))
+        .catch(err => console.error('Failed to fetch users:', err.response?.data || err.message));
     }, []);
 
     useEffect(() => {
@@ -101,12 +97,18 @@ function AddBooking() {
             }
 
             try {
-            const res = await fetch(`http://localhost:8000/api/bookings/check-availability?event_date=${form.eventDate}&event_start_time=${form.eventStart}&event_end_time=${form.eventEnd}`);
-            const data = await res.json();
-            setAvailabilityStatus(data.available ? 'available' : 'conflict');
+                const res = await axiosClient.get('/bookings/check-availability', {
+                    params: {
+                    event_date: form.eventDate,
+                    event_start_time: form.eventStart,
+                    event_end_time: form.eventEnd,
+                    }
+                });
+
+                setAvailabilityStatus(res.data.available ? 'available' : 'conflict');
             } catch (err) {
-            console.error('Check failed:', err);
-            setAvailabilityStatus('error');
+                console.error('Check failed:', err.response?.data || err.message);
+                setAvailabilityStatus('error');
             }
         };
 
@@ -316,25 +318,12 @@ function AddBooking() {
         }
 
         try {
-            const res = await fetch('http://localhost:8000/api/bookings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
-            });
+            const res = await axiosClient.post('/bookings', payload);
 
-            const result = await res.json();
-
-            if (res.ok) {
-                Swal.fire('Saved!', 'Event successfully booked.', 'success');
-                navigate('/admin/bookings');
-            } else {
-                console.error('Error:', result);
-                Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
-            }
+            Swal.fire('Saved!', 'Event successfully booked.', 'success');
+            navigate('/admin/bookings');
         } catch (err) {
-            console.error('Submit error:', err);
+            console.error('Error:', err.response?.data || err.message);
             Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
         }
     };

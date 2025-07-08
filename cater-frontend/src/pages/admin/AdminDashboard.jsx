@@ -4,6 +4,7 @@ import Sidebar from '../../components/Sidebar';
 import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
 import axios from 'axios';
+import axiosClient from '../../axiosClient';
 
 function AdminDashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -18,11 +19,11 @@ function AdminDashboard() {
   const [auditLog, setAuditLog] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/dashboard/stats')
+    axiosClient.get('/dashboard/stats')
       .then(res => setStats(res.data))
       .catch(err => console.error('Error fetching stats', err));
 
-    axios.get('http://localhost:8000/api/dashboard/audit-log')
+    axiosClient.get('/dashboard/audit-log')
       .then(res => setAuditLog(res.data))
       .catch(err => console.error('Error fetching audit log', err));
   }, []);

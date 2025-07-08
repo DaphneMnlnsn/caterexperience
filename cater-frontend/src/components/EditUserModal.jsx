@@ -1,8 +1,21 @@
 import React from 'react';
 import './AddUserModal.css';
 import Swal from 'sweetalert2';
+import axiosClient from '../axiosClient';
 
 function EditUserModal({ show, onClose, onSave, user }) {
+
+  const fetchWithAuth = (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
+    });
+  };
 
   const [formData, setFormData] = React.useState({
     first_name: '',
@@ -31,29 +44,16 @@ function EditUserModal({ show, onClose, onSave, user }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    fetch(`http://localhost:8000/api/users/${user.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
+    axiosClient.put(`/users/${user.id}`, formData)
+    .then((res) => {
+      Swal.fire('Saved!', 'User has been updated.', 'success');
+      onSave(res.data.user);
+      onClose();
     })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Server error: ${text}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        Swal.fire('Saved!', 'User has been updated.', 'success');
-        onSave(data.user);
-        onClose();
-      })
-      .catch((err) => {
-        console.error('Error:', err);
-        Swal.fire('Error', 'There was a problem saving the user.', 'error');
-      });
+    .catch((err) => {
+      console.error('Error:', err.response?.data || err.message);
+      Swal.fire('Error', 'There was a problem saving the user.', 'error');
+    });
   };
 
 
@@ -102,8 +102,8 @@ function EditUserModal({ show, onClose, onSave, user }) {
           </select>
 
           <div className="modal-buttons">
-            <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-            <button type="submit" className="save-btn">Save</button>
+            <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="submit" className="user-save-btn">Save</button>
           </div>
         </form>
       </div>

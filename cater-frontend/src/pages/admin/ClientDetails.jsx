@@ -4,8 +4,10 @@ import Swal from 'sweetalert2';
 import { useParams, useNavigate } from 'react-router-dom';
 import './ClientDetails.css';
 import { FaBell } from 'react-icons/fa';
+import axiosClient from '../../axiosClient';
 
 function ClientDetails() {
+
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
   const { id } = useParams();
@@ -16,19 +18,15 @@ function ClientDetails() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/customers/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Client not found');
-        return res.json();
-      })
-      .then(data => {
-        setClient(data.customer);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+    axiosClient.get(`/customers/${id}`)
+    .then(res => {
+      setClient(res.data.customer);
+      setLoading(false);
+    })
+    .catch(err => {
+      setError(err.response?.data?.message || err.message);
+      setLoading(false);
+    });
   }, [id]);
 
   const handleDeleteClient = () => {
@@ -42,21 +40,15 @@ function ClientDetails() {
       confirmButtonText: 'Yes, delete it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/customers/${id}`, {
-          method: 'DELETE',
+        axiosClient.delete(`/customers/${id}`)
+        .then(() => {
+          Swal.fire('Deleted!', 'Client has been deleted.', 'success');
+          navigate('/admin/clients');
         })
-          .then(res => {
-            if (!res.ok) throw new Error('Failed to delete client');
-            return res.json();
-          })
-          .then(() => {
-            Swal.fire('Deleted!', 'Client has been deleted.', 'success');
-            navigate('/admin/clients');
-          })
-          .catch(err => {
-            console.error('Delete error:', err);
-            Swal.fire('Error', 'Could not delete client.', 'error');
-          });
+        .catch(err => {
+          console.error('Delete error:', err.response?.data || err.message);
+          Swal.fire('Error', 'Could not delete client.', 'error');
+        });
       }
     });
   };
@@ -64,26 +56,16 @@ function ClientDetails() {
   const handleSaveChanges = (e) => {
     e.preventDefault();
 
-    fetch(`http://localhost:8000/api/customers/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(editedClient),
+    axiosClient.put(`/customers/${id}`, editedClient)
+    .then(res => {
+      setClient(res.data.customer);
+      setIsEditing(false);
+      Swal.fire('Updated!', 'Client details have been saved.', 'success');
     })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to update client');
-        return res.json();
-      })
-      .then(data => {
-        setClient(data.customer);
-        setIsEditing(false);
-        Swal.fire('Updated!', 'Client details have been saved.', 'success');
-      })
-      .catch(err => {
-        console.error('Update error:', err);
-        Swal.fire('Error', 'Could not update client.', 'error');
-      });
+    .catch(err => {
+      console.error('Update error:', err.response?.data || err.message);
+      Swal.fire('Error', 'Could not update client.', 'error');
+    });
   };
 
   if (loading) return <div className="main-content">Loading...</div>;

@@ -4,6 +4,7 @@ import './AdminBookings.css';
 import Sidebar from '../../components/Sidebar';
 import BookingCalendar from '../../components/BookingCalendar';
 import { FaBell } from 'react-icons/fa';
+import axiosClient from '../../axiosClient';
 
 function AdminBookings() {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -16,12 +17,11 @@ function AdminBookings() {
   });
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/bookings')
-    .then(res => res.json())
-    .then(data => {
-      setBookingData(data.bookings);
+    axiosClient.get('/bookings')
+    .then(res => {
+      setBookingData(res.data.bookings);
     })
-    .catch(err => console.error('Failed to fetch bookings:', err));
+    .catch(err => console.error('Failed to fetch bookings:', err.response?.data || err.message));
   }, []);
   
   const [searchTerm, setSearchTerm] = useState('');

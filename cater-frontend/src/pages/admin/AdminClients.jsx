@@ -3,6 +3,7 @@ import './AdminClients.css';
 import Sidebar from '../../components/Sidebar';
 import { Link } from 'react-router-dom';
 import { FaBell, FaInfoCircle } from 'react-icons/fa';
+import axiosClient from '../../axiosClient';
 
 function AdminClients() {
     
@@ -12,12 +13,11 @@ function AdminClients() {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/customers')
-            .then(res => res.json())
-            .then(data => {
-                setCustomerData(data.customers);
-            })
-            .catch(err => console.error('Failed to fetch customers:', err));
+        axiosClient.get('/customers')
+        .then(res => {
+            setCustomerData(res.data.customers);
+        })
+        .catch(err => console.error('Failed to fetch clients:', err.response?.data || err.message));
     }, []);
     
     const filteredCustomers = customerData.filter(customer => {

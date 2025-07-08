@@ -1,8 +1,10 @@
 import React from 'react';
 import Swal from 'sweetalert2';
 import './AddUserModal.css';
+import axiosClient from '../axiosClient';
 
 function AddUserModal({ show, onClose, onSave }) {
+
   const [formData, setFormData] = React.useState({
     first_name: '',
     last_name: '',
@@ -32,27 +34,14 @@ function AddUserModal({ show, onClose, onSave }) {
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch('http://localhost:8000/api/users', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        })
-          .then(async (res) => {
-            if (!res.ok) {
-              const text = await res.text();
-              throw new Error(`Server error: ${text}`);
-            }
-            return res.json();
-          })
-          .then((data) => {
+        axiosClient.post('/users', formData)
+          .then((res) => {
             Swal.fire('Saved!', 'User has been added.', 'success');
-            onSave(data.user);
+            onSave(res.data.user);
             onClose();
           })
           .catch((err) => {
-            console.error('Error:', err);
+            console.error('Error:', err.response?.data || err.message);
             Swal.fire('Error', 'There was a problem saving the user.', 'error');
           });
       }

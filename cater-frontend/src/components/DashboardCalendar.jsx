@@ -4,13 +4,14 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import './DashboardCalendar.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axiosClient from '../axiosClient';
 
 export default function DashboardCalendar() {
   const [events, setEvents] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/calendar/events')
+    axiosClient.get('/calendar/events')
       .then(res => setEvents(res.data))
       .catch(err => console.error('Failed to fetch calendar events:', err));
   }, []);

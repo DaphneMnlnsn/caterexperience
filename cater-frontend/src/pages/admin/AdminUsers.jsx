@@ -5,8 +5,22 @@ import EditUserModal from '../../components/EditUserModal';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
+import axiosClient from '../../axiosClient';
 
 function AdminUsers() {
+
+    const fetchWithAuth = (url, options = {}) => {
+        const token = localStorage.getItem('token');
+        return fetch(url, {
+        ...options,
+        headers: {
+            ...(options.headers || {}),
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        }
+        });
+    };
+    
     const [staffData, setStaffData] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
     const user = JSON.parse(localStorage.getItem('user'));
@@ -22,20 +36,18 @@ function AdminUsers() {
     };
 
     const handleSaveUser = () => {
-        fetch('http://localhost:8000/api/users')
-            .then(res => res.json())
-            .then(data => {
-            setStaffData(data.users);
+        axiosClient.get('/users')
+        .then(res => {
+            setStaffData(res.data.users);
         });
     };
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/users')
-            .then(res => res.json())
-            .then(data => {
-                setStaffData(data.users);
-            })
-            .catch(err => console.error('Failed to fetch users:', err));
+        axiosClient.get('/users')
+        .then(res => {
+            setStaffData(res.data.users);
+        })
+        .catch(err => console.error('Failed to fetch users:', err.response?.data || err.message));
     }, []);
 
     const filteredUsers = staffData.filter(user => {
@@ -58,24 +70,18 @@ function AdminUsers() {
             confirmButtonText: 'Yes, delete it!',
         }).then((result) => {
             if (result.isConfirmed) {
-            fetch(`http://localhost:8000/api/users/${user.id}`, {
-                method: 'DELETE',
-            })
-                .then(res => {
-                if (!res.ok) throw new Error('Failed to delete user');
-                return res.json();
-                })
+                axiosClient.delete(`/users/${user.id}`)
                 .then(() => {
-                Swal.fire('Deleted!', 'User has been deleted.', 'success');
-                setStaffData(prev => prev.filter(u => u.id !== user.id));
+                    Swal.fire('Deleted!', 'User has been deleted.', 'success');
+                    setStaffData(prev => prev.filter(u => u.id !== user.id));
                 })
                 .catch(err => {
-                console.error('Delete error:', err);
-                Swal.fire('Error', 'Could not delete user.', 'error');
+                    console.error('Delete error:', err.response?.data || err.message);
+                    Swal.fire('Error', 'Could not delete user.', 'error');
                 });
             }
         });
-    };
+    }
 
     return (
         <div className="dashboard-container">
