@@ -109,7 +109,7 @@ function ClientDetails() {
             <h3>Client Details</h3>
             {!isEditing && (
               <button
-                className="edit-btn"
+                className="booking-edit-btn"
                 onClick={() => {
                   setEditedClient({ ...client });
                   setIsEditing(true);
@@ -179,8 +179,8 @@ function ClientDetails() {
               </div>
 
               <div className="form-actions">
-                <button type="button" onClick={() => setIsEditing(false)} className="cancel-btn">Cancel</button>
-                <button type="submit" className="save-btn">Save Changes</button>
+                <button type="submit" className="save-btn-small">Save Changes</button>
+                <button type="button" onClick={() => setIsEditing(false)} className="cancel-btn-small">Cancel</button>
               </div>
             </form>
           ) : (

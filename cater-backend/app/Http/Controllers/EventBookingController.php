@@ -271,5 +271,45 @@ class EventBookingController extends Controller
 
         return response()->json(['available' => true]);
     }
+    public function finishEvent($id)
+    {
+        $booking = EventBooking::findOrFail($id);
 
+        $booking->update([
+            'booking_status' => 'Finished',
+        ]);
+
+        return response()->json(['message' => 'Event finished', 'event' => $booking]);
+    }
+    public function updateBooking(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'event_name' => 'required|string',
+            'event_location' => 'required|string',
+            'event_type' => 'nullable|string',
+            'celebrant_name' => 'nullable|string',
+            'age' => 'nullable|integer',
+            'watcher' => 'nullable|string',
+            'special_request' => 'nullable|string',
+            'food_names' => 'required|array',
+            'food_names.*' => 'string'
+        ]);
+
+        $booking = EventBooking::with('menu.foods')->findOrFail($id);
+
+        $booking->update([
+            'event_name' => $validated['event_name'],
+            'event_location' => $validated['event_location'],
+            'event_type' => $validated['event_type'],
+            'celebrant_name' => $validated['celebrant_name'],
+            'age' => $validated['age'],
+            'watcher' => $validated['watcher'],
+            'special_request' => $validated['special_request'],
+        ]);
+
+        $allFoods = \App\Models\Food::whereIn('food_name', $validated['food_names'])->pluck('food_id')->toArray();
+        $booking->menu->foods()->sync($allFoods);
+
+        return response()->json(['message' => 'Booking updated']);
+    }
 }

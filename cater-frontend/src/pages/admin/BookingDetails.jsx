@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { useParams } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
+import Swal from 'sweetalert2';
 import TaskBoard from '../../components/TaskBoard';
 import VenuePreview from '../../components/VenuePreview';
 import './BookingDetails.css';
@@ -12,11 +13,17 @@ function BookingDetails() {
   const [booking, setBooking] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
+  const [foods, setFoods] = useState([]);
 
   useEffect(() => {
     fetch(`http://localhost:8000/api/bookings/${id}`)
+    .then(res => res.json())
+    .then(data => {console.log("RAW BOOKING RESPONSE:", data);setBooking(mapBookingData(data.booking))});
+
+    fetch('http://localhost:8000/api/foods')
       .then(res => res.json())
-      .then(data => {console.log("RAW BOOKING RESPONSE:", data);setBooking(mapBookingData(data.booking))});
+      .then(data => setFoods(data.foods))
+      .catch(err => console.error('Failed to fetch foods:', err));
   }, [id]);
 
   function mapBookingData(raw) {
@@ -66,14 +73,65 @@ function BookingDetails() {
     return grouped;
   }
 
+  const groupedFoods = foods.reduce((acc, food) => {
+    const type = food.food_type;
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(food);
+    return acc;
+  }, {});
 
   const handleEdit = () => {
-    setEditedData({ ...booking });
+    setEditedData({
+      ...booking,
+      menuSelections: Object.entries(booking.menu || {}).reduce((acc, [type, names]) => {
+        const selectedFoodName = names[0];
+        const matchedFood = foods.find(f => f.food_name === selectedFoodName);
+        if (matchedFood) acc[type] = matchedFood.food_id;
+        return acc;
+      }, {}),
+      event_location: ['Airconditioned Room', 'Pavilion', 'Pool'].includes(booking.event_location)
+        ? booking.event_location
+        : 'outside',
+      custom_location: ['Airconditioned Room', 'Pavilion', 'Pool'].includes(booking.event_location)
+        ? ''
+        : booking.event_location,
+    });
     setIsEditing(true);
   };
 
   const handleSave = () => {
-    setIsEditing(false);
+    const selectedFoodNames = Object.values(editedData.menuSelections || {})
+    .map((foodId) => {
+      const food = foods.find(f => f.food_id === parseInt(foodId));
+      return food ? food.food_name : null;
+    })
+    .filter(Boolean);
+
+    fetch(`http://localhost:8000/api/bookings/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_name: editedData.event_name,
+        event_location: editedData.event_location === 'outside' ? editedData.custom_location : editedData.event_location,
+        event_type: editedData.event_type,
+        celebrant_name: editedData.celebrant_name,
+        age: editedData.age,
+        watcher: editedData.bantay,
+        special_request: editedData.special_request,
+        food_names: selectedFoodNames
+      }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
+          setIsEditing(false);
+          window.location.reload();
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire('Error', 'Could not save changes.', 'error');
+      });
   };
 
   const handleAddPayment = () => {
@@ -81,19 +139,43 @@ function BookingDetails() {
   };
 
   const handleFinish = () => {
-    fetch(`http://localhost:8000/api/bookings/${id}/finish`, {
-      method: 'POST'
-    })
-    .then(res => {
-      if (!res.ok) throw new Error();
-      return res.json();
-    })
-    .then(() => {
-      setBooking(b => ({ ...b, status: 'finished' }));
-    })
-    .catch(() => alert('Unable to mark event as finished.'));
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `This will mark the event as finished.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e74c3c',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Yes, finish it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/bookings/${id}/finish`, {
+          method: 'POST'
+        })
+        .then(res => {
+          if (!res.ok) throw new Error();
+          return res.json();
+        })
+        .then(() => {
+          Swal.fire('Marked as Done!', 'Event finished.', 'success').then(() =>{
+            window.location.reload();
+          });
+        })
+        .catch(err => {
+          console.error('Update error:', err);
+          Swal.fire('Error', 'Could not update client.', 'error');
+        });
+      }
+    });
   };
 
+  const canEditBooking = () => {
+    const today = new Date();
+    const eventDate = new Date(booking.event_start);
+    const oneWeekBefore = new Date(eventDate);
+    oneWeekBefore.setDate(eventDate.getDate() - 7);
+    return today < oneWeekBefore;
+  };
 
   if (!booking) return <div>Loading...</div>;
 
@@ -114,15 +196,31 @@ function BookingDetails() {
           <div className="section-title">
             <h3>Event Details</h3>
             <div className="action-buttons">
-              {!isEditing && (
+              {isEditing ? (
                 <>
-                  <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
-                  <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>
+                  <button onClick={handleSave} className="save-btn-small">Save Changes</button>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditedData({});
+                    }}
+                    className="cancel-btn-small"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  {booking.booking_status !== 'Finished' && (
+                    <>
+                      <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
+                      {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
+                    </>
+                  )}
                 </>
               )}
             </div>
 
-            {isEditing && <button onClick={handleSave} className="save-btn">Save</button>}
           </div>
           <div className="info-grid">
             <div>
@@ -138,12 +236,61 @@ function BookingDetails() {
               <span>{booking.customer_contact_number}</span>
             </div>
             <div>
-              <span>Event Location:</span>
-              <span>{booking.event_location}</span>
+              <span>Event Name:</span>
+              {isEditing ? (
+                <input
+                  value={editedData.event_name}
+                  onChange={e => setEditedData({ ...editedData, event_name: e.target.value })}
+                />
+              ) : (
+                <span>{booking.event_name}</span>
+              )}
             </div>
             <div>
+              <span>Event Location:</span>
+              {isEditing ? (
+                <>
+                  <select
+                    value={editedData.event_location}
+                    onChange={e => setEditedData({ ...editedData, event_location: e.target.value })}
+                  >
+                    <option value="">Select Venue</option>
+                    <option value="Airconditioned Room">Airconditioned Room</option>
+                    <option value="Pavilion">Pavilion</option>
+                    <option value="Pool">Pool</option>
+                    <option value="outside">Outside Location</option>
+                  </select>
+
+                  {editedData.event_location === 'outside' && (
+                    <input
+                      type="text"
+                      placeholder="Type full address here"
+                      value={editedData.custom_location || ''}
+                      onChange={e => setEditedData({ ...editedData, custom_location: e.target.value })}
+                    />
+                  )}
+                </>
+              ) : (
+                <span>
+                  {['Airconditioned Room', 'Pavilion', 'Pool'].includes(booking.event_location)
+                    ? booking.event_location
+                    : `Outside Location - ${booking.event_location}`}
+                </span>
+              )}
+            </div>
+
+            <div>
               <span>Event Type:</span>
-              <span>{booking.event_type}</span>
+              {isEditing ? (
+                <select name="event_type" value={editedData.event_type} onChange={e => setEditedData({ ...editedData, event_type: e.target.value })}>
+                  <option value="">Select Type</option>
+                  <option value="Birthday">Birthday</option>
+                  <option value="Wedding">Wedding</option>
+                  <option value="Corporate">Corporate</option>
+                </select>
+              ) : (
+                <span>{booking.event_type}</span>
+              )}
             </div>
             <div>
               <span>Event Schedule:</span>
@@ -155,15 +302,37 @@ function BookingDetails() {
             </div>
             <div>
               <span>Celebrant Name:</span>
-              <span>{booking.celebrant_name || 'N/A'}</span>
+              {isEditing ? (
+                <input
+                  value={editedData.celebrant_name}
+                  onChange={e => setEditedData({ ...editedData, celebrant_name: e.target.value })}
+                />
+              ) : (
+                <span>{booking.celebrant_name || 'N/A'}</span>
+              )}
             </div>
             <div>
               <span>Celebrant Age:</span>
-              <span>{booking.age || 'N/A'}</span>
+              {isEditing ? (
+                <input
+                  type="number"
+                  value={editedData.age}
+                  onChange={e => setEditedData({ ...editedData, age: e.target.value })}
+                />
+              ) : (
+                <span>{booking.age || 'N/A'}</span>
+              )}
             </div>
             <div>
               <span>Watcher/Bantay:</span>
-              <span>{booking.bantay || 'N/A'}</span>
+              {isEditing ? (
+                <input
+                  value={editedData.bantay}
+                  onChange={e => setEditedData({ ...editedData, bantay: e.target.value })}
+                />
+              ) : (
+                <span>{booking.bantay || 'N/A'}</span>
+              )}
             </div>
             <div>
               <span>Cook:</span>
@@ -183,7 +352,14 @@ function BookingDetails() {
             </div>
             <div>
               <span>Special Requests:</span>
-              <span>{booking.special_request || 'N/A'}</span>
+              {isEditing ? (
+                <textarea
+                  value={editedData.special_request}
+                  onChange={e => setEditedData({ ...editedData, special_request: e.target.value })}
+                />
+              ) : (
+                <span>{booking.special_request || 'N/A'}</span>
+              )}
             </div>
           </div>
           </div>
@@ -200,14 +376,29 @@ function BookingDetails() {
             </div>
             <div className="menu-right">
               <h4 className="menu-title">Menu</h4>
-              {Object.entries(booking.menu).map(([category, items], idx) => (
-                <div key={idx} className="menu-category">
-                  <strong>{category}</strong>
-                  <ul>
-                    {items.map((food, i) => (
-                      <li key={i}>{food}</li>
-                    ))}
-                  </ul>
+              {Object.entries(groupedFoods).map(([category, items]) => (
+                <div className="booking-field-group menu-category" key={category}>
+                  <label>{category}</label>
+                  {isEditing ? (
+                    <select
+                      value={editedData.menuSelections[category] || ''}
+                      onChange={(e) =>
+                        setEditedData({
+                          ...editedData,
+                          menuSelections: { ...editedData.menuSelections, [category]: e.target.value },
+                        })
+                      }
+                    >
+                      <option value="">Select {category}</option>
+                      {items.map(food => (
+                        <option key={food.food_id} value={food.food_id}>{food.food_name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <ul>
+                      {items.map(food => <li key={food.food_id || food}>{food.food_name || food}</li>)}
+                    </ul>
+                  )}
                 </div>
               ))}
             </div>

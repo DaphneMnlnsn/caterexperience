@@ -39,7 +39,7 @@ function AddBooking() {
         const start = new Date(`2000-01-01T${value}`);
         
         const end = new Date(start.getTime() + 4 * 60 * 60 * 1000);
-        const formattedEnd = end.toTimeString().slice(0, 5); // HH:MM
+        const formattedEnd = end.toTimeString().slice(0, 5);
 
         setForm(prev => ({
             ...prev,
@@ -96,7 +96,7 @@ function AddBooking() {
             const start = new Date(`2000-01-01T${form.eventStart}`);
             const end = new Date(`2000-01-01T${form.eventEnd}`);
             if (end <= start || (end - start) / (1000 * 60 * 60) < 4) {
-            setAvailabilityStatus(null); // Don't check if logic invalid
+            setAvailabilityStatus(null);
             return;
             }
 
@@ -121,9 +121,9 @@ function AddBooking() {
             const diffHours = (end - start) / (1000 * 60 * 60);
 
             if (end <= start) {
-            setAvailabilityStatus('error-start-end'); // new custom status
+            setAvailabilityStatus('error-start-end');
             } else if (diffHours < 4) {
-            setAvailabilityStatus('error-duration'); // new custom status
+            setAvailabilityStatus('error-duration');
             }
         }
     }, [form.eventStart, form.eventEnd]);

@@ -17,20 +17,6 @@
   color: #333;
   margin: 0;
 }
-.section-title .edit-btn,
-.section-title .save-btn {
-  background: #4f46e5;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.section-title .edit-btn:hover,
-.section-title .save-btn:hover {
-  background: #4338ca;
-}
 
 .info-grid {
   display: grid;
@@ -158,11 +144,11 @@
 }
 
 .finish-btn {
-  background: #0e7955;
+  background: #059669;
   color: white;
 }
 .finish-btn:hover {
-  background: #059669;
+  background: #0e7955;
   color: white;
 }
 
@@ -182,4 +168,13 @@
   font-size: 15px;
   font-weight: bold;
   cursor: pointer;
+}
+.info-grid input, .info-grid select, .info-grid textarea, .menu-right select {
+  font-family: 'Lora', serif;
+  padding: 0.5rem;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
