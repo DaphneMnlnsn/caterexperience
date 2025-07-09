@@ -312,4 +312,82 @@ class EventBookingController extends Controller
 
         return response()->json(['message' => 'Booking updated']);
     }
+    public function cancelBooking(Request $request, $id)
+    {
+        $booking = EventBooking::with('tasks')->find($id);
+
+        if (!$booking) {
+            return response()->json(['message' => 'Booking not found'], 404);
+        }
+
+        if ($booking->booking_status === 'Finished' || $booking->booking_status === 'Cancelled') {
+            return response()->json(['message' => 'Cannot cancel this booking.'], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $booking->update([
+                'booking_status' => 'Cancelled',
+            ]);
+
+            foreach ($booking->tasks as $task) {
+                $task->update(['status' => 'Cancelled']);
+            }
+
+            StaffAssignment::where('booking_id', $id)->delete();
+
+            DB::commit();
+
+            return response()->json(['message' => 'Booking cancelled successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Cancellation failed.', 'error' => $e->getMessage()], 500);
+        }
+    }
+    public function reschedBooking(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'event_date' => 'required|date',
+            'event_start_time' => 'required|date_format:H:i',
+            'event_end_time' => 'required|date_format:H:i|after:event_start_time',
+        ]);
+
+        $booking = EventBooking::findOrFail($id);
+
+        $conflict = EventBooking::where('event_date', $validated['event_date'])
+            ->where('booking_id', '!=', $id)
+            ->where(function ($q) use ($validated) {
+                $q->whereBetween('event_start_time', [$validated['event_start_time'], $validated['event_end_time']])
+                ->orWhereBetween('event_end_time', [$validated['event_start_time'], $validated['event_end_time']]);
+            })
+            ->exists();
+
+        if ($conflict) {
+            return response()->json(['message' => 'The selected time slot is already booked.'], 409);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $booking->update([
+                'event_date' => $validated['event_date'],
+                'event_start_time' => $validated['event_start_time'],
+                'event_end_time' => $validated['event_end_time'],
+            ]);
+
+            Task::where('booking_id', $id)
+                ->where('auto_generated', true)
+                ->update(['due_date' => $validated['event_date']]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Booking successfully rescheduled.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Rescheduling failed.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\EventBookingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\FoodController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ThemeController;
 
 Route::get('/test', function () {
@@ -46,4 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings', [EventBookingController::class, 'store']);
     Route::put('/bookings/{id}', [EventBookingController::class, 'updateBooking']);
     Route::post('/bookings/{id}/finish', [EventBookingController::class, 'finishEvent']);
+    Route::post('/bookings/{id}/cancel', [EventBookingController::class, 'cancelBooking']);
+    Route::post('/bookings/{id}/resched', [EventBookingController::class, 'reschedBooking']);
+
+    Route::get('/tasks/{id}/get-tasks', [TaskController::class, 'index']);
+
 });

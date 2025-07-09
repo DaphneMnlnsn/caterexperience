@@ -156,7 +156,112 @@ function BookingDetails() {
         })
         .catch(err => {
           console.error('Update error:', err.response?.data || err.message);
-          Swal.fire('Error', 'Could not update client.', 'error');
+          Swal.fire('Error', 'Could not finish event.', 'error');
+        });
+      }
+    });
+  };
+
+  const handleResched = () => {
+    Swal.fire({
+      title: 'Reschedule Event',
+      html: `
+        <input id="resched-date" type="date" class="swal2-input" placeholder="Event Date" />
+        <input id="resched-start" type="time" class="swal2-input" placeholder="Start Time" />
+        <input id="resched-end" type="time" class="swal2-input" placeholder="End Time" readonly />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm Reschedule',
+      didOpen: () => {
+        const startInput = document.getElementById('resched-start');
+        const endInput = document.getElementById('resched-end');
+
+        startInput.addEventListener('change', () => {
+          const startTime = startInput.value;
+          if (startTime) {
+            const [hours, minutes] = startTime.split(':').map(Number);
+            const startDate = new Date(2000, 0, 1, hours, minutes);
+            startDate.setHours(startDate.getHours() + 4);
+            const endHours = String(startDate.getHours()).padStart(2, '0');
+            const endMinutes = String(startDate.getMinutes()).padStart(2, '0');
+            endInput.value = `${endHours}:${endMinutes}`;
+          } else {
+            endInput.value = '';
+          }
+        });
+      },
+      preConfirm: async () => {
+        const event_date = document.getElementById('resched-date').value;
+        const event_start_time = document.getElementById('resched-start').value;
+        const event_end_time = document.getElementById('resched-end').value;
+
+        if (!event_date || !event_start_time || !event_end_time) {
+          Swal.showValidationMessage('All fields are required');
+          return false;
+        }
+
+        try {
+          const res = await axiosClient.get('/bookings/check-availability', {
+            params: {
+              event_date,
+              event_start_time,
+              event_end_time,
+            },
+          });
+
+          if (!res.data.available) {
+            Swal.showValidationMessage('Selected time slot is not available.');
+            return false;
+          }
+
+          return { event_date, event_start_time, event_end_time };
+        } catch (err) {
+          Swal.showValidationMessage('Availability check failed.');
+          return false;
+        }
+      },
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { event_date, event_start_time, event_end_time } = result.value;
+
+        axiosClient.post(`/bookings/${id}/resched`, {
+          event_date,
+          event_start_time,
+          event_end_time,
+        })
+        .then(() => {
+          Swal.fire('Rescheduled!', 'Event was successfully moved.', 'success').then(() => {
+            window.location.reload();
+          });
+        })
+        .catch((err) => {
+          console.error(err.response?.data || err.message);
+          Swal.fire('Error', 'Failed to reschedule.', 'error');
+        });
+      }
+    });
+  };
+
+  const handleCancel = () => {
+    Swal.fire({
+      title: 'Are you sure you want to cancel?',
+      text: `This cannot be undone. It will also delete tasks for the staff.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e74c3c',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Yes, cancel it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.post(`/bookings/${id}/cancel`)
+        .then(() => {
+          Swal.fire('Cancelled!', 'Event cancelled.', 'success').then(() => {
+            window.location.reload();
+          });
+        })
+        .catch(err => {
+          console.error('Update error:', err.response?.data || err.message);
+          Swal.fire('Error', 'Could not cancel event.', 'error');
         });
       }
     });
@@ -169,6 +274,41 @@ function BookingDetails() {
     oneWeekBefore.setDate(eventDate.getDate() - 7);
     return today < oneWeekBefore;
   };
+
+  const sampleTasks = [
+    {
+      id: 1,
+      task_name: "Buy Ingredients",
+      status: "To-Do",
+      deadline: "2025-04-17T17:00:00",
+      assigned_to_name: "Chef Kiana",
+      booking_ref: "Anniv041825-02"
+    },
+    {
+      id: 2,
+      task_name: "Buy Decorations",
+      status: "To-Do",
+      deadline: "2025-04-17T17:00:00",
+      assigned_to_name: "Stylist Clara",
+      booking_ref: "Anniv041825-03"
+    },
+    {
+      id: 3,
+      task_name: "Plan Setup",
+      status: "In-Progress",
+      deadline: "2025-04-16T17:00:00",
+      assigned_to_name: "Stylist Clara",
+      booking_ref: "Anniv041825-04"
+    },
+    {
+      id: 4,
+      task_name: "Finalize Details",
+      status: "Done",
+      deadline: "2025-04-10T17:00:00",
+      assigned_to_name: "Manager Jen",
+      booking_ref: "Anniv041825-01"
+    }
+  ];
 
   if (!booking) return <div>Loading...</div>;
 
@@ -204,7 +344,7 @@ function BookingDetails() {
                 </>
               ) : (
                 <>
-                  {booking.booking_status !== 'Finished' && (
+                  {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
                     <>
                       <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
                       {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
@@ -403,7 +543,7 @@ function BookingDetails() {
         {/* Task Board */}
         <div className="section black-bg">
           <h3>Task Board</h3>
-          <TaskBoard tasks={booking.tasks || []} />
+          <TaskBoard tasks={sampleTasks} />
         </div>
 
         <hr className="booking-section-divider" />
@@ -454,7 +594,13 @@ function BookingDetails() {
           </div>
         </div>
         <div className="booking-delete-section">
-          <button className="booking-delete-btn" >Delete Booking</button>
+          <>
+            {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+              <>
+                <button className="booking-resched-btn" onClick={handleResched}>Reschedule Booking</button>
+                <button className="booking-delete-btn" onClick={handleCancel}>Cancel Booking</button>              </>
+            )}
+          </>
         </div>
       </div>
     </div>
