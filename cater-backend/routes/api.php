@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{id}/cancel', [EventBookingController::class, 'cancelBooking']);
     Route::post('/bookings/{id}/resched', [EventBookingController::class, 'reschedBooking']);
 
-    Route::get('/tasks/{id}/get-tasks', [TaskController::class, 'index']);
+    Route::get('/bookings/{bookingId}/tasks', [TaskController::class, 'index']);
+    Route::put('/tasks/{taskId}/status', [TaskController::class, 'updateStatus']);
 
 });

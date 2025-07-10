@@ -11,9 +11,9 @@ function VenuePreview({ imagePath }) {
           className="venue-image"
         />
       ) : (
-        '[Preview here]'
+        <div className="preview-placeholder">[Preview here]</div>
       )}
-      <button className="edit-btn">Edit 2D Design</button>
+      <button className="booking-edit-btn">Edit 2D Design</button>
     </div>
   );
 }

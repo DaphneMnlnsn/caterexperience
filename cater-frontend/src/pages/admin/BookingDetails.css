@@ -12,6 +12,7 @@
   align-items: center;
   margin-bottom: 1rem;
 }
+
 .section h3 {
   font-size: 20px;
   color: #333;
@@ -24,6 +25,7 @@
   gap: 1rem;
   font-family: 'Lora', serif;
 }
+
 .info-grid div {
   background: #f9fafb;
   border-radius: 10px;
@@ -33,12 +35,14 @@
   justify-content: center;
   min-height: 60px;
 }
+
 .info-grid div span:first-child {
   font-weight: bold;
   color: #222;
   margin-bottom: 4px;
   font-size: 16px;
 }
+
 .info-grid div span:last-child {
   color: black;
   font-size: 14px;
@@ -93,11 +97,16 @@
   margin: 0.5rem 0;
 }
 
+.task-section {
+  max-height: 75%;
+}
+
 .payments-info {
   display: flex;
   gap: 2rem;
   margin-bottom: 1rem;
 }
+
 .payments-info p {
   background: #f3f4f6;
   padding: 0.75rem 1rem;
@@ -108,21 +117,25 @@
 .booking-table-wrapper {
   overflow-x: auto;
 }
+
 .booking-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 700px;
 }
+
 .booking-table th,
 .booking-table td {
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
 }
+
 .booking-table th {
   background-color: #f3f4f6;
   font-weight: 600;
 }
+
 .booking-table tr:hover td {
   background: #f9fafb;
 }
@@ -147,6 +160,7 @@
   background: #059669;
   color: white;
 }
+
 .finish-btn:hover {
   background: #0e7955;
   color: white;
@@ -170,6 +184,7 @@
   font-weight: bold;
   cursor: pointer;
 }
+
 .booking-resched-btn {
   background-color: #fff176;
   color: black;
@@ -181,6 +196,7 @@
   font-weight: bold;
   cursor: pointer;
 }
+
 .info-grid input, .info-grid select, .info-grid textarea, .menu-right select {
   font-family: 'Lora', serif;
   padding: 0.5rem;

@@ -17,6 +17,8 @@ function BookingDetails() {
   const [editedData, setEditedData] = useState({});
   const [foods, setFoods] = useState([]);
 
+  const [tasks, setTasks] = useState([]);
+
   useEffect(() => {
     axiosClient.get(`/bookings/${id}`)
     .then(res => {
@@ -28,7 +30,31 @@ function BookingDetails() {
       setFoods(res.data.foods);
     })
     .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
+
+    axiosClient.get(`/bookings/${id}/tasks`)
+    .then(res => {
+      const mapped = res.data.map(task => ({
+        id: task.task_id,
+        task_name: task.title,
+        status: task.status,
+        deadline: task.due_date,
+        assigned_to_name: task.assignee
+          ? `${toTitleCase(task.assignee.role)} ${task.assignee.first_name}`
+          : 'Unassigned',
+        booking_ref: 'Task-' + task.task_id ?? 'N/A'
+      }));
+      setTasks(mapped);
+    })
+    .catch(err => console.error('Failed to fetch tasks:', err.response?.data || err.message));
   }, [id]);
+
+  function toTitleCase(str) {
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
 
   function mapBookingData(raw) {
     return {
@@ -275,41 +301,6 @@ function BookingDetails() {
     return today < oneWeekBefore;
   };
 
-  const sampleTasks = [
-    {
-      id: 1,
-      task_name: "Buy Ingredients",
-      status: "To-Do",
-      deadline: "2025-04-17T17:00:00",
-      assigned_to_name: "Chef Kiana",
-      booking_ref: "Anniv041825-02"
-    },
-    {
-      id: 2,
-      task_name: "Buy Decorations",
-      status: "To-Do",
-      deadline: "2025-04-17T17:00:00",
-      assigned_to_name: "Stylist Clara",
-      booking_ref: "Anniv041825-03"
-    },
-    {
-      id: 3,
-      task_name: "Plan Setup",
-      status: "In-Progress",
-      deadline: "2025-04-16T17:00:00",
-      assigned_to_name: "Stylist Clara",
-      booking_ref: "Anniv041825-04"
-    },
-    {
-      id: 4,
-      task_name: "Finalize Details",
-      status: "Done",
-      deadline: "2025-04-10T17:00:00",
-      assigned_to_name: "Manager Jen",
-      booking_ref: "Anniv041825-01"
-    }
-  ];
-
   if (!booking) return <div>Loading...</div>;
 
   return (
@@ -541,9 +532,9 @@ function BookingDetails() {
         <hr className="booking-section-divider" />
 
         {/* Task Board */}
-        <div className="section black-bg">
+        <div className="section white-bg task-section">
           <h3>Task Board</h3>
-          <TaskBoard tasks={sampleTasks} />
+          <TaskBoard tasks={tasks} setTasks={setTasks} />
         </div>
 
         <hr className="booking-section-divider" />

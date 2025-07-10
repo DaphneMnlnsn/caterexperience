@@ -17,7 +17,7 @@ class DashboardController extends Controller
             'total_events' => EventBooking::count(),
             'pending_bookings' => EventBooking::where('booking_status', 'Pending')->count(),
             'pending_payments' => Payment::where('payment_status', 'Pending')->count(),
-            'staff_tasks' => Task::where('status', 'Pending')->count()
+            'staff_tasks' => Task::where('status', 'To-Do')->count()
         ]);
     }
 

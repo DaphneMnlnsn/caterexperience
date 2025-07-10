@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
 
-            $table->string('status')->default('To Do');
+            $table->string('status')->default('To-Do');
             $table->string('priority')->default('Medium');
             $table->date('due_date')->nullable();
             $table->boolean('auto_generated')->default(false);

@@ -114,7 +114,7 @@ class EventBookingController extends Controller
                     'created_by' => $creatorId,
                     'title' => $title,
                     'description' => null,
-                    'status' => 'Pending',
+                    'status' => 'To-Do',
                     'priority' => 'Normal',
                     'due_date' => $booking->event_date,
                     'auto_generated' => true,
