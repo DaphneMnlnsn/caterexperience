@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import TaskBoard from '../../components/TaskBoard';
+import AddTaskModal from '../../components/AddTaskModal';
 import VenuePreview from '../../components/VenuePreview';
 import './BookingDetails.css';
 import axiosClient from '../../axiosClient';
@@ -12,17 +13,37 @@ function BookingDetails() {
 
   const { id } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
+  const [showTaskModal, setShowTaskModal] = useState(false);
   const [booking, setBooking] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
   const [foods, setFoods] = useState([]);
-
+  const [availableStaff, setAvailableStaff] = useState([]);
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
     axiosClient.get(`/bookings/${id}`)
-    .then(res => {
-      setBooking(mapBookingData(res.data.booking));
+      .then(res => {
+        setBooking(mapBookingData(res.data.booking));
+
+      const staffList = [
+        ...res.data.booking.staff_assignments.map(sa => ({
+          id: sa.user.id,
+          name: `${sa.user.first_name} ${sa.user.last_name}`,
+          role: sa.user.role
+        })),
+        {
+          id: user.id,
+          name: `${user.first_name} ${user.last_name}`,
+          role: user.role
+        }
+      ];
+
+      const uniqueStaff = staffList.filter(
+        (staff, index, self) => index === self.findIndex(s => s.id === staff.id)
+      );
+
+      setAvailableStaff(uniqueStaff);
     });
 
     axiosClient.get('/foods')
@@ -41,6 +62,8 @@ function BookingDetails() {
         assigned_to_name: task.assignee
           ? `${toTitleCase(task.assignee.role)} ${task.assignee.first_name}`
           : 'Unassigned',
+        assignee: task.assignee || null,
+        priority: task.priority,
         booking_ref: 'Task-' + task.task_id ?? 'N/A'
       }));
       setTasks(mapped);
@@ -157,6 +180,10 @@ function BookingDetails() {
       console.error(err.response?.data || err.message);
       Swal.fire('Error', 'Could not save changes.', 'error');
     });
+  };
+
+  const handleAddTask = () => {
+    setShowTaskModal(true);
   };
 
   const handleAddPayment = () => {
@@ -533,8 +560,22 @@ function BookingDetails() {
 
         {/* Task Board */}
         <div className="section white-bg task-section">
-          <h3>Task Board</h3>
-          <TaskBoard tasks={tasks} setTasks={setTasks} />
+          <div className='section-title'>
+            <h3>Task Board</h3>
+            <>
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                <>
+                  <button className="booking-edit-btn" onClick={handleAddTask}>+ Add New Task</button>
+                </>
+              )}
+            </>
+          </div>
+          <TaskBoard 
+            tasks={tasks}
+            setTasks={setTasks}
+            assignedStaffs={booking.staffs}
+            staffOptions={availableStaff}
+          />
         </div>
 
         <hr className="booking-section-divider" />
@@ -551,7 +592,13 @@ function BookingDetails() {
         <div className="section white-bg">
           <div className="section-title">
             <h3>Payments</h3>
-            <button className="booking-edit-btn" onClick={handleAddPayment}>+ Add New Payment</button>
+            <>
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                <>
+                  <button className="booking-edit-btn" onClick={handleAddPayment}>+ Add New Payment</button>
+                </>
+              )}
+            </>
           </div>
 
           <div className="payments-info">
@@ -594,6 +641,25 @@ function BookingDetails() {
           </>
         </div>
       </div>
+      <AddTaskModal
+        show={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        onSave={(newTask) => {
+          setTasks(prev => [...prev, {
+            id: newTask.task_id,
+            task_name: newTask.title,
+            status: newTask.status,
+            deadline: newTask.due_date,
+            assigned_to_name: newTask.assignee
+              ? `${toTitleCase(newTask.assignee.role)} ${newTask.assignee.first_name}`
+              : 'Unassigned',
+            booking_ref: 'Task-' + newTask.task_id
+          }]);
+        }}
+        bookingId={id}
+        creatorId={user.id}
+        staffOptions={availableStaff}
+      />
     </div>
   );
 }

@@ -1,11 +1,14 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import './TaskBoard.css';
 import { FaCalendarAlt, FaCheckCircle, FaUser, FaEllipsisV } from 'react-icons/fa';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import axiosClient from '../axiosClient';
+import EditTaskModal from './EditTaskModal';
 
-function TaskBoard({ tasks, setTasks }) {
+function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions }) {
   const columns = ['To-Do', 'In-Progress', 'Done'];
+  const [selectedTask, setSelectedTask] = React.useState(null);
+  const [showEditModal, setShowEditModal] = React.useState(false);
 
   const groupedTasks = columns.reduce((acc, column) => {
     acc[column] = tasks.filter(task => task.status === column);
@@ -41,7 +44,6 @@ function TaskBoard({ tasks, setTasks }) {
     }
   };
 
-
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="task-board">
@@ -70,7 +72,14 @@ function TaskBoard({ tasks, setTasks }) {
                       >
                         <div className="card-header">
                           <strong>{task.task_name}</strong>
-                          <FaEllipsisV className="options-icon" />
+                          <FaEllipsisV
+                            className="options-icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTask(task);
+                              setShowEditModal(true);
+                            }}
+                          />
                         </div>
                         <div className="card-body">
                           <div className="date-row">
@@ -102,6 +111,20 @@ function TaskBoard({ tasks, setTasks }) {
           </Droppable>
         ))}
       </div>
+      {showEditModal && selectedTask && (
+        <EditTaskModal
+          task={selectedTask}
+          onClose={() => setShowEditModal(false)}
+          onUpdate={(updatedTask) => {
+            setTasks(prev =>
+              prev.map(t => (t.id === updatedTask.id ? updatedTask : t))
+            );
+            setShowEditModal(false);
+          }}
+          assignedStaffs={assignedStaffs}
+          staffOptions={staffOptions}
+        />
+      )}
     </DragDropContext>
   );
 }

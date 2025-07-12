@@ -44,7 +44,7 @@
 }
 
 .add-user-form input,
-.add-user-form select {
+.add-user-form select, .add-user-form textarea {
   width: 100%;
   padding: 0.5rem;
   font-family: 'Lora', serif;
@@ -54,7 +54,7 @@
   margin-bottom: 0.3rem;
 }
 
-.add-user-form input{
+.add-user-form input, .add-user-form textarea{
   width: 95%;
 }
 
@@ -80,6 +80,17 @@
   background-color: #fff176;
   border: none;
   padding: 0.4rem 2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: 'Lora', serif;
+  font-weight: bold;
+}
+.user-delete-btn {
+  background-color: #b12d2d;
+  border: none;
+  color: white;
+  padding: 0.4rem 1.3rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
