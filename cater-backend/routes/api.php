@@ -11,6 +11,7 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\FoodController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ThemeController;
+use App\Models\Food;
 
 Route::get('/test', function () {
     return ['message' => 'API route works!'];
@@ -52,5 +53,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/bookings/{bookingId}/tasks', [TaskController::class, 'index']);
     Route::put('/tasks/{taskId}/status', [TaskController::class, 'updateStatus']);
+    Route::post('/tasks', [TaskController::class, 'store']);
+    Route::put('/tasks/{taskId}', [TaskController::class, 'update']);
+    Route::delete('/tasks/{taskId}', [TaskController::class, 'destroy']);
+
+    Route::post('/foods', [FoodController::class, 'store']);
+    Route::put('/foods/{id}', [FoodController::class, 'update']);
+    Route::delete('/foods/{id}', [FoodController::class, 'destroy']);
 
 });
