@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id('item_id');
             $table->string('item_name');
             $table->integer('item_quantity');
+            $table->integer('item_current_quantity');
             $table->string('item_unit');
+            $table->text('item_description')->nullable();
             $table->decimal('item_price', 10, 2);
             $table->string('item_type');
             $table->string('item_status')->default('available');

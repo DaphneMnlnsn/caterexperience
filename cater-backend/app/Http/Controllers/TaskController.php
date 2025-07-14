@@ -38,7 +38,7 @@ class TaskController extends Controller
             'created_by' => 'required|exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'priority' => 'nullable|in:Low,Medium,High',
+            'priority' => 'nullable|in:Low,Normal,High',
             'due_date' => 'nullable|date',
             'auto_generated' => 'nullable|boolean',
         ]);
