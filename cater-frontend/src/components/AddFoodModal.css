@@ -37,3 +37,26 @@
   margin-top: 0.5rem;
   font-family: 'Lora', serif;
 }
+
+.food-form input, .food textarea, .food-form select {
+  font-size: 0.85rem;
+}
+
+.food-form label{
+  font-size: 0.9rem;
+}
+
+.food-form input:disabled,
+.food-form textarea:disabled,
+.food-form select:disabled {
+  background-color: transparent;
+  border: none;
+  color: #111;
+  font-size: 0.9rem;
+  resize: none;
+  appearance: none;
+  font-weight: 500;
+  opacity: 1;
+  cursor: default;
+  padding-left: 0;
+}

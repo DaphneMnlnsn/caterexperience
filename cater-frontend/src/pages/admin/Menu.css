@@ -1,0 +1,200 @@
+.menu-box {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 16px 24px 16px;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.menu-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.menu-title {
+  font-weight: 700;
+  font-size: 2rem;
+  color: #222;
+  font-family: 'Lora', Georgia, Times, serif;
+  margin-right: 18px;
+}
+.menu-search-wrapper {
+  position: relative;
+  width: 220px;
+  flex: 1 1 220px;
+  margin-right: auto;
+}
+.menu-search-input {
+  width: 100%;
+  padding: 10px 38px 10px 36px;
+  border: 2px solid #222;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: 'Lora', Georgia, Times, serif;
+  font-weight: 600;
+  background: #fff;
+  color: #222;
+  outline: none;
+  box-sizing: border-box;
+}
+.menu-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+.menu-buttons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.add-menu-btn {
+  background: #fff176;
+  border: none;
+  padding: 8px 22px;
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 7px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  font-family: 'Lora', Georgia, Times, serif;
+  color: #222;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.edit-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.menu-categories {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+.menu-category-block {
+  width: 100%;
+}
+.category-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  color: #222;
+  font-family: 'Lora', Georgia, Times, serif;
+  margin-top: 0;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;
+}
+.menu-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 2.2rem;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+.menu-card {
+  width: min(170px, 35vw);
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  border: 1.5px solid #ececec;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.2s ease;
+  flex: 0 0 170px;
+  cursor: pointer;
+  border-top: 4px solid #fff176;
+  background: #fff;  
+}
+
+.menu-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.menu-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.menu-name {
+  font-family: 'Lora', Georgia, Times, serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #222;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.food-desc {
+  font-size: 13px;
+  color: #777;
+  font-style: italic;
+  line-height: 0.2;
+  text-align: center;
+  padding: 0 8px;
+}
+
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  width: 100%;
+  cursor: pointer;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: #fafafa;
+}
+.upload-plus {
+  font-size: 32px;
+  color: #bbb;
+}
+.upload-text {
+  font-size: 14px;
+  color: #bbb;
+}
+.menu-card-footer {
+  background: #fff176;
+  width: 100%;
+  text-align: center;
+  padding: 16px 0 12px 0;
+  font-weight: 600;
+  font-size: 16px;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  font-family: 'Lora', Georgia, Times, serif;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.card {
+  padding: 2em;
+}

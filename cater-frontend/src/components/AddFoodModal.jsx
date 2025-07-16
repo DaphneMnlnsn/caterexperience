@@ -7,39 +7,21 @@ function AddFoodModal({ show, onClose, onSave }) {
 
   const [formData, setFormData] = useState({
     food_name: '',
-    description: '',
-    image: '',
+    food_description: '',
     food_type: '',
-    imagePreview: ''
   });
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-
-    if (name === 'image') {
-        const file = files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-            setFormData(prev => ({
-                ...prev,
-                image: file.name,
-                imagePreview: reader.result,
-            }));
-            };
-            reader.readAsDataURL(file);
-        }
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid = Object.values(formData).every(val => val.trim() !== '');
-    if (!isFormValid) {
-      Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
+    const { food_name, food_type } = formData;
+    if (food_name.trim() === '' || food_type.trim() === '') {
+      Swal.fire('Incomplete', 'Please fill in the required fields.', 'warning');
       return;
     }
 
@@ -48,16 +30,21 @@ function AddFoodModal({ show, onClose, onSave }) {
       text: 'Do you want to save this food item?',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#f7e26b',
       cancelButtonColor: '#aaa',
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.post('/foods', formData)
+        const payload = {
+          ...formData,
+          food_status: 'available'
+        };
+
+        axiosClient.post('/foods', payload)
           .then((res) => {
             Swal.fire('Saved!', 'Food has been added.', 'success');
-            onSave(res.data.food);
+            onSave();
             onClose();
+            setFormData({ food_name: '', food_description: '', food_type: '' });
           })
           .catch((err) => {
             console.error('Error:', err.response?.data || err.message);
@@ -76,7 +63,7 @@ function AddFoodModal({ show, onClose, onSave }) {
           <h2>Add Food</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form">
+        <form onSubmit={handleSubmit} className="add-user-form food-form">
           <label>Food Name</label>
           <input
             type="text"
@@ -91,26 +78,6 @@ function AddFoodModal({ show, onClose, onSave }) {
             value={formData.description}
             onChange={handleChange}
           />
-
-          <label>Image</label>
-          <div className="image-upload-container">
-            <input
-              type="file"
-              name="image"
-              id="image-upload"
-              accept="image/*"
-              onChange={handleChange}
-              hidden
-            />
-            <label htmlFor="image-upload" className="food-import-btn">Import Picture</label>
-            {formData.imagePreview && (
-                <img
-                    src={formData.imagePreview}
-                    alt="Preview"
-                    style={{ maxWidth: '100%', borderRadius: '6px', marginTop: '0.5rem' }}
-                />
-            )}
-          </div>
 
           <label>Food Type</label>
           <select name="food_type" value={formData.food_type} onChange={handleChange}>

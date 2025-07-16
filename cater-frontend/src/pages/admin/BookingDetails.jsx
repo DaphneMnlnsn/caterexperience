@@ -527,7 +527,7 @@ function BookingDetails() {
             </div>
             <div className="menu-right">
               <h4 className="menu-title">Menu</h4>
-              {Object.entries(groupedFoods).map(([category, items]) => (
+              {Object.entries(booking.menu).map(([category, selectedFoodNames]) => (
                 <div className="booking-field-group menu-category" key={category}>
                   <label>{category}</label>
                   {isEditing ? (
@@ -536,18 +536,25 @@ function BookingDetails() {
                       onChange={(e) =>
                         setEditedData({
                           ...editedData,
-                          menuSelections: { ...editedData.menuSelections, [category]: e.target.value },
+                          menuSelections: {
+                            ...editedData.menuSelections,
+                            [category]: e.target.value,
+                          },
                         })
                       }
                     >
                       <option value="">Select {category}</option>
-                      {items.map(food => (
-                        <option key={food.food_id} value={food.food_id}>{food.food_name}</option>
+                      {groupedFoods[category]?.map((food) => (
+                        <option key={food.food_id} value={food.food_id}>
+                          {food.food_name}
+                        </option>
                       ))}
                     </select>
                   ) : (
                     <ul>
-                      {items.map(food => <li key={food.food_id || food}>{food.food_name || food}</li>)}
+                      {selectedFoodNames.map((foodName) => (
+                        <li key={foodName}>{foodName}</li>
+                      ))}
                     </ul>
                   )}
                 </div>

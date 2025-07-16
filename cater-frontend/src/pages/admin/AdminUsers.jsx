@@ -8,19 +8,6 @@ import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 
 function AdminUsers() {
-
-    const fetchWithAuth = (url, options = {}) => {
-        const token = localStorage.getItem('token');
-        return fetch(url, {
-        ...options,
-        headers: {
-            ...(options.headers || {}),
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        }
-        });
-    };
-    
     const [staffData, setStaffData] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
     const user = JSON.parse(localStorage.getItem('user'));

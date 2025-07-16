@@ -20,20 +20,13 @@ class FoodController extends Controller
             'food_type' => 'required|string|max:100',
             'food_description' => 'nullable|string',
             'food_status' => 'required|string',
-            'food_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
-
-        $imagePath = null;
-        if ($request->hasFile('food_image')) {
-            $imagePath = $request->file('food_image')->store('food_images', 'public');
-        }
 
         $food = Food::create([
             'food_name' => $validated['food_name'],
             'food_type' => $validated['food_type'],
             'food_description' => $validated['food_description'] ?? null,
             'food_status' => $validated['food_status'],
-            'food_image_url' => $imagePath,
         ]);
 
         return response()->json(['message' => 'Food created successfully', 'food' => $food], 201);
@@ -47,16 +40,7 @@ class FoodController extends Controller
             'food_type' => 'required|string|max:100',
             'food_description' => 'nullable|string',
             'food_status' => 'required|string',
-            'food_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
-
-        if ($request->hasFile('food_image')) {
-            if ($food->food_image_url && Storage::disk('public')->exists($food->food_image_url)) {
-                Storage::disk('public')->delete($food->food_image_url);
-            }
-            $imagePath = $request->file('food_image')->store('food_images', 'public');
-            $food->food_image_url = $imagePath;
-        }
 
         $food->update([
             'food_name' => $validated['food_name'],
@@ -73,10 +57,6 @@ class FoodController extends Controller
 
         if (!$food) {
             return response()->json(['message' => 'Food not found'], 404);
-        }
-
-        if ($food->food_image_url && Storage::disk('public')->exists($food->food_image_url)) {
-            Storage::disk('public')->delete($food->food_image_url);
         }
 
         $food->delete();

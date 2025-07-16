@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('food_name');
             $table->string('food_type');
             $table->text('food_description')->nullable();
-            $table->string('food_image_url')->nullable();
             $table->string('food_status')->default('available');
         });
     }
