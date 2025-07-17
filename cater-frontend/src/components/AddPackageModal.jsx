@@ -6,37 +6,48 @@ import axiosClient from '../axiosClient';
 function AddPackageModal({ show, onClose, onSave }) {
   const [formData, setFormData] = useState({
     package_name: '',
-    description: '',
-    prices: [{ price: '', pax: '' }]
+    package_description: '',
+    package_type: '',
+    package_price: '',
+    package_status: 'active',
+    price_tiers: [{ price_label: '', price_amount: '', pax: '', status: 'active' }]
   });
 
   const handleChange = (e, index, field) => {
     const { name, value } = e.target;
-
     if (field) {
-      const updatedPrices = [...formData.prices];
-      updatedPrices[index][field] = value;
-      setFormData({ ...formData, prices: updatedPrices });
+      const updatedTiers = [...formData.price_tiers];
+      updatedTiers[index][field] = value;
+      setFormData({ ...formData, price_tiers: updatedTiers });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
-  const addPricePaxRow = () => {
+  const addPriceTier = () => {
     setFormData(prev => ({
       ...prev,
-      prices: [...prev.prices, { price: '', pax: '' }]
+      price_tiers: [...prev.price_tiers, { price_label: '', price_amount: '', pax: '', status: 'active' }]
     }));
+  };
+
+  const removePriceTier = (index) => {
+    const updated = formData.price_tiers.filter((_, i) => i !== index);
+    setFormData({ ...formData, price_tiers: updated });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const { package_name, description, prices } = formData;
     const isFormValid =
-      package_name.trim() !== '' &&
-      description.trim() !== '' &&
-      prices.every(p => p.price.trim() !== '' && p.pax.trim() !== '');
+      formData.package_name.trim() !== '' &&
+      formData.package_type.trim() !== '' &&
+      formData.package_status.trim() !== '' &&
+      formData.price_tiers.every(t =>
+        t.price_label.trim() !== '' &&
+        t.price_amount !== '' &&
+        t.pax !== ''
+    );
 
     if (!isFormValid) {
       Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
@@ -48,7 +59,6 @@ function AddPackageModal({ show, onClose, onSave }) {
       text: 'Do you want to save this package?',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#f7e26b',
       cancelButtonColor: '#aaa',
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
@@ -87,35 +97,58 @@ function AddPackageModal({ show, onClose, onSave }) {
 
           <label>Description/Inclusions</label>
           <textarea
-            name="description"
-            value={formData.description}
+            name="package_description"
+            value={formData.package_description}
             onChange={handleChange}
           />
 
-          {formData.prices.map((entry, index) => (
-            <div className="name-row" key={index}>
+          <label>Base Price (Optional)</label>
+          <input
+            type="number"
+            name="package_price"
+            value={formData.package_price || ''}
+            onChange={handleChange}
+          />
+
+          {formData.price_tiers.map((tier, index) => (
+            <div className="name-row" key={index} style={{ display: 'flex', alignItems: 'center' }}>
               <div className="half">
-                <label>{index === 0 ? 'Price' : ''}</label>
                 <input
-                  type="number"
-                  name="price"
-                  value={entry.price}
-                  onChange={(e) => handleChange(e, index, 'price')}
+                  type="text"
+                  placeholder="Label (e.g., 50 pax)"
+                  value={tier.price_label}
+                  onChange={(e) => handleChange(e, index, 'price_label')}
                 />
               </div>
               <div className="half">
-                <label>{index === 0 ? 'Pax.' : ''}</label>
                 <input
                   type="number"
-                  name="pax"
-                  value={entry.pax}
+                  placeholder="Amount"
+                  value={tier.price_amount}
+                  onChange={(e) => handleChange(e, index, 'price_amount')}
+                />
+              </div>
+              <div className="half">
+                <input
+                  type="number"
+                  placeholder="Pax"
+                  value={tier.pax}
                   onChange={(e) => handleChange(e, index, 'pax')}
                 />
               </div>
+              {formData.price_tiers.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removePriceTier(index)}
+                  style={{ marginLeft: '8px', color: 'red', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
 
-          <div className="plus-box" onClick={addPricePaxRow}>+</div>
+          <div className="plus-box" onClick={addPriceTier}>+</div>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>

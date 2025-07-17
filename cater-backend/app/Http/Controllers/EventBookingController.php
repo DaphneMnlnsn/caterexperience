@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\StaffAssignment;
 use App\Models\Menu;
+use App\Models\EventAddon;
+use App\Models\Food;
 
 class EventBookingController extends Controller
 {
@@ -50,7 +52,8 @@ class EventBookingController extends Controller
             'theme',
             'staffAssignments.user',
             'tasks',
-            'payments'
+            'payments',
+            'eventAddons.addon',
         ])->find($id);
 
 
@@ -160,7 +163,6 @@ class EventBookingController extends Controller
         DB::beginTransaction();
 
         try {
-
             $menu = Menu::create([
                 'menu_name' => $validated['event_name'] . ' Menu',
                 'menu_description' => 'Auto-generated menu for this booking',
@@ -222,6 +224,19 @@ class EventBookingController extends Controller
             }
 
             $this->generateAutoTasks($booking, $validated['assigned_user_ids'], $validated['created_by']);
+
+            if ($request->has('event_addons')) {
+                foreach ($request->event_addons as $addon) {
+                    EventAddon::create([
+                        'booking_id'   => $booking->booking_id,
+                        'addon_id'     => $addon['addon_id'],
+                        'quantity'     => $addon['quantity'],
+                        'price_each'   => $addon['price_each'],
+                        'total_price'  => $addon['total_price'],
+                        'remarks'      => $addon['remarks'] ?? null,
+                    ]);
+                }
+            }
 
             if ($request->filled('downpayment') && $request->downpayment > 0) {
                 Payment::create([
@@ -307,8 +322,23 @@ class EventBookingController extends Controller
             'special_request' => $validated['special_request'],
         ]);
 
-        $allFoods = \App\Models\Food::whereIn('food_name', $validated['food_names'])->pluck('food_id')->toArray();
+        $allFoods = Food::whereIn('food_name', $validated['food_names'])->pluck('food_id')->toArray();
         $booking->menu->foods()->sync($allFoods);
+
+        EventAddon::where('booking_id', $booking->booking_id)->delete();
+
+        if ($request->has('event_addons')) {
+            foreach ($request->event_addons as $addon) {
+                EventAddon::create([
+                    'booking_id'   => $booking->booking_id,
+                    'addon_id'     => $addon['addon_id'],
+                    'quantity'     => $addon['quantity'],
+                    'price_each'   => $addon['price_each'],
+                    'total_price'  => $addon['total_price'],
+                    'remarks'      => $addon['remarks'] ?? null,
+                ]);
+            }
+        }
 
         return response()->json(['message' => 'Booking updated']);
     }

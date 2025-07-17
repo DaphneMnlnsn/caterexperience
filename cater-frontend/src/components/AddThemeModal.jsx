@@ -1,14 +1,14 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import './AddFoodModal.css';
 import axiosClient from '../axiosClient';
 
 function AddThemeModal({ show, onClose, onSave }) {
-
+  
   const [formData, setFormData] = useState({
     theme_name: '',
     description: '',
-    image: '',
+    imageFile: null,
     imagePreview: ''
   });
 
@@ -16,31 +16,36 @@ function AddThemeModal({ show, onClose, onSave }) {
     const { name, value, files } = e.target;
 
     if (name === 'image') {
-        const file = files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-            setFormData(prev => ({
-                ...prev,
-                image: file.name,
-                imagePreview: reader.result,
-            }));
-            };
-            reader.readAsDataURL(file);
-        }
+      const file = files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFormData(prev => ({
+            ...prev,
+            imageFile: file,
+            imagePreview: reader.result,
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const isFormValid = Object.values(formData).every(val => val.trim() !== '');
-    if (!isFormValid) {
-      Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
+    if (!formData.theme_name.trim() || !formData.description.trim() || !formData.imageFile) {
+      Swal.fire('Incomplete', 'Please fill in all the fields and upload an image.', 'warning');
       return;
     }
+
+    const payload = new FormData();
+    payload.append('theme_name', formData.theme_name);
+    payload.append('theme_description', formData.description);
+    payload.append('theme_status', 'active');
+    payload.append('theme_image', formData.imageFile);
 
     Swal.fire({
       title: 'Are you sure?',
@@ -52,7 +57,11 @@ function AddThemeModal({ show, onClose, onSave }) {
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.post('/themes', formData)
+        axiosClient.post('/themes', payload, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          }
+        })
           .then((res) => {
             Swal.fire('Saved!', 'Theme has been added.', 'success');
             onSave(res.data.theme);
@@ -103,11 +112,11 @@ function AddThemeModal({ show, onClose, onSave }) {
             />
             <label htmlFor="image-upload" className="food-import-btn">Import Picture</label>
             {formData.imagePreview && (
-                <img
-                    src={formData.imagePreview}
-                    alt="Preview"
-                    style={{ maxWidth: '100%', borderRadius: '6px', marginTop: '0.5rem' }}
-                />
+              <img
+                src={formData.imagePreview}
+                alt="Preview"
+                style={{ maxWidth: '100%', borderRadius: '6px', marginTop: '0.5rem' }}
+              />
             )}
           </div>
 

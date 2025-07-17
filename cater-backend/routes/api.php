@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AddonController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -11,7 +10,7 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\FoodController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ThemeController;
-use App\Models\Food;
+use App\Http\Controllers\AddonController;
 
 Route::get('/test', function () {
     return ['message' => 'API route works!'];
@@ -60,5 +59,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/foods', [FoodController::class, 'store']);
     Route::put('/foods/{id}', [FoodController::class, 'update']);
     Route::delete('/foods/{id}', [FoodController::class, 'destroy']);
+
+    Route::post('/packages', [PackageController::class, 'store']);
+    Route::put('/packages/{id}', [PackageController::class, 'update']);
+    Route::delete('/packages/{id}', [PackageController::class, 'destroy']);
+
+    Route::post('/themes', [ThemeController::class, 'store']);
+    Route::put('/themes/{id}', [ThemeController::class, 'update']);
+    Route::delete('/themes/{id}', [ThemeController::class, 'destroy']);
+
+    Route::post('/addons', [AddonController::class, 'store']);
+    Route::put('/addons/{id}', [AddonController::class, 'update']);
+    Route::delete('/addons/{id}', [AddonController::class, 'destroy']);
 
 });

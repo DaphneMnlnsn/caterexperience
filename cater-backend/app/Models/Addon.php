@@ -17,4 +17,9 @@ class Addon extends Model
         'addon_price',
         'addon_status',
     ];
+
+    public function prices()
+    {
+        return $this->hasMany(AddonPrice::class, 'addon_id', 'addon_id');
+    }
 }

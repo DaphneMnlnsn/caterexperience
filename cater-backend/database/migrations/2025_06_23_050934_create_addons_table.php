@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('addon_name');
             $table->string('addon_type');
             $table->text('addon_description')->nullable();
-            $table->decimal('addon_price', 10, 2);
+            $table->decimal('addon_price', 10, 2)->nullable();
             $table->string('addon_status')->default('available');
         });
     }

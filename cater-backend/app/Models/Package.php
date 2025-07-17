@@ -18,7 +18,7 @@ class Package extends Model
         'package_status',
     ];
 
-    public function prices()
+    public function priceTiers()
     {
         return $this->hasMany(PackagePrice::class, 'package_id', 'package_id');
     }

@@ -4,82 +4,112 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Package;
+use App\Models\PackagePrice;
 
 class PackageController extends Controller
 {
     public function index()
     {
-        $packages = Package::all();
+        $packages = Package::with('priceTiers')->get();
         return response()->json(['packages' => $packages]);
     }
-    /*public function store(Request $request)
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'food_name' => 'required|string|max:255',
-            'food_type' => 'required|string|max:100',
-            'food_description' => 'nullable|string',
-            'food_status' => 'required|string',
-            'food_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'package_name' => 'required|string|max:255',
+            'package_price' => 'nullable|numeric',
+            'package_description' => 'nullable|string',
+            'package_type' => 'required|string',
+            'package_status' => 'required|string',
+            'price_tiers' => 'array',
+            'price_tiers.*.price_label' => 'required|string',
+            'price_tiers.*.price_amount' => 'required|numeric',
+            'price_tiers.*.pax' => 'required|integer',
+            'price_tiers.*.status' => 'required|string'
         ]);
 
-        $imagePath = null;
-        if ($request->hasFile('food_image')) {
-            $imagePath = $request->file('food_image')->store('food_images', 'public');
+        $package = Package::create($validated);
+
+        if (!empty($request->price_tiers)) {
+            foreach ($request->price_tiers as $tier) {
+                $tier['package_id'] = $package->package_id;
+                PackagePrice::create($tier);
+            }
         }
 
-        $food = Food::create([
-            'food_name' => $validated['food_name'],
-            'food_type' => $validated['food_type'],
-            'food_description' => $validated['food_description'] ?? null,
-            'food_status' => $validated['food_status'],
-            'food_image_url' => $imagePath,
-        ]);
-
-        return response()->json(['message' => 'Food created successfully', 'food' => $food], 201);
+        return response()->json(['message' => 'Package created successfully', 'package' => $package->load('priceTiers')], 201);
     }
     public function update(Request $request, $id)
     {
-        $food = Food::findOrFail($id);
+        $package = Package::findOrFail($id);
 
         $validated = $request->validate([
-            'food_name' => 'required|string|max:255',
-            'food_type' => 'required|string|max:100',
-            'food_description' => 'nullable|string',
-            'food_status' => 'required|string',
-            'food_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'package_name' => 'required|string|max:255',
+            'package_price' => 'nullable|numeric',
+            'package_description' => 'nullable|string',
+            'package_type' => 'required|string',
+            'package_status' => 'required|string',
+            'price_tiers' => 'array',
+            'price_tiers.*.price_label' => 'required|string',
+            'price_tiers.*.price_amount' => 'required|numeric',
+            'price_tiers.*.pax' => 'required|integer',
+            'price_tiers.*.status' => 'required|string',
+            'price_tiers.*.package_price_id' => 'nullable|integer|exists:package_prices,package_price_id'
         ]);
 
-        if ($request->hasFile('food_image')) {
-            if ($food->food_image_url && Storage::disk('public')->exists($food->food_image_url)) {
-                Storage::disk('public')->delete($food->food_image_url);
+        $package->update([
+            'package_name' => $validated['package_name'],
+            'package_price' => $validated['package_price'],
+            'package_description' => $validated['package_description'],
+            'package_type' => $validated['package_type'],
+            'package_status' => $validated['package_status'],
+        ]);
+
+        $existingIds = [];
+        foreach ($request->price_tiers as $tier) {
+            if (!empty($tier['package_price_id'])) {
+                $existing = PackagePrice::find($tier['package_price_id']);
+                if ($existing && $existing->package_id == $package->package_id) {
+                    $existing->update([
+                        'price_label' => $tier['price_label'],
+                        'price_amount' => $tier['price_amount'],
+                        'pax' => $tier['pax'],
+                        'status' => $tier['status'],
+                    ]);
+                    $existingIds[] = $existing->package_price_id;
+                }
+            } else {
+                $new = PackagePrice::create([
+                    'package_id' => $package->package_id,
+                    'price_label' => $tier['price_label'],
+                    'price_amount' => $tier['price_amount'],
+                    'pax' => $tier['pax'],
+                    'status' => $tier['status'],
+                ]);
+                $existingIds[] = $new->package_price_id;
             }
-            $imagePath = $request->file('food_image')->store('food_images', 'public');
-            $food->food_image_url = $imagePath;
         }
 
-        $food->update([
-            'food_name' => $validated['food_name'],
-            'food_type' => $validated['food_type'],
-            'food_description' => $validated['food_description'] ?? null,
-            'food_status' => $validated['food_status'],
-        ]);
+        PackagePrice::where('package_id', $package->package_id)
+            ->whereNotIn('package_price_id', $existingIds)
+            ->delete();
 
-        return response()->json(['message' => 'Food updated successfully', 'food' => $food]);
+        return response()->json([
+            'message' => 'Package updated successfully',
+            'package' => $package->load('priceTiers')
+        ]);
     }
+
     public function destroy($id)
     {
-        $food = Food::find($id);
+        $package = Package::find($id);
 
-        if (!$food) {
-            return response()->json(['message' => 'Food not found'], 404);
+        if (!$package) {
+            return response()->json(['message' => 'Package not found'], 404);
         }
 
-        if ($food->food_image_url && Storage::disk('public')->exists($food->food_image_url)) {
-            Storage::disk('public')->delete($food->food_image_url);
-        }
+        $package->delete();
 
-        $food->delete();
-
-        return response()->json(['message' => 'Food deleted successfully'], 200);
-    }*/
+        return response()->json(['message' => 'Package deleted successfully'], 200);
+    }
 }

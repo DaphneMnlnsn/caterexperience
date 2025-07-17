@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('packages', function (Blueprint $table) {
             $table->id('package_id');
             $table->string('package_name');
-            $table->decimal('package_price', 10, 2);
+            $table->decimal('package_price', 10, 2)->nullable();
             $table->text('package_description');
             $table->string('package_type');
             $table->string('package_status')->default('available');
