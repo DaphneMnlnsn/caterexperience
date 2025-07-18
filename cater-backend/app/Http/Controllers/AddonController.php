@@ -45,7 +45,6 @@ class AddonController extends Controller
             'addon_name' => 'required|string|max:255',
             'addon_type' => 'required|string|max:100',
             'addon_description' => 'nullable|string',
-            'addon_price' => 'nullable|numeric',
             'addon_status' => 'required|string',
             'prices' => 'required|array',
             'prices.*.addon_price_id' => 'nullable|integer',
@@ -57,7 +56,6 @@ class AddonController extends Controller
             'addon_name' => $validated['addon_name'],
             'addon_type' => $validated['addon_type'],
             'addon_description' => $validated['addon_description'],
-            'addon_price' => $validated['addon_price'],
             'addon_status' => $validated['addon_status'],
         ]);
 

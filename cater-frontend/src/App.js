@@ -7,7 +7,7 @@ import AdminClients from './pages/admin/AdminClients';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminPayments from './pages/admin/AdminPayments';
 import Menu from './pages/admin/Menu';
-import AdminPackages from './pages/admin/AdminPackages';
+import Packages from './pages/admin/Packages';
 import AdminVenue from './pages/admin/AdminVenue';
 import AdminInventory from './pages/admin/AdminInventory';
 import AdminAudit from './pages/admin/AdminAudit';
@@ -110,7 +110,7 @@ export default function App(){
           path="/admin/package"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <AdminPackages />
+              <Packages />
             </ProtectedRoute>
           }
         />

@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import './AddFoodModal.css';
 import axiosClient from '../axiosClient';
 
-function AddThemeModal({ show, onClose, onSave }) {
-  
+function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
   const [formData, setFormData] = useState({
     theme_name: '',
     description: '',
     imageFile: null,
     imagePreview: ''
   });
+
+  useEffect(() => {
+    if (theme) {
+      setFormData({
+        theme_name: theme.theme_name || '',
+        description: theme.theme_description || '',
+        imageFile: null,
+        imagePreview: theme.theme_image_url ? `http://localhost:8000/storage/${theme.theme_image_url}` : ''
+      });
+    }
+  }, [theme]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -20,10 +30,10 @@ function AddThemeModal({ show, onClose, onSave }) {
       if (file) {
         const reader = new FileReader();
         reader.onloadend = () => {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             imageFile: file,
-            imagePreview: reader.result,
+            imagePreview: reader.result
           }));
         };
         reader.readAsDataURL(file);
@@ -36,8 +46,8 @@ function AddThemeModal({ show, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.theme_name.trim() || !formData.imageFile) {
-      Swal.fire('Incomplete', 'Please fill in all the fields and upload an image.', 'warning');
+    if (!formData.theme_name.trim()) {
+      Swal.fire('Incomplete', 'Please enter a theme name.', 'warning');
       return;
     }
 
@@ -45,30 +55,56 @@ function AddThemeModal({ show, onClose, onSave }) {
     payload.append('theme_name', formData.theme_name);
     payload.append('theme_description', formData.description);
     payload.append('theme_status', 'active');
-    payload.append('theme_image', formData.imageFile);
+    if (formData.imageFile) {
+      payload.append('theme_image', formData.imageFile);
+    }
 
     Swal.fire({
-      title: 'Are you sure?',
-      text: 'Do you want to save this theme?',
+      title: 'Save Changes?',
+      text: 'Do you want to update this theme?',
       icon: 'question',
       showCancelButton: true,
       cancelButtonColor: '#aaa',
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.post('/themes', payload, {
+        axiosClient.post(`/themes/${theme.theme_id}?_method=PUT`, payload, {
           headers: {
             'Content-Type': 'multipart/form-data',
           }
         })
           .then((res) => {
-            Swal.fire('Saved!', 'Theme has been added.', 'success');
+            Swal.fire('Saved!', 'Theme has been updated.', 'success');
             onSave(res.data.theme);
             onClose();
           })
           .catch((err) => {
-            console.error('Error:', err.response?.data || err.message);
-            Swal.fire('Error', 'There was a problem saving the theme.', 'error');
+            console.error(err.response?.data || err.message);
+            Swal.fire('Error', 'There was a problem updating the theme.', 'error');
+          });
+      }
+    });
+  };
+
+  const handleDelete = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This theme will be permanently deleted.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.delete(`/themes/${theme.theme_id}`)
+          .then(() => {
+            Swal.fire('Deleted!', 'Theme has been deleted.', 'success');
+            onSave();
+            onClose();
+          })
+          .catch((err) => {
+            console.error(err.response?.data || err.message);
+            Swal.fire('Error', 'There was a problem deleting the theme.', 'error');
           });
       }
     });
@@ -80,7 +116,7 @@ function AddThemeModal({ show, onClose, onSave }) {
     <div className="modal-overlay">
       <div className="modal add-food-modal">
         <div className="modal-header">
-          <h2>Add Theme</h2>
+          <h2>Edit Theme</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit} className="add-user-form">
@@ -121,6 +157,7 @@ function AddThemeModal({ show, onClose, onSave }) {
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="button" className="user-delete-btn" onClick={handleDelete}>Delete</button>
             <button type="submit" className="user-save-btn">Save</button>
           </div>
         </form>
@@ -129,4 +166,4 @@ function AddThemeModal({ show, onClose, onSave }) {
   );
 }
 
-export default AddThemeModal;
+export default EditThemeModal;

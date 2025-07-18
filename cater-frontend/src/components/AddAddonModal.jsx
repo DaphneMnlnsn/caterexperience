@@ -98,11 +98,19 @@ function AddAddonModal({ show, onClose, onSave }) {
           <label>Addon Type</label>
           <select name="addon_type" value={formData.addon_type} onChange={handleChange}>
             <option value="">Select type</option>
+            <option value="Lights and Sounds">Lights and Sounds</option>
             <option value="Pica Pica">Pica Pica</option>
             <option value="Snacks">Snacks</option>
+            <option value="Photobooth">Photobooth</option>
+            <option value="Backdrop">Backdrop</option>
+            <option value="Cake">Cake</option>
+            <option value="Dessert Buffet">Dessert Buffet</option>
+            <option value="Clown">Clown</option>
+            <option value="Magician">Magician</option>
+            <option value="Other">Other</option>
           </select>
 
-          <label>Description/Inclusions</label>
+          <label>Description</label>
           <textarea
             name="description"
             value={formData.description}

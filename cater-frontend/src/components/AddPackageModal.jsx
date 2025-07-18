@@ -42,12 +42,11 @@ function AddPackageModal({ show, onClose, onSave }) {
     const isFormValid =
       formData.package_name.trim() !== '' &&
       formData.package_type.trim() !== '' &&
-      formData.package_status.trim() !== '' &&
       formData.price_tiers.every(t =>
         t.price_label.trim() !== '' &&
-        t.price_amount !== '' &&
-        t.pax !== ''
-    );
+        t.price_amount !== '' && !isNaN(Number(t.price_amount)) && Number(t.price_amount) > 0 &&
+        t.pax !== '' && !isNaN(Number(t.pax)) && Number(t.pax) > 0
+      );
 
     if (!isFormValid) {
       Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
@@ -63,7 +62,21 @@ function AddPackageModal({ show, onClose, onSave }) {
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.post('/packages', formData)
+        const payload = {
+          package_name: formData.package_name,
+          package_description: formData.package_description || '',
+          package_price: formData.package_price ? Number(formData.package_price) : null,
+          package_type: formData.package_type || '',
+          package_status: formData.package_status,
+          price_tiers: formData.price_tiers.map(tier => ({
+            price_label: tier.price_label.trim(),
+            price_amount: Number(tier.price_amount),
+            pax: Number(tier.pax),
+            status: tier.status || 'active'
+          }))
+        };
+        
+        axiosClient.post('/packages', payload)
           .then((res) => {
             Swal.fire('Saved!', 'Package has been added.', 'success');
             onSave(res.data.package);
@@ -94,6 +107,18 @@ function AddPackageModal({ show, onClose, onSave }) {
             value={formData.package_name}
             onChange={handleChange}
           />
+
+          <label>Package Type</label>
+          <select
+            name="package_type"
+            value={formData.package_type}
+            onChange={handleChange}
+          >
+            <option value="">Select Type</option>
+            <option value='General'>General</option>
+            <option value="Wedding">Wedding</option>
+            <option value="Birthday">Birthday</option>
+          </select>
 
           <label>Description/Inclusions</label>
           <textarea

@@ -131,6 +131,9 @@ function AdminUsers() {
                                     </td>
                                     </tr>
                                 ))}
+                                {filteredUsers.length === 0 && (
+                                    <td>No users found.</td>
+                                )}
                             </tbody>
                         </table>
                     </div>

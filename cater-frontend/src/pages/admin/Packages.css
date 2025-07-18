@@ -1,0 +1,155 @@
+.packages-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 1.5rem;
+  padding-bottom: 10px;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+}
+
+.category-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: #222;
+  font-family: 'Lora', Georgia, Times, serif;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.other-title {
+  margin-top: 1.5rem;
+}
+.theme-card {
+  width: 20rem;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #fff176;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.theme-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+.theme-card .theme-name {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 1);
+  width: 100%;
+  padding: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  font-family: 'Lora', Georgia, serif;
+  border-top: 2px solid #fff176;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  width: 100%;
+  cursor: pointer;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: #fafafa;
+}
+.upload-plus {
+  font-size: 32px;
+  color: #bbb;
+}
+.upload-text {
+  font-size: 14px;
+  color: #bbb;
+}
+
+.package-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.package-prices,
+.package-inclusions {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #333;
+}
+
+.package-inclusions ul {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.package-inclusions ul li {
+  margin-bottom: 4px;
+}
+
+.addon-card {
+  width: 15rem !important;
+}
+
+.addon-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.small-text-card .package-prices,
+.small-text-card .package-inclusions,
+.small-text-card .package-inclusions ul {
+  font-size: 0.9rem;
+}
+.package-prices > b,
+.package-inclusions > b {
+  font-size: 0.9rem;
+}
+
+.card-yellow {
+  width: 20rem;
+  height: auto;
+  flex: 0 0 auto;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #fff176;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.card-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.price-red {
+  color: rgb(192, 0, 0);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.addon-details {
+  margin: 10px 0;
+  font-size: 0.9rem;
+  color: #333;
+}

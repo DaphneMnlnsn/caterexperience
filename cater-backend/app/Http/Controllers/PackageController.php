@@ -54,7 +54,7 @@ class PackageController extends Controller
             'price_tiers.*.price_amount' => 'required|numeric',
             'price_tiers.*.pax' => 'required|integer',
             'price_tiers.*.status' => 'required|string',
-            'price_tiers.*.package_price_id' => 'nullable|integer|exists:package_prices,package_price_id'
+            'price_tiers.*.package_price_id' => 'nullable|integer|exists:package_price,package_price_id'
         ]);
 
         $package->update([

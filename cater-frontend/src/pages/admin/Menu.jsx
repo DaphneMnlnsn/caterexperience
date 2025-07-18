@@ -114,6 +114,9 @@ function Menu() {
                                 </div>
                             </div>
                         ))}
+                        {filteredMenuData.length === 0 && (
+                            <p className="no-results">No foods found.</p>
+                        )}
                     </div>
                 </section>
             </div>

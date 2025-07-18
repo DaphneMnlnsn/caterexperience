@@ -1,42 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import './AddFoodModal.css';
 import axiosClient from '../axiosClient';
 
-function EditPackageModal({ show, onClose, onSave }) {
+function EditPackageModal({ show, onClose, onSave, pkg }) {
   const [formData, setFormData] = useState({
     package_name: '',
-    description: '',
-    prices: [{ price: '', pax: '' }]
+    package_description: '',
+    package_type: '',
+    package_price: '',
+    package_status: 'active',
+    price_tiers: [{ price_label: '', price_amount: '', pax: '', status: 'active' }]
   });
+
+  useEffect(() => {
+    if (pkg && show) {
+      setFormData({
+        package_name: pkg.package_name || '',
+        package_description: pkg.package_description || '',
+        package_type: pkg.package_type || '',
+        package_price: pkg.package_price || '',
+        package_status: pkg.package_status || 'active',
+        price_tiers: pkg.price_tiers.map(t => ({
+          package_price_id: t.package_price_id || null,
+          price_label: t.price_label || '',
+          price_amount: t.price_amount || '',
+          pax: t.pax || '',
+          status: t.status || 'active'
+        }))
+      });
+    }
+  }, [pkg, show]);
 
   const handleChange = (e, index, field) => {
     const { name, value } = e.target;
-
-    if (field) {
-      const updatedPrices = [...formData.prices];
-      updatedPrices[index][field] = value;
-      setFormData({ ...formData, prices: updatedPrices });
+    if (field !== undefined) {
+      const updatedTiers = [...formData.price_tiers];
+      updatedTiers[index][field] = value;
+      setFormData({ ...formData, price_tiers: updatedTiers });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
-  const addPricePaxRow = () => {
+  const addPriceTier = () => {
     setFormData(prev => ({
       ...prev,
-      prices: [...prev.prices, { price: '', pax: '' }]
+      price_tiers: [...prev.price_tiers, { price_label: '', price_amount: '', pax: '', status: 'active' }]
     }));
+  };
+
+  const removePriceTier = (index) => {
+    const updated = formData.price_tiers.filter((_, i) => i !== index);
+    setFormData({ ...formData, price_tiers: updated });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const { package_name, description, prices } = formData;
     const isFormValid =
-      package_name.trim() !== '' &&
-      description.trim() !== '' &&
-      prices.every(p => p.price.trim() !== '' && p.pax.trim() !== '');
+      formData.package_name.trim() !== '' &&
+      formData.package_type.trim() !== '' &&
+      formData.price_tiers.every(t =>
+        t.price_label.trim() !== '' &&
+        t.price_amount !== '' && !isNaN(Number(t.price_amount)) && Number(t.price_amount) > 0 &&
+        t.pax !== '' && !isNaN(Number(t.pax)) && Number(t.pax) > 0
+      );
 
     if (!isFormValid) {
       Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
@@ -45,29 +74,68 @@ function EditPackageModal({ show, onClose, onSave }) {
 
     Swal.fire({
       title: 'Are you sure?',
-      text: 'Do you want to save this package?',
+      text: 'Do you want to update this package?',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#f7e26b',
       cancelButtonColor: '#aaa',
-      confirmButtonText: 'Yes, save it!',
+      confirmButtonText: 'Yes, update it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.post('/packages', formData)
+        const payload = {
+          package_name: formData.package_name,
+          package_description: formData.package_description,
+          package_price: formData.package_price ? Number(formData.package_price) : null,
+          package_type: formData.package_type,
+          package_status: formData.package_status,
+          price_tiers: formData.price_tiers.map(tier => ({
+            package_price_id: tier.package_price_id,
+            price_label: tier.price_label.trim(),
+            price_amount: Number(tier.price_amount),
+            pax: Number(tier.pax),
+            status: tier.status || 'active'
+          }))
+        };
+
+        axiosClient.put(`/packages/${pkg.package_id}`, payload)
           .then((res) => {
-            Swal.fire('Saved!', 'Package has been updated.', 'success');
+            Swal.fire('Updated!', 'Package has been updated.', 'success');
             onSave(res.data.package);
             onClose();
           })
           .catch((err) => {
             console.error('Error:', err.response?.data || err.message);
-            Swal.fire('Error', 'There was a problem saving the package.', 'error');
+            Swal.fire('Error', 'There was a problem updating the package.', 'error');
           });
       }
     });
   };
 
-  if (!show) return null;
+  const handleDelete = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will permanently delete the package.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.delete(`/packages/${pkg.package_id}`)
+          .then(() => {
+            Swal.fire('Deleted!', 'Package has been deleted.', 'success');
+            onSave();
+            onClose();
+          })
+          .catch((err) => {
+            console.error('Delete error:', err.response?.data || err.message);
+            Swal.fire('Error', 'There was a problem deleting the package.', 'error');
+          });
+      }
+    });
+  };
+
+
+  if (!show || !pkg) return null;
 
   return (
     <div className="modal-overlay">
@@ -85,40 +153,76 @@ function EditPackageModal({ show, onClose, onSave }) {
             onChange={handleChange}
           />
 
+          <label>Package Type</label>
+          <select
+            name="package_type"
+            value={formData.package_type}
+            onChange={handleChange}
+          >
+            <option value="">Select Type</option>
+            <option value="General">General</option>
+            <option value="Wedding">Wedding</option>
+            <option value="Birthday">Birthday</option>
+          </select>
+
           <label>Description/Inclusions</label>
           <textarea
-            name="description"
-            value={formData.description}
+            name="package_description"
+            value={formData.package_description}
             onChange={handleChange}
           />
 
-          {formData.prices.map((entry, index) => (
-            <div className="name-row" key={index}>
+          <label>Base Price (Optional)</label>
+          <input
+            type="number"
+            name="package_price"
+            value={formData.package_price}
+            onChange={handleChange}
+          />
+
+          {formData.price_tiers.map((tier, index) => (
+            <div className="name-row" key={index} style={{ display: 'flex', alignItems: 'center' }}>
               <div className="half">
-                <label>{index === 0 ? 'Price' : ''}</label>
                 <input
-                  type="number"
-                  name="price"
-                  value={entry.price}
-                  onChange={(e) => handleChange(e, index, 'price')}
+                  type="text"
+                  placeholder="Label (e.g., 50 pax)"
+                  value={tier.price_label}
+                  onChange={(e) => handleChange(e, index, 'price_label')}
                 />
               </div>
               <div className="half">
-                <label>{index === 0 ? 'Pax.' : ''}</label>
                 <input
                   type="number"
-                  name="pax"
-                  value={entry.pax}
+                  placeholder="Amount"
+                  value={tier.price_amount}
+                  onChange={(e) => handleChange(e, index, 'price_amount')}
+                />
+              </div>
+              <div className="half">
+                <input
+                  type="number"
+                  placeholder="Pax"
+                  value={tier.pax}
                   onChange={(e) => handleChange(e, index, 'pax')}
                 />
               </div>
+              {formData.price_tiers.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removePriceTier(index)}
+                  style={{ marginLeft: '8px', color: 'red', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
 
-          <div className="plus-box" onClick={addPricePaxRow}>+</div>
+          <div className="plus-box" onClick={addPriceTier}>+</div>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="button" className="delete-btn" onClick={handleDelete}>Delete</button>
             <button type="submit" className="user-save-btn">Save</button>
           </div>
         </form>
