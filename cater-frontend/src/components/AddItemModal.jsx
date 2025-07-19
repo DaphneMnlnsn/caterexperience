@@ -33,12 +33,21 @@ function AddItemModal({ show, onClose, onSave }) {
       text: 'Do you want to save this item?',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#f7e26b',
       cancelButtonColor: '#aaa',
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.post('/items', formData)
+        const payload = {
+          item_name: formData.item_name,
+          item_type: formData.item_type,
+          item_description: formData.description,
+          item_quantity: formData.total_quantity,
+          item_current_quantity: formData.current_quantity,
+          item_price: formData.item_price,
+          item_unit: formData.item_unit,
+        };
+
+        axiosClient.post('/inventory', payload)
           .then((res) => {
             Swal.fire('Saved!', 'Item has been added.', 'success');
             onSave(res.data.package);
@@ -63,8 +72,9 @@ function AddItemModal({ show, onClose, onSave }) {
         </div>
         <form onSubmit={handleSubmit} className="add-user-form">
           <label>Category</label>
-          <select name="addon_type" value={formData.item_type} onChange={handleChange}>
+          <select name="item_type" value={formData.item_type} onChange={handleChange}>
             <option value="">Select category</option>
+            <option value="Furniture">Furniture</option>
             <option value="Utensil">Utensil</option>
             <option value="Decoration">Decoration</option>
           </select>

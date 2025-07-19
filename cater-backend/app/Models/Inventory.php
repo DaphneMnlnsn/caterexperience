@@ -13,6 +13,7 @@ class Inventory extends Model
     protected $fillable = [
         'item_name',
         'item_quantity',
+        'item_current_quantity',
         'item_unit',
         'item_price',
         'item_type',

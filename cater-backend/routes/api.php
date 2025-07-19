@@ -11,6 +11,7 @@ use App\Http\Controllers\FoodController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\AddonController;
+use App\Http\Controllers\InventoryController;
 
 Route::get('/test', function () {
     return ['message' => 'API route works!'];
@@ -71,5 +72,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addons', [AddonController::class, 'store']);
     Route::put('/addons/{id}', [AddonController::class, 'update']);
     Route::delete('/addons/{id}', [AddonController::class, 'destroy']);
+
+    Route::get('/inventory', [InventoryController::class, 'index']);
+    Route::get('/inventory/{id}', [InventoryController::class, 'indexSelected']);
+    Route::post('/inventory', [InventoryController::class, 'store']);
+    Route::put('/inventory/{id}', [InventoryController::class, 'update']);
+    Route::delete('/inventory/{id}', [InventoryController::class, 'destroy']);
 
 });

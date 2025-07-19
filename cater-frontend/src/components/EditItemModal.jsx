@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import './AddFoodModal.css';
 import axiosClient from '../axiosClient';
 
-function EditItemModal({ show, onClose, onSave }) {
+function EditItemModal({ show, onClose, onSave, item }) {
   const [formData, setFormData] = useState({
     item_name: '',
     item_type: '',
@@ -14,15 +14,29 @@ function EditItemModal({ show, onClose, onSave }) {
     item_unit: ''
   });
 
+  useEffect(() => {
+    if (item) {
+      setFormData({
+        item_name: item.item_name || '',
+        item_type: item.item_type || '',
+        description: item.description || '',
+        total_quantity: item.total_quantity || '',
+        current_quantity: item.current_quantity || '',
+        item_price: item.item_price || '',
+        item_unit: item.item_unit || ''
+      });
+    }
+  }, [item]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid = Object.values(formData).every(val => val.trim() !== '');
+    const isFormValid = Object.values(formData).every(val => val.toString().trim() !== '');
     if (!isFormValid) {
       Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
       return;
@@ -30,29 +44,28 @@ function EditItemModal({ show, onClose, onSave }) {
 
     Swal.fire({
       title: 'Are you sure?',
-      text: 'Do you want to save this item?',
+      text: 'Do you want to save changes to this item?',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#f7e26b',
-      cancelButtonColor: '#aaa',
       confirmButtonText: 'Yes, save it!',
+      cancelButtonColor: '#aaa',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.post('/items', formData)
+        axiosClient.put(`/inventory/${item.item_id}`, formData)
           .then((res) => {
-            Swal.fire('Saved!', 'Item has been updated.', 'success');
-            onSave(res.data.package);
+            Swal.fire('Updated!', 'Item has been updated successfully.', 'success');
+            onSave(res.data);
             onClose();
           })
           .catch((err) => {
-            console.error('Error:', err.response?.data || err.message);
-            Swal.fire('Error', 'There was a problem saving the item.', 'error');
+            console.error('Update error:', err.response?.data || err.message);
+            Swal.fire('Error', 'There was a problem updating the item.', 'error');
           });
       }
     });
   };
 
-  if (!show) return null;
+  if (!show || !item) return null;
 
   return (
     <div className="modal-overlay">
@@ -63,11 +76,13 @@ function EditItemModal({ show, onClose, onSave }) {
         </div>
         <form onSubmit={handleSubmit} className="add-user-form">
           <label>Category</label>
-          <select name="addon_type" value={formData.item_type} onChange={handleChange}>
+          <select name="item_type" value={formData.item_type} onChange={handleChange}>
             <option value="">Select category</option>
+            <option value="Furniture">Furniture</option>
             <option value="Utensil">Utensil</option>
             <option value="Decoration">Decoration</option>
           </select>
+
           <label>Item Name</label>
           <input
             type="text"
@@ -76,26 +91,26 @@ function EditItemModal({ show, onClose, onSave }) {
             onChange={handleChange}
           />
 
-        <div className="name-row">
+          <div className="name-row">
             <div className="half">
-            <label>Total Quantity</label>
-            <input
+              <label>Total Quantity</label>
+              <input
                 type="number"
                 name="total_quantity"
                 value={formData.total_quantity}
                 onChange={handleChange}
-            />
+              />
             </div>
             <div className="half">
-            <label>Current Quantity</label>
-            <input
+              <label>Current Quantity</label>
+              <input
                 type="number"
                 name="current_quantity"
                 value={formData.current_quantity}
                 onChange={handleChange}
-            />
+              />
             </div>
-        </div>
+          </div>
 
           <label>Description/Inclusions</label>
           <textarea
@@ -106,22 +121,22 @@ function EditItemModal({ show, onClose, onSave }) {
 
           <div className="name-row">
             <div className="half">
-            <label>Price</label>
-            <input
+              <label>Price</label>
+              <input
                 type="number"
                 name="item_price"
                 value={formData.item_price}
                 onChange={handleChange}
-            />
+              />
             </div>
             <div className="half">
-            <label>Unit</label>
-            <select name="item_unit" value={formData.item_unit} onChange={handleChange}>
+              <label>Unit</label>
+              <select name="item_unit" value={formData.item_unit} onChange={handleChange}>
                 <option value="">Select type</option>
                 <option value="pieces">pieces</option>
-            </select>
+              </select>
             </div>
-        </div>
+          </div>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
