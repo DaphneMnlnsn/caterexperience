@@ -331,7 +331,7 @@ function BookingDetails() {
   if (!booking) return <div>Loading...</div>;
 
   return (
-    <div className="dashboard-container">
+    <div className="page-container">
       <Sidebar />
       <div className="main-content scrollable">
         <header className="topbar">

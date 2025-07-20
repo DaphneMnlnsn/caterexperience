@@ -73,7 +73,7 @@ function ClientDetails() {
   if (!client) return <div className="main-content">No client data available.</div>;
 
   return (
-    <div className="dashboard-container">
+    <div className="page-container">
       <Sidebar />
       <div className="main-content scrollable">
         <header className="topbar">

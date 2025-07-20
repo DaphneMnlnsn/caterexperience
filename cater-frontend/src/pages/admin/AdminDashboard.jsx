@@ -29,7 +29,7 @@ function AdminDashboard() {
   }, []);
 
   return (
-    <div className="dashboard-container">
+    <div className="page-container">
       <Sidebar />
 
       <div className="main-content">
@@ -54,7 +54,7 @@ function AdminDashboard() {
           </div>
         </section>
 
-        <section className="dashboard-bottom">
+        <section className="page-bottom">
           <div className="calendar-section">
             <DashboardCalendar />
           </div>

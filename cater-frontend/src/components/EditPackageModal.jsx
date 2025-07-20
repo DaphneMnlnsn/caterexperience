@@ -144,7 +144,7 @@ function EditPackageModal({ show, onClose, onSave, pkg }) {
           <h2>Edit Package</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form">
+        <form onSubmit={handleSubmit} className="add-form">
           <label>Package Name</label>
           <input
             type="text"

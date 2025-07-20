@@ -329,7 +329,7 @@ function AddBooking() {
     };
 
     return (
-        <div className="dashboard-container">
+        <div className="page-container">
             <Sidebar />
 
         <div className="main-content">

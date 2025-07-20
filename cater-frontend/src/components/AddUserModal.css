@@ -36,15 +36,15 @@
   cursor: pointer;
 }
 
-.add-user-form label {
+.add-form label {
   display: block;
   font-weight: bold;
   font-size: 14px;
   margin: 0.8rem 0 0.3rem;
 }
 
-.add-user-form input,
-.add-user-form select, .add-user-form textarea {
+.add-form input,
+.add-form select, .add-form textarea {
   width: 100%;
   padding: 0.5rem;
   font-family: 'Lora', serif;
@@ -54,7 +54,7 @@
   margin-bottom: 0.3rem;
 }
 
-.add-user-form input, .add-user-form textarea{
+.add-form input, .add-form textarea{
   width: 95%;
 }
 

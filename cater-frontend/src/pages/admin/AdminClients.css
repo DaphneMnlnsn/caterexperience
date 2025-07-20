@@ -52,7 +52,7 @@
   font-size: 18px;
   cursor: pointer;
 }
-.staff-table-container {
+.table-container {
   background: white;
   padding: 1rem;
   border-radius: 10px;
@@ -63,7 +63,7 @@
   overflow-y: auto;
   overflow-x: auto;
 }
-.staff-table {
+.page-table {
   background: white;
   padding: 1rem;
   border-radius: 10px;
@@ -71,23 +71,23 @@
   overflow-x: auto;
 }
 
-.staff-table {
+.page-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 600px;
 }
 
-.staff-table th, .staff-table td {
+.page-table th, .page-table td {
   text-align: left;
   padding: 0.75rem;
   border-bottom: 1px solid #ddd;
 }
 
-.staff-table td {
+.page-table td {
   font-size: 14px;
 }
 
-.staff-table th {
+.page-table th {
   font-weight: bold;
   background-color: #f8f8f8;
   position: sticky;

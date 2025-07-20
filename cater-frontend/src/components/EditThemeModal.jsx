@@ -119,7 +119,7 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
           <h2>Edit Theme</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form">
+        <form onSubmit={handleSubmit} className="add-form">
           <label>Theme Name</label>
           <input
             type="text"

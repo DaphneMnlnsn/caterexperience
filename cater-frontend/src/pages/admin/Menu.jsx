@@ -58,7 +58,7 @@ function Menu() {
     .filter(category => category.items.length > 0);
 
     return (
-        <div className="dashboard-container">
+        <div className="page-container">
             <Sidebar />
             <div className="main-content">
                 <header className="topbar">
@@ -71,9 +71,9 @@ function Menu() {
                     </div>
                 </header>
 
-                <section className="staff-header">
+                <section className="page-header">
                     <h3>Menu</h3>
-                    <div className="staff-header-actions">
+                    <div className="page-header-actions">
                         <div className="search-box">
                             <input
                                 type="text"
@@ -89,7 +89,7 @@ function Menu() {
                     </div>
                 </section>
 
-                <section className="dashboard-bottom">
+                <section className="page-bottom">
                     <div className="menu-categories">
                         {filteredMenuData.map(cat => (
                             <div key={cat.category} className="menu-category-block">

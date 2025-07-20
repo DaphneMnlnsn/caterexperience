@@ -55,7 +55,7 @@ function AddUserModal({ show, onClose, onSave }) {
       <div className="modal">
         <button className="modal-close" onClick={onClose}>×</button>
         <h2>Add User</h2>
-        <form className="add-user-form" onSubmit={handleSubmit}>
+        <form className="add-form" onSubmit={handleSubmit}>
           <div className="name-row">
             <div className="half">
                 <label>First Name</label>

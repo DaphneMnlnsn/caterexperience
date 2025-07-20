@@ -31,7 +31,7 @@ function AdminClients() {
 
     
     return (
-        <div className="dashboard-container">
+        <div className="page-container">
             <Sidebar />
 
             <div className="main-content">
@@ -59,9 +59,9 @@ function AdminClients() {
                     </div>
                 </section>
 
-                <section className="dashboard-bottom">
-                    <div className="staff-table-container">
-                        <table className="staff-table">
+                <section className="page-bottom">
+                    <div className="table-container">
+                        <table className="page-table">
                             <thead>
                             <tr>
                                 <th>Client Name</th>

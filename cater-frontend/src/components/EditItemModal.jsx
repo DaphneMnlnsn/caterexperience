@@ -7,9 +7,9 @@ function EditItemModal({ show, onClose, onSave, item }) {
   const [formData, setFormData] = useState({
     item_name: '',
     item_type: '',
-    description: '',
-    total_quantity: '',
-    current_quantity: '',
+    item_description: '',
+    item_quantity: '',
+    item_current_quantity: '',
     item_price: '',
     item_unit: ''
   });
@@ -19,9 +19,9 @@ function EditItemModal({ show, onClose, onSave, item }) {
       setFormData({
         item_name: item.item_name || '',
         item_type: item.item_type || '',
-        description: item.description || '',
-        total_quantity: item.total_quantity || '',
-        current_quantity: item.current_quantity || '',
+        item_description: item.item_description || '',
+        item_quantity: item.item_quantity || '',
+        item_current_quantity: item.item_current_quantity || '',
         item_price: item.item_price || '',
         item_unit: item.item_unit || ''
       });
@@ -36,8 +36,8 @@ function EditItemModal({ show, onClose, onSave, item }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid = Object.values(formData).every(val => val.toString().trim() !== '');
-    if (!isFormValid) {
+    const { item_name, item_type, item_quantity, item_price, item_unit } = formData;
+    if (item_name.trim() === '' || item_type.trim() === '' || item_quantity === '' || item_price === ''|| item_unit.trim() === '') {
       Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
       return;
     }
@@ -74,7 +74,7 @@ function EditItemModal({ show, onClose, onSave, item }) {
           <h2>Edit Item</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form">
+        <form onSubmit={handleSubmit} className="add-form">
           <label>Category</label>
           <select name="item_type" value={formData.item_type} onChange={handleChange}>
             <option value="">Select category</option>
@@ -96,8 +96,8 @@ function EditItemModal({ show, onClose, onSave, item }) {
               <label>Total Quantity</label>
               <input
                 type="number"
-                name="total_quantity"
-                value={formData.total_quantity}
+                name="item_quantity"
+                value={formData.item_quantity}
                 onChange={handleChange}
               />
             </div>
@@ -105,17 +105,17 @@ function EditItemModal({ show, onClose, onSave, item }) {
               <label>Current Quantity</label>
               <input
                 type="number"
-                name="current_quantity"
-                value={formData.current_quantity}
+                name="item_current_quantity"
+                value={formData.item_current_quantity}
                 onChange={handleChange}
               />
             </div>
           </div>
 
-          <label>Description/Inclusions</label>
+          <label>Description</label>
           <textarea
-            name="description"
-            value={formData.description}
+            name="item_description"
+            value={formData.item_description}
             onChange={handleChange}
           />
 
@@ -133,7 +133,8 @@ function EditItemModal({ show, onClose, onSave, item }) {
               <label>Unit</label>
               <select name="item_unit" value={formData.item_unit} onChange={handleChange}>
                 <option value="">Select type</option>
-                <option value="pieces">pieces</option>
+                <option value="piece">piece</option>
+                <option value="set">set</option>
               </select>
             </div>
           </div>

@@ -65,7 +65,7 @@ function Packages() {
   );
 
   return (
-    <div className="dashboard-container">
+    <div className="page-container">
       <Sidebar />
       <div className="main-content">
         <header className="topbar">
@@ -78,8 +78,8 @@ function Packages() {
           </div>
         </header>
 
-        <section className="staff-header">
-            <div className="staff-header-actions">
+        <section className="page-header">
+            <div className="page-header-actions">
           <h3>Packages, Themes, and Addons</h3>
             <div className='spacer'></div>
             <div className="search-box">
@@ -93,10 +93,10 @@ function Packages() {
           </div>
         </section>
 
-        <section className="dashboard-bottom">
+        <section className="page-bottom">
           <div className="menu-categories">
             <div className="menu-category-block">
-                <div className="staff-header-actions">
+                <div className="page-header-actions">
                     <h3 className="category-title">Packages</h3>
                     <div className="spacer" />
                     <div className="button-group">
@@ -142,7 +142,7 @@ function Packages() {
                     )}
                 </div>
 
-                <div className="staff-header-actions">
+                <div className="page-header-actions">
                     <h3 className="category-title other-title">Themes</h3>
                     <div className="spacer" />
                     <div className="button-group">
@@ -170,7 +170,7 @@ function Packages() {
                     )}
                 </div>
 
-                <div className="staff-header-actions">
+                <div className="page-header-actions">
                     <h3 className="category-title other-title">Addons</h3>
                     <div className="spacer" />
                     <div className="button-group">

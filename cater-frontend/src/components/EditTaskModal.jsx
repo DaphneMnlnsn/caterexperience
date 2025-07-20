@@ -67,7 +67,7 @@ function EditTaskModal({ task, onClose, onUpdate, staffOptions = [] }) {
         <div className="modal">
             <button className="modal-close" onClick={onClose}>×</button>
             <h2>Edit Task</h2>
-            <form className="add-user-form" onSubmit={handleSubmit}>
+            <form className="add-form" onSubmit={handleSubmit}>
             <label>Title</label>
             <input
                 value={formData.title}

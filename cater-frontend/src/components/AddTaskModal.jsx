@@ -62,7 +62,7 @@ function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOption
       <div className="modal">
         <button className="modal-close" onClick={onClose}>×</button>
         <h2>Add Task</h2>
-        <form className="add-user-form" onSubmit={handleSubmit}>
+        <form className="add-form" onSubmit={handleSubmit}>
           <label>Task Title</label>
           <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
           <label>Description</label>

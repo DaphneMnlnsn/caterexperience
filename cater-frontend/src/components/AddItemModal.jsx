@@ -7,9 +7,9 @@ function AddItemModal({ show, onClose, onSave }) {
   const [formData, setFormData] = useState({
     item_name: '',
     item_type: '',
-    description: '',
-    total_quantity: '',
-    current_quantity: '',
+    item_description: '',
+    item_quantity: '',
+    item_current_quantity: '',
     item_price: '',
     item_unit: ''
   });
@@ -22,8 +22,8 @@ function AddItemModal({ show, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid = Object.values(formData).every(val => val.trim() !== '');
-    if (!isFormValid) {
+    const { item_name, item_type, item_quantity, item_price, item_unit } = formData;
+    if (item_name.trim() === '' || item_type.trim() === '' || item_quantity === '' || item_price === ''|| item_unit.trim() === '') {
       Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
       return;
     }
@@ -40,9 +40,9 @@ function AddItemModal({ show, onClose, onSave }) {
         const payload = {
           item_name: formData.item_name,
           item_type: formData.item_type,
-          item_description: formData.description,
-          item_quantity: formData.total_quantity,
-          item_current_quantity: formData.current_quantity,
+          item_description: formData.item_description,
+          item_quantity: formData.item_quantity,
+          item_current_quantity: formData.item_current_quantity,
           item_price: formData.item_price,
           item_unit: formData.item_unit,
         };
@@ -70,7 +70,7 @@ function AddItemModal({ show, onClose, onSave }) {
           <h2>Add Item</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form">
+        <form onSubmit={handleSubmit} className="add-form">
           <label>Category</label>
           <select name="item_type" value={formData.item_type} onChange={handleChange}>
             <option value="">Select category</option>
@@ -91,8 +91,8 @@ function AddItemModal({ show, onClose, onSave }) {
             <label>Total Quantity</label>
             <input
                 type="number"
-                name="total_quantity"
-                value={formData.total_quantity}
+                name="item_quantity"
+                value={formData.item_quantity}
                 onChange={handleChange}
             />
             </div>
@@ -100,17 +100,17 @@ function AddItemModal({ show, onClose, onSave }) {
             <label>Current Quantity</label>
             <input
                 type="number"
-                name="current_quantity"
-                value={formData.current_quantity}
+                name="item_current_quantity"
+                value={formData.item_current_quantity}
                 onChange={handleChange}
             />
             </div>
         </div>
 
-          <label>Description/Inclusions</label>
+          <label>Description</label>
           <textarea
-            name="description"
-            value={formData.description}
+            name="item_description"
+            value={formData.item_description}
             onChange={handleChange}
           />
 
@@ -128,7 +128,8 @@ function AddItemModal({ show, onClose, onSave }) {
             <label>Unit</label>
             <select name="item_unit" value={formData.item_unit} onChange={handleChange}>
                 <option value="">Select type</option>
-                <option value="pieces">pieces</option>
+                <option value="piece">piece</option>
+                <option value="set">set</option>
             </select>
             </div>
         </div>

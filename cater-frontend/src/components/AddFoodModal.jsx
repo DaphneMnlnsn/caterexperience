@@ -63,7 +63,7 @@ function AddFoodModal({ show, onClose, onSave }) {
           <h2>Add Food</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form food-form">
+        <form onSubmit={handleSubmit} className="add-form food-form">
           <label>Food Name</label>
           <input
             type="text"

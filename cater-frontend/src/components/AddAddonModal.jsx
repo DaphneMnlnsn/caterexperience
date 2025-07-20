@@ -86,7 +86,7 @@ function AddAddonModal({ show, onClose, onSave }) {
           <h2>Add Addon</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form">
+        <form onSubmit={handleSubmit} className="add-form">
           <label>Addon Name</label>
           <input
             type="text"

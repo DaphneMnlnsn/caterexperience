@@ -64,7 +64,7 @@ function EditUserModal({ show, onClose, onSave, user }) {
       <div className="modal">
         <button className="modal-close" onClick={onClose}>×</button>
         <h2>Edit User</h2>
-        <form className="add-user-form" onSubmit={handleSubmit}>
+        <form className="add-form" onSubmit={handleSubmit}>
           <div className="name-row">
             <div className="half">
                 <label>First Name</label>

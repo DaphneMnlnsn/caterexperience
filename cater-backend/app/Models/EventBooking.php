@@ -66,6 +66,10 @@ class EventBooking extends Model
     {
         return $this->hasMany(Task::class, 'booking_id', 'booking_id');
     }
+    public function eventAddons()
+    {
+        return $this->hasMany(EventAddon::class, 'booking_id');
+    }
 
     protected static function generateReadableCode($length = 6)
     {

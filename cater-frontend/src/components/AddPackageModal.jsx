@@ -99,7 +99,7 @@ function AddPackageModal({ show, onClose, onSave }) {
           <h2>Add Package</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-user-form">
+        <form onSubmit={handleSubmit} className="add-form">
           <label>Package Name</label>
           <input
             type="text"
