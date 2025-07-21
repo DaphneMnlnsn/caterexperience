@@ -12,6 +12,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\AddonController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/test', function () {
     return ['message' => 'API route works!'];
@@ -78,5 +79,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inventory', [InventoryController::class, 'store']);
     Route::put('/inventory/{id}', [InventoryController::class, 'update']);
     Route::delete('/inventory/{id}', [InventoryController::class, 'destroy']);
+
+    Route::get('/payments', [PaymentController::class, 'index']);
+    Route::get('/payments/{id}', [PaymentController::class, 'indexSelected']);
+    Route::post('/payments', [PaymentController::class, 'store']);
+    Route::put('/payments/{id}', [PaymentController::class, 'update']);
+    Route::delete('/payments/{id}', [PaymentController::class, 'destroy']);
 
 });
