@@ -8,12 +8,14 @@ import AddTaskModal from '../../components/AddTaskModal';
 import VenuePreview from '../../components/VenuePreview';
 import './BookingDetails.css';
 import axiosClient from '../../axiosClient';
+import AddPaymentModal from '../../components/AddPaymentModal';
 
 function BookingDetails() {
 
   const { id } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [booking, setBooking] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
@@ -22,6 +24,10 @@ function BookingDetails() {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
+    fetchDetails();
+  }, [id]);
+
+  const fetchDetails = () => {
     axiosClient.get(`/bookings/${id}`)
       .then(res => {
         setBooking(mapBookingData(res.data.booking));
@@ -69,7 +75,7 @@ function BookingDetails() {
       setTasks(mapped);
     })
     .catch(err => console.error('Failed to fetch tasks:', err.response?.data || err.message));
-  }, [id]);
+  };
 
   function toTitleCase(str) {
     return str
@@ -187,7 +193,7 @@ function BookingDetails() {
   };
 
   const handleAddPayment = () => {
-    alert('Add payment clicked');
+    setShowAddPaymentModal(true);
   };
 
   const handleFinish = () => {
@@ -667,6 +673,7 @@ function BookingDetails() {
         creatorId={user.id}
         staffOptions={availableStaff}
       />
+      <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />
     </div>
   );
 }

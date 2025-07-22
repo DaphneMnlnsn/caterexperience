@@ -33,11 +33,16 @@ class PaymentController extends Controller
             'payment_method' => 'required|string',
             'payment_date' => 'required|date',
             'payment_status' => 'nullable|string',
-            'proof_image' => 'nullable|string',
+            'proof_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'remarks' => 'nullable|string',
             'cash_given' => 'nullable|numeric|min:0',
             'change_given' => 'nullable|numeric|min:0',
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('proof_image')) {
+            $imagePath = $request->file('proof_image')->store('proofs', 'public');
+        }
 
         $payment = Payment::create([
             'booking_id' => $validated['booking_id'],
@@ -45,7 +50,7 @@ class PaymentController extends Controller
             'payment_method' => $validated['payment_method'],
             'payment_date' => $validated['payment_date'],
             'payment_status' => $validated['payment_status'] ?? 'pending',
-            'proof_image' => $validated['proof_image'] ?? null,
+            'proof_image' => $imagePath,
             'remarks' => $validated['remarks'] ?? null,
             'cash_given' => $validated['cash_given'] ?? null,
             'change_given' => $validated['change_given'] ?? null,
