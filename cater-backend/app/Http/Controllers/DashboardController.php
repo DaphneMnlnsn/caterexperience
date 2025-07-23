@@ -11,15 +11,28 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function getStats()
-    {
-        return response()->json([
-            'total_events' => EventBooking::count(),
-            'pending_bookings' => EventBooking::where('booking_status', 'Pending')->count(),
-            'pending_payments' => Payment::where('payment_status', 'Pending')->count(),
-            'staff_tasks' => Task::where('status', 'To-Do')->count()
-        ]);
-    }
+public function getStats()
+{
+    $bookingsWithBalance = DB::table('event_booking')
+        ->leftJoin('payment', 'event_booking.booking_id', '=', 'payment.booking_id')
+        ->select(
+            'event_booking.booking_id',
+            'event_booking.event_total_price',
+            DB::raw('COALESCE(SUM(payment.amount_paid), 0) as total_paid')
+        )
+        ->groupBy('event_booking.booking_id', 'event_booking.event_total_price')
+        ->get()
+        ->filter(function ($booking) {
+            return $booking->total_paid < $booking->event_total_price;
+        });
+
+    return response()->json([
+        'total_events' => EventBooking::count(),
+        'pending_bookings' => EventBooking::where('booking_status', 'Pending')->count(),
+        'pending_payments' => $bookingsWithBalance->count(),
+        'staff_tasks' => Task::where('status', 'To-Do')->count()
+    ]);
+}
 
     public function getAuditLog()
     {

@@ -38,8 +38,8 @@ export default function Sidebar() {
                 </NavLink>
             </li>
             
-            <li className={location.pathname === '/admin/payment' ? 'active' : ''}>
-                <NavLink to="/admin/payment" className={({ isActive }) => isActive ? 'active' : ''}>
+            <li className={location.pathname === '/admin/payments' ? 'active' : ''}>
+                <NavLink to="/admin/payments" className={({ isActive }) => isActive ? 'active' : ''}>
                     <FaMoneyCheckAlt /> Payment Records
                 </NavLink>
             </li>
