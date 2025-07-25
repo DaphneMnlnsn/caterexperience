@@ -9,6 +9,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\FoodController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\BookingInventoryController;
+use App\Http\Controllers\BookingInventoryUsageController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\AddonController;
 use App\Http\Controllers\InventoryController;
@@ -57,6 +59,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tasks', [TaskController::class, 'store']);
     Route::put('/tasks/{taskId}', [TaskController::class, 'update']);
     Route::delete('/tasks/{taskId}', [TaskController::class, 'destroy']);
+
+    Route::get('/bookings/{id}/inventory-summary', [BookingInventoryController::class, 'index']);
+    Route::post('/bookings/{bookingId}/inventory', [BookingInventoryController::class, 'store']);
+    Route::put('/assigned-inventory/{id}', [BookingInventoryController::class, 'update']);
+    Route::delete('/assigned-inventory/{id}', [BookingInventoryController::class, 'destroy']);
+
+    Route::put('/inventory-usage/{id}', [BookingInventoryController::class, 'updateUsage']);
 
     Route::post('/foods', [FoodController::class, 'store']);
     Route::put('/foods/{id}', [FoodController::class, 'update']);

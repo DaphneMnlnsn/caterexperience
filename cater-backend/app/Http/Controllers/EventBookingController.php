@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookingInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\EventBooking;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\StaffAssignment;
 use App\Models\Menu;
 use App\Models\EventAddon;
+use App\Models\EventInventoryUsage;
 use App\Models\Food;
 
 class EventBookingController extends Controller
@@ -418,6 +420,4 @@ class EventBookingController extends Controller
             return response()->json(['message' => 'Rescheduling failed.', 'error' => $e->getMessage()], 500);
         }
     }
-
-
 }

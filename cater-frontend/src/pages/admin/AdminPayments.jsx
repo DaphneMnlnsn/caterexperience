@@ -4,12 +4,14 @@ import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell, FaPen, FaTrash, FaReceipt } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
+import Invoice from '../../components/Invoice';
 
 function AdminPayments() {
-    const [paymentData, setPaymentData] = React.useState([]);
-    const [showModal, setShowModal] = React.useState(false);
+    const [paymentData, setPaymentData] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [showInvoice, setShowInvoice] = useState(false);
     const user = JSON.parse(localStorage.getItem('user'));
-    const [selectedPayment, setSelectedPayment] = React.useState(null);
+    const [selectedPayment, setSelectedPayment] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -94,7 +96,8 @@ function AdminPayments() {
                                         </td>
                                         <td>
                                             <FaReceipt className="icon edit-icon" onClick={() => {
-                                            setSelectedPayment(payment);
+                                                setShowInvoice(true);
+                                                setSelectedPayment(payment.payment_id);
                                             }}/>
                                         </td>
                                     </tr>
@@ -107,6 +110,7 @@ function AdminPayments() {
                     </div>
                 </section>
             </div>
+            <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
         </div>
     );
 }

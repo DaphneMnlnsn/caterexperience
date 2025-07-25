@@ -10,25 +10,14 @@ class EventInventoryUsage extends Model
     protected $primaryKey = 'usage_id';
 
     protected $fillable = [
-        'booking_id',
-        'item_id',
+        'booking_inventory_id',
         'quantity_used',
         'quantity_returned',
-        'notes',
+        'remarks',
     ];
 
-    protected $casts = [
-        'quantity_used' => 'integer',
-        'quantity_returned' => 'integer',
-    ];
-
-    public function booking()
+    public function bookingInventory()
     {
-        return $this->belongsTo(EventBooking::class, 'booking_id', 'booking_id');
-    }
-
-    public function item()
-    {
-        return $this->belongsTo(Inventory::class, 'item_id', 'item_id');
+        return $this->belongsTo(BookingInventory::class, 'booking_inventory_id');
     }
 }

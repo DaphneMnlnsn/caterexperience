@@ -11,17 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_inventory_usage', function (Blueprint $table) {
-            $table->id('usage_id');
-
+        Schema::create('booking_inventory', function (Blueprint $table) {
+            $table->id('booking_inventory_id');
+            
             $table->unsignedBigInteger('booking_id');
-            $table->unsignedBigInteger('item_id');
-
-            $table->integer('quantity_used');
-            $table->integer('quantity_returned')->default(0);
-
-            $table->text('notes')->nullable();
-
+            $table->unsignedBigInteger(column: 'item_id');
+            
+            $table->integer('quantity_assigned');            
+            $table->string('remarks')->nullable();
             $table->timestamps();
 
             $table->foreign('booking_id')->references('booking_id')->on('event_booking')->onDelete('cascade');
@@ -34,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_inventory_usage');
+        Schema::dropIfExists('booking_inventory');
     }
 };

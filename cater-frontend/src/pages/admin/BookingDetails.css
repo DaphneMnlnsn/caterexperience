@@ -197,7 +197,7 @@
   cursor: pointer;
 }
 
-.info-grid input, .info-grid select, .info-grid textarea, .menu-right select {
+.info-grid input, .info-grid select, .info-grid textarea, .menu-right select, .inventory input {
   font-family: 'Lora', serif;
   padding: 0.5rem;
   font-size: 14px;

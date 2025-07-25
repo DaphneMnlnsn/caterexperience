@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { useParams } from 'react-router-dom';
-import { FaBell } from 'react-icons/fa';
+import { FaBell, FaPen, FaTrash } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import TaskBoard from '../../components/TaskBoard';
 import AddTaskModal from '../../components/AddTaskModal';
@@ -9,19 +9,29 @@ import VenuePreview from '../../components/VenuePreview';
 import './BookingDetails.css';
 import axiosClient from '../../axiosClient';
 import AddPaymentModal from '../../components/AddPaymentModal';
+import EditBookingItemModal from '../../components/EditBookingItemModal';
+import AddBookingItemModal from '../../components/AddBookingItemModal';
+import Invoice from '../../components/Invoice';
 
 function BookingDetails() {
 
   const { id } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [showEditItemModal, setShowEditItemModal] = useState(false);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
   const [booking, setBooking] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
   const [foods, setFoods] = useState([]);
   const [availableStaff, setAvailableStaff] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [inventorySummary, setInventorySummary] = useState([]);
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editedRow, setEditedRow] = useState({});
 
   useEffect(() => {
     fetchDetails();
@@ -75,6 +85,11 @@ function BookingDetails() {
       setTasks(mapped);
     })
     .catch(err => console.error('Failed to fetch tasks:', err.response?.data || err.message));
+
+    axiosClient.get(`/bookings/${id}/inventory-summary`)
+      .then(res => setInventorySummary(res.data))
+      .catch(err => console.error(err));
+
   };
 
   function toTitleCase(str) {
@@ -186,14 +201,6 @@ function BookingDetails() {
       console.error(err.response?.data || err.message);
       Swal.fire('Error', 'Could not save changes.', 'error');
     });
-  };
-
-  const handleAddTask = () => {
-    setShowTaskModal(true);
-  };
-
-  const handleAddPayment = () => {
-    setShowAddPaymentModal(true);
   };
 
   const handleFinish = () => {
@@ -324,6 +331,50 @@ function BookingDetails() {
         });
       }
     });
+  };
+
+  const handleSaveRow = async (bookingInventoryId) => {
+    try {
+      await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
+        quantity_assigned: editedRow.quantity_assigned,
+        remarks: editedRow.remarks,
+      });
+      await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
+        quantity_used: editedRow.quantity_used,
+        quantity_returned: editedRow.quantity_returned,
+        remarks: editedRow.remarks,
+      });
+
+      await fetchDetails();
+
+      setEditingRowId(null);
+      setEditedRow({});
+      Swal.fire('Saved!', 'Inventory updated successfully.', 'success');
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'Failed to save inventory changes.', 'error');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: 'Delete Item?',
+      text: 'This will remove the inventory assignment.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        await axiosClient.delete(`/assigned-inventory/${id}`);
+        fetchDetails();
+        Swal.fire('Deleted!', 'Inventory item removed.', 'success');
+      } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'Failed to delete item.', 'error');
+      }
+    }
   };
 
   const canEditBooking = () => {
@@ -578,7 +629,7 @@ function BookingDetails() {
             <>
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
                 <>
-                  <button className="booking-edit-btn" onClick={handleAddTask}>+ Add New Task</button>
+                  <button className="booking-edit-btn" onClick={() => setShowTaskModal(true)}>+ Add New Task</button>
                 </>
               )}
             </>
@@ -601,6 +652,166 @@ function BookingDetails() {
 
         <hr className="booking-section-divider" />
 
+        {/* Inventory Section */}
+        <div className="section white-bg">
+          <div className="section-title">
+            <h3>Inventory Summary</h3>
+            {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+              <button className="booking-edit-btn" onClick={() => setShowAddItemModal(true)}>
+                + Add Inventory Item
+              </button>
+            )}
+          </div>
+
+          <div className="booking-table-wrapper">
+            <table className="booking-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty Assigned</th>
+                  <th>Qty Used</th>
+                  <th>Qty Returned</th>
+                  <th>Remarks</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody className='inventory'>
+                {inventorySummary?.length > 0 ? (
+                  inventorySummary.map((row) => {
+                    const isRowEditing =
+                      editingRowId !== null &&
+                      editingRowId === row.booking_inventory_id;
+
+                    return (
+                      <tr key={row.booking_inventory_id}>
+                        <td>{row.item_name}</td>
+
+                        <td>
+                          {isRowEditing ? (
+                            <input
+                              type="number"
+                              value={editedRow.quantity_assigned ?? ''}
+                              onChange={(e) =>
+                                setEditedRow({
+                                  ...editedRow,
+                                  quantity_assigned: e.target.value,
+                                })
+                              }
+                            />
+                          ) : (
+                            row.quantity_assigned
+                          )}
+                        </td>
+
+                        <td>
+                          {isRowEditing ? (
+                            <input
+                              type="number"
+                              value={editedRow.quantity_used ?? ''}
+                              onChange={(e) =>
+                                setEditedRow({
+                                  ...editedRow,
+                                  quantity_used: e.target.value,
+                                })
+                              }
+                            />
+                          ) : (
+                            row.quantity_used ?? '—'
+                          )}
+                        </td>
+
+                        <td>
+                          {isRowEditing ? (
+                            <input
+                              type="number"
+                              value={editedRow.quantity_returned ?? ''}
+                              onChange={(e) =>
+                                setEditedRow({
+                                  ...editedRow,
+                                  quantity_returned: e.target.value,
+                                })
+                              }
+                            />
+                          ) : (
+                            row.quantity_returned ?? '—'
+                          )}
+                        </td>
+
+                        <td>
+                          {isRowEditing ? (
+                            <input
+                              type="text"
+                              value={editedRow.remarks ?? ''}
+                              onChange={(e) =>
+                                setEditedRow({ ...editedRow, remarks: e.target.value })
+                              }
+                            />
+                          ) : (
+                            row.remarks ?? 'N/A'
+                          )}
+                        </td>
+
+                        <td>
+                          {booking.booking_status !== 'Finished' &&
+                            booking.booking_status !== 'Cancelled' &&
+                            (isRowEditing ? (
+                              <>
+                                <button
+                                  className="save-btn-small"
+                                  onClick={() => handleSaveRow(row.booking_inventory_id)}
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  className="cancel-btn-small"
+                                  onClick={() => {
+                                    setEditingRowId(null);
+                                    setEditedRow({});
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <div className="action-buttons">
+                                <FaPen
+                                  className="icon edit-icon"
+                                  onClick={() => {
+                                    setEditingRowId(row.booking_inventory_id);
+                                    setEditedRow({
+                                      quantity_assigned: row.quantity_assigned ?? '',
+                                      quantity_used: row.quantity_used ?? '',
+                                      quantity_returned: row.quantity_returned ?? '',
+                                      remarks: row.remarks ?? '',
+                                    });
+                                  }}
+                                />
+                                <FaTrash
+                                  className="icon delete-icon"
+                                  onClick={() =>
+                                    handleDelete(row.booking_inventory_id)
+                                  }
+                                />
+                              </div>
+                            ))}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center' }}>
+                      No inventory records found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <hr className="booking-section-divider" />
+
         {/* Payments Table */}
         <div className="section white-bg">
           <div className="section-title">
@@ -608,7 +819,7 @@ function BookingDetails() {
             <>
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
                 <>
-                  <button className="booking-edit-btn" onClick={handleAddPayment}>+ Add New Payment</button>
+                  <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
                 </>
               )}
             </>
@@ -637,7 +848,10 @@ function BookingDetails() {
                     <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
                     <td>{payment.payment_method}</td>
                     <td>{payment.remarks}</td>
-                    <td><i className="fa fa-receipt"></i></td>
+                    <td onClick={() => {
+                      setShowInvoice(true); 
+                      setSelectedPayment(payment.payment_id);
+                    }}><i className="fa fa-receipt"></i></td>
                   </tr>
                 ))}
               </tbody>
@@ -673,7 +887,9 @@ function BookingDetails() {
         creatorId={user.id}
         staffOptions={availableStaff}
       />
+      <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
       <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />
+      <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
     </div>
   );
 }
