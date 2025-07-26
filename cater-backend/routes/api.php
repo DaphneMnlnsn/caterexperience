@@ -27,6 +27,7 @@ Route::get('/themes', [ThemeController::class, 'index']);
 Route::get('/addons', [AddonController::class, 'index']);
 Route::get('/foods', [FoodController::class, 'index']);
 Route::post('/customers', [CustomerController::class, 'register']);
+ Route::get('/payments/report', [PaymentController::class, 'generateReport']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

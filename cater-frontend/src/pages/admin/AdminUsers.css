@@ -111,3 +111,16 @@
 .delete-icon {
   color: red;
 }
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.3rem;
+  align-items: center;
+}
+.filter-input {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: 'Lora', serif;
+}

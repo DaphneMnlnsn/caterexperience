@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { FaBell, FaPen, FaTrash, FaReceipt } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Invoice from '../../components/Invoice';
+import dayjs from 'dayjs';
 
 function AdminPayments() {
     const [paymentData, setPaymentData] = useState([]);
@@ -12,7 +13,27 @@ function AdminPayments() {
     const [showInvoice, setShowInvoice] = useState(false);
     const user = JSON.parse(localStorage.getItem('user'));
     const [selectedPayment, setSelectedPayment] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [filters, setFilters] = useState({
+        search: '',
+        method: '',
+        from: '',
+        to: ''
+    });
+
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters({ ...filters, [name]: value });
+    };
+
+    const clearFilters = () => {
+        setFilters({ search: '', method: '', from: '', to: '' });
+    };
+
+    const applyPreset = (days) => {
+        const to = dayjs().format('YYYY-MM-DD');
+        const from = dayjs().subtract(days, 'day').format('YYYY-MM-DD');
+        setFilters((prev) => ({ ...prev, from, to }));
+    };
 
     useEffect(() => {
         fetchPayments(); 
@@ -26,17 +47,41 @@ function AdminPayments() {
         .catch(err => console.error('Failed to fetch payment records:', err.response?.data || err.message));
     };
 
-    const filteredPayments = paymentData.filter(payment => {
-        const fullName = `${payment.booking?.customer?.customer_firstname} ${payment.booking?.customer?.customer_lastname}`;
-        const event = payment.booking?.event_name || '';
-        const remarks = payment.remarks || '';
+    const filteredPayments = paymentData.filter(p => {
+        const fullName = `${p.booking?.customer?.customer_firstname} ${p.booking?.customer?.customer_lastname}`.toLowerCase();
+        const eventName = p.booking?.event_name?.toLowerCase() || '';
+        const remarks = p.remarks?.toLowerCase() || '';
+        const paymentMethod = p.payment_method || '';
 
-        return (
-            remarks.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const searchMatch =
+            fullName.includes(filters.search.toLowerCase()) ||
+            eventName.includes(filters.search.toLowerCase()) ||
+            remarks.includes(filters.search.toLowerCase()) ||
+            paymentMethod.toLowerCase().includes(filters.search.toLowerCase());
+
+        const methodMatch = filters.method ? paymentMethod === filters.method : true;
+
+        const paymentDate = dayjs(p.payment_date);
+        const fromDate = filters.from ? dayjs(filters.from) : null;
+        const toDate = filters.to ? dayjs(filters.to) : null;
+
+        const dateMatch =
+            (!fromDate || paymentDate.isSame(fromDate) || paymentDate.isAfter(fromDate)) &&
+            (!toDate || paymentDate.isSame(toDate) || paymentDate.isBefore(toDate));
+
+        return searchMatch && methodMatch && dateMatch;
     });
+
+    const handleGenerateReport = () => {
+        const params = new URLSearchParams();
+
+        if (filters.from) params.append("start_date", filters.from);
+        if (filters.to) params.append("end_date", filters.to);
+        if (filters.method) params.append("payment_method", filters.method);
+        if (filters.search) params.append("client_name", filters.search); // Laravel uses `client_name`
+
+        window.open(`http://localhost:8000/api/payments/report?${params.toString()}`, '_blank');
+    };
 
     return (
         <div className="page-container">
@@ -59,19 +104,58 @@ function AdminPayments() {
                         <div className="search-box">
                             <input
                             type="text"
-                            placeholder="🔍 Search payment record by event name, payment method, or remarks..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            name="search"
+                            placeholder="🔍 Search payment record by customer name or event name..."
+                            value={filters.search}
+                            onChange={handleFilterChange}
                             />
                         </div>
                         <div className="spacer" />
                         <div className="button-group">
-                            <button className="add-btn" onClick={() => {setShowModal(true);}}>Generate Report</button>
+                            <button className="add-btn" onClick={handleGenerateReport}>Generate Report</button>
                         </div>
                     </div>
                 </section>
 
                 <section className="page-bottom">
+                    <div className="filters-container">
+                        <select
+                            className="filter-input"
+                            name="method"
+                            value={filters.method}
+                            onChange={handleFilterChange}
+                        >
+                            <option value="">All Methods</option>
+                            <option value="Cash">Cash</option>
+                            <option value="GCash">GCash</option>
+                        </select>
+                        <input
+                            className="filter-input"
+                            type="date"
+                            name="from"
+                            value={filters.from}
+                            max={dayjs().format('YYYY-MM-DD')}
+                            onChange={handleFilterChange}
+                        />
+                            <input
+                            className="filter-input"
+                            type="date"
+                            name="to"
+                            value={filters.to}
+                            min={filters.from}
+                            max={dayjs().format('YYYY-MM-DD')}
+                            onChange={handleFilterChange}
+                            disabled={!filters.from}
+                        />
+                        <button className="add-btn" onClick={clearFilters}>Clear Filters</button>
+                        </div>
+
+                        <div className="filters-container" style={{ marginTop: '5px' }}>
+                        <button className="add-btn" onClick={() => applyPreset(7)}>Last 7 Days</button>
+                        <button className="add-btn" onClick={() => applyPreset(30)}>Last 30 Days</button>
+                        <button className="add-btn" onClick={() => applyPreset(90)}>Last 90 Days</button>
+                    </div>
+
                     <div className="table-container">
                         <table className="page-table">
                             <thead>
@@ -88,7 +172,7 @@ function AdminPayments() {
                                 {filteredPayments.map((payment, index) => (
                                     <tr key={index}>
                                         <td>{payment.payment_id}</td>
-                                        <td>{payment.booking?.customer?.customer_firstname} {payment.booking?.customer?.customer_lastname}</td>
+                                        <td>{payment.booking?.customer?.customer_firstname}  {payment.booking?.customer?.customer_middlename ? payment.booking?.customer?.customer_middlename + ' ' : ''}{payment.booking?.customer?.customer_lastname}</td>
                                         <td>{payment.booking?.event_name}</td>
                                         <td>{parseFloat(payment.amount_paid).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' })}</td>
                                         <td>

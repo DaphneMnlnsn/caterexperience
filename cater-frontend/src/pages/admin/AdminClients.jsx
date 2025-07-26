@@ -73,7 +73,7 @@ function AdminClients() {
                             <tbody>
                                 {filteredCustomers.map((customer, index) => (
                                     <tr key={index}>
-                                        <td>{customer.customer_firstname} {customer.customer_middlename} {customer.customer_lastname}</td>
+                                        <td>{customer.customer_firstname} {customer.customer_middlename ? customer.customer_middlename + ' ' : ''}{customer.customer_lastname}</td>
                                         <td>{customer.customer_phone}</td>
                                         <td>{customer.customer_address}</td>
                                         <td className="actions">

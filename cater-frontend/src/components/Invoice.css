@@ -113,3 +113,38 @@
   padding: 12px 0;
   border-top: 1px solid #000;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .modal,
+  .modal * {
+    visibility: visible;
+  }
+
+  .modal-overlay {
+    background: none !important;
+  }
+
+  .modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    box-shadow: none !important;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  .modal-close,
+  .print-btn {
+    display: none !important;
+  }
+
+  @page {
+    margin: 2;
+  }
+}

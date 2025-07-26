@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Payment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\EventBooking;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -103,5 +105,43 @@ class PaymentController extends Controller
         $payment->delete();
 
         return response()->json(['message' => 'Payment deleted successfully'], 200);
+    }
+    public function generateReport(Request $request)
+    {
+        $query = DB::table('payment')
+            ->join('event_booking', 'payment.booking_id', '=', 'event_booking.booking_id')
+            ->join('customers', 'event_booking.customer_id', '=', 'customers.customer_id')
+            ->select(
+                'payment.payment_id',
+                'payment.amount_paid',
+                'payment.payment_method',
+                'payment.payment_date',
+                'payment.remarks',
+                DB::raw("CONCAT_WS(' ', customers.customer_firstname, customers.customer_middlename, customers.customer_lastname) as customer_name") // FIXED LINE
+            );
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('payment.payment_date', [$request->start_date, $request->end_date]);
+        }
+
+        if ($request->filled('client_name')) {
+            $query->where(DB::raw("CONCAT_WS(' ', customers.customer_firstname, customers.customer_middlename, customers.customer_lastname)"), 'like', '%' . $request->client_name . '%');
+        }
+
+        if ($request->filled('payment_method')) {
+            $query->where('payment.payment_method', $request->payment_method);
+        }
+
+        $payments = $query->orderBy('payment.payment_date', 'desc')->get();
+
+        $pdf = Pdf::loadView('reports.finance', [
+            'payments' => $payments,
+            'startDate' => $request->start_date,
+            'endDate' => $request->end_date,
+            'search' => $request->client_name,
+            'method' => $request->payment_method,
+        ]);
+
+        return $pdf->stream('finance-report.pdf');
     }
 }
