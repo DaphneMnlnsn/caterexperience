@@ -78,7 +78,10 @@ function AdminPayments() {
         if (filters.from) params.append("start_date", filters.from);
         if (filters.to) params.append("end_date", filters.to);
         if (filters.method) params.append("payment_method", filters.method);
-        if (filters.search) params.append("client_name", filters.search); // Laravel uses `client_name`
+        if (filters.search) params.append("client_name", filters.search);
+        
+        const fullName = user ? `${user.first_name} ${user.last_name}` : 'Unknown';
+        params.append("generated_by", fullName);
 
         window.open(`http://localhost:8000/api/payments/report?${params.toString()}`, '_blank');
     };
@@ -160,7 +163,7 @@ function AdminPayments() {
                         <table className="page-table">
                             <thead>
                                 <tr>
-                                    <th>No.</th>
+                                    <th>Transact. #</th>
                                     <th>Client Name</th>
                                     <th>Event Name</th>
                                     <th>Amount Paid</th>
@@ -171,7 +174,7 @@ function AdminPayments() {
                             <tbody>
                                 {filteredPayments.map((payment, index) => (
                                     <tr key={index}>
-                                        <td>{payment.payment_id}</td>
+                                        <td>R-{String(payment.payment_id).padStart(5, '0')}</td>
                                         <td>{payment.booking?.customer?.customer_firstname}  {payment.booking?.customer?.customer_middlename ? payment.booking?.customer?.customer_middlename + ' ' : ''}{payment.booking?.customer?.customer_lastname}</td>
                                         <td>{payment.booking?.event_name}</td>
                                         <td>{parseFloat(payment.amount_paid).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' })}</td>

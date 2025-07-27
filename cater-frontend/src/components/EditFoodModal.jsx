@@ -8,6 +8,7 @@ function EditFoodModal({ show, onClose, onSave, food }) {
     food_name: '',
     food_description: '',
     food_type: '',
+    is_halal: false,
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -18,14 +19,18 @@ function EditFoodModal({ show, onClose, onSave, food }) {
         food_name: food.food_name || '',
         food_description: food.food_description || '',
         food_type: food.food_type || '',
+        is_halal: food.is_halal ?? false,
       });
       setIsEditing(false);
     }
   }, [food]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -47,6 +52,7 @@ function EditFoodModal({ show, onClose, onSave, food }) {
       if (result.isConfirmed) {
         axiosClient.put(`/foods/${food.food_id}`, {
           ...formData,
+          is_halal: formData.is_halal === true || formData.is_halal === 'true',
           food_status: 'available'
         })
         .then(() => {
@@ -130,6 +136,27 @@ function EditFoodModal({ show, onClose, onSave, food }) {
             <option value="Pasta or Fish">Pasta or Fish</option>
             <option value="Dessert">Dessert</option>
           </select>
+
+          <label className="halal-label">
+            {!isEditing ? (
+              <div className="halal-status-display">
+                Halal Status:{' '}
+                <span className={formData.is_halal ? 'halal-yes' : 'halal-no'}>
+                  {formData.is_halal ? '✅ Halal' : '❌ Not Halal'}
+                </span>
+              </div>
+            ) : (
+              <>
+                <input
+                  type="checkbox"
+                  name="is_halal"
+                  checked={formData.is_halal}
+                  onChange={handleChange}
+                />
+                Mark as Halal
+              </>
+            )}
+          </label>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>

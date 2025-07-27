@@ -108,6 +108,9 @@ class PaymentController extends Controller
     }
     public function generateReport(Request $request)
     {
+        $generatedBy = $request->input('generated_by');
+        $totalAmount = Payment::sum('amount_paid');
+
         $query = DB::table('payment')
             ->join('event_booking', 'payment.booking_id', '=', 'event_booking.booking_id')
             ->join('customers', 'event_booking.customer_id', '=', 'customers.customer_id')
@@ -117,7 +120,7 @@ class PaymentController extends Controller
                 'payment.payment_method',
                 'payment.payment_date',
                 'payment.remarks',
-                DB::raw("CONCAT_WS(' ', customers.customer_firstname, customers.customer_middlename, customers.customer_lastname) as customer_name") // FIXED LINE
+                DB::raw("CONCAT_WS(' ', customers.customer_firstname, customers.customer_middlename, customers.customer_lastname) as customer_name")
             );
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
@@ -132,7 +135,7 @@ class PaymentController extends Controller
             $query->where('payment.payment_method', $request->payment_method);
         }
 
-        $payments = $query->orderBy('payment.payment_date', 'desc')->get();
+        $payments = $query->orderBy('payment.payment_date', 'asc')->get();
 
         $pdf = Pdf::loadView('reports.finance', [
             'payments' => $payments,
@@ -140,6 +143,8 @@ class PaymentController extends Controller
             'endDate' => $request->end_date,
             'search' => $request->client_name,
             'method' => $request->payment_method,
+            'generatedBy' => $generatedBy,
+            'totalAmount' => $totalAmount,
         ]);
 
         return $pdf->stream('finance-report.pdf');

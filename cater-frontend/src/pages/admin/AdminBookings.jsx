@@ -9,12 +9,12 @@ import axiosClient from '../../axiosClient';
 function AdminBookings() {
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
-  const [bookingData, setBookingData] = React.useState([]);
-  
+  const [bookingData, setBookingData] = React.useState([]);  
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
+  const isPastDate = new Date(selectedDate) < new Date(new Date().toDateString());
 
   useEffect(() => {
     axiosClient.get('/bookings')
@@ -116,8 +116,16 @@ function AdminBookings() {
 
               {selectedBookings.length >= 3 ? (
                 <div className="event-limit-warning">⚠ Cannot handle more events on this day</div>
+              ) : !isPastDate ? (
+                <button
+                  className="add-event-btn"
+                  onClick={() =>
+                    navigate(`/admin/book`, { state: { eventDate: selectedDate } })
+                  }>
+                  + Add Event
+                </button>
               ) : (
-                <button className="add-event-btn" onClick={() => navigate(`/admin/book`, { state: { eventDate: selectedDate } })}>+ Add Event</button>
+                <div className="event-limit-warning">⚠ Cannot add events to past dates</div>
               )}
 
               {selectedBookings.length > 0 ? (

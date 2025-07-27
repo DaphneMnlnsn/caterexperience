@@ -9,11 +9,15 @@ function AddFoodModal({ show, onClose, onSave }) {
     food_name: '',
     food_description: '',
     food_type: '',
+    is_halal: false,
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
   };
 
   const handleSubmit = (e) => {
@@ -89,6 +93,16 @@ function AddFoodModal({ show, onClose, onSave }) {
             <option value="Pasta or Fish">Pasta or Fish</option>
             <option value="Dessert">Dessert</option>
           </select>
+
+          <label className="halal-label">
+            <input
+              type="checkbox"
+              name="is_halal"
+              checked={formData.is_halal}
+              onChange={handleChange}
+            />
+            Mark as Halal
+          </label>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>

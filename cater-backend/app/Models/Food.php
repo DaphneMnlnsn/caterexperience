@@ -16,6 +16,11 @@ class Food extends Model
         'food_description',
         'food_image_url',
         'food_status',
+        'is_halal',
+    ];
+
+    protected $casts = [
+        'is_halal' => 'boolean',
     ];
 
     public function menus()

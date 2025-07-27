@@ -60,3 +60,34 @@
   cursor: default;
   padding-left: 0;
 }
+.halal-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+.halal-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  accent-color: #28a745;
+  position: relative;
+  top: 0.2rem;
+}
+.halal-status-display {
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  font-weight: 500;
+  font-family: 'Lora', serif;
+}
+
+.halal-yes {
+  color: #2e7d32;
+}
+
+.halal-no {
+  color: #c62828;
+}
+
+

@@ -14,6 +14,7 @@ function Menu() {
     const [menuData, setMenuData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedFood, setSelectedFood] = useState(null);
+    const [halalFilter, setHalalFilter] = useState('');
 
     useEffect(() => {
         fetchFoods();
@@ -30,7 +31,8 @@ function Menu() {
                     acc[category].push({
                     name: food.food_name,
                     description: food.food_description,
-                    id: food.food_id
+                    id: food.food_id,
+                    is_halal: food.is_halal
                     });
                     return acc;
                 }, {});
@@ -51,9 +53,14 @@ function Menu() {
     const filteredMenuData = menuData
     .map(category => ({
         ...category,
-        items: category.items.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        items: category.items.filter(item => {
+        const matchesName = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesHalal =
+            halalFilter === '' ||
+            (halalFilter === 'halal' && item.is_halal === true) ||
+            (halalFilter === 'non-halal' && item.is_halal === false);
+        return matchesName && matchesHalal;
+        })
     }))
     .filter(category => category.items.length > 0);
 
@@ -84,6 +91,15 @@ function Menu() {
                         </div>
                         <div className="spacer" />
                         <div className="button-group">
+                            <select
+                                value={halalFilter}
+                                onChange={(e) => setHalalFilter(e.target.value)}
+                                className="filter-input"
+                            >
+                                <option value="">All</option>
+                                <option value="halal">Halal</option>
+                                <option value="non-halal">Not Halal</option>
+                            </select>
                             <button className="add-btn" onClick={() => setShowModal(true)}>+ Add New Food</button>
                         </div>
                     </div>
@@ -102,7 +118,8 @@ function Menu() {
                                                     food_name: item.name,
                                                     food_description: item.description,
                                                     food_type: cat.category,
-                                                    food_id: item.id
+                                                    food_id: item.id,
+                                                    is_halal: item.is_halal,
                                                 });
                                                 setShowEditModal(true);
                                             }}>

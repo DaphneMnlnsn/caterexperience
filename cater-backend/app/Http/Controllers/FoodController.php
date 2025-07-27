@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Models\Food;
 
 class FoodController extends Controller
@@ -20,6 +21,7 @@ class FoodController extends Controller
             'food_type' => 'required|string|max:100',
             'food_description' => 'nullable|string',
             'food_status' => 'required|string',
+            'is_halal' => 'required|boolean',
         ]);
 
         $food = Food::create([
@@ -27,12 +29,14 @@ class FoodController extends Controller
             'food_type' => $validated['food_type'],
             'food_description' => $validated['food_description'] ?? null,
             'food_status' => $validated['food_status'],
+            'is_halal' => $validated['is_halal'],
         ]);
 
         return response()->json(['message' => 'Food created successfully', 'food' => $food], 201);
     }
     public function update(Request $request, $id)
     {
+        Log::info($request->all());
         $food = Food::findOrFail($id);
 
         $validated = $request->validate([
@@ -40,6 +44,7 @@ class FoodController extends Controller
             'food_type' => 'required|string|max:100',
             'food_description' => 'nullable|string',
             'food_status' => 'required|string',
+            'is_halal' => 'required|boolean',
         ]);
 
         $food->update([
@@ -47,6 +52,7 @@ class FoodController extends Controller
             'food_type' => $validated['food_type'],
             'food_description' => $validated['food_description'] ?? null,
             'food_status' => $validated['food_status'],
+            'is_halal' => $validated['is_halal'],
         ]);
 
         return response()->json(['message' => 'Food updated successfully', 'food' => $food]);
