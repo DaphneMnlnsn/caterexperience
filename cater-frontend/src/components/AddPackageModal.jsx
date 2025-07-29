@@ -9,8 +9,8 @@ function AddPackageModal({ show, onClose, onSave }) {
     package_description: '',
     package_type: '',
     package_price: '',
-    package_status: 'active',
-    price_tiers: [{ price_label: '', price_amount: '', pax: '', status: 'active' }]
+    package_status: 'available',
+    price_tiers: [{ price_label: '', price_amount: '', pax: '', status: 'available' }]
   });
 
   const handleChange = (e, index, field) => {
@@ -27,7 +27,7 @@ function AddPackageModal({ show, onClose, onSave }) {
   const addPriceTier = () => {
     setFormData(prev => ({
       ...prev,
-      price_tiers: [...prev.price_tiers, { price_label: '', price_amount: '', pax: '', status: 'active' }]
+      price_tiers: [...prev.price_tiers, { price_label: '', price_amount: '', pax: '', status: 'available' }]
     }));
   };
 
@@ -72,7 +72,7 @@ function AddPackageModal({ show, onClose, onSave }) {
             price_label: tier.price_label.trim(),
             price_amount: Number(tier.price_amount),
             pax: Number(tier.pax),
-            status: tier.status || 'active'
+            status: tier.status || 'available'
           }))
         };
         

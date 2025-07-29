@@ -8,7 +8,8 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
     theme_name: '',
     description: '',
     imageFile: null,
-    imagePreview: ''
+    imagePreview: '',
+    theme_status: ''
   });
 
   useEffect(() => {
@@ -17,7 +18,8 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
         theme_name: theme.theme_name || '',
         description: theme.theme_description || '',
         imageFile: null,
-        imagePreview: theme.theme_image_url ? `http://localhost:8000/storage/${theme.theme_image_url}` : ''
+        imagePreview: theme.theme_image_url ? `http://localhost:8000/storage/${theme.theme_image_url}` : '',
+        theme_status: theme.theme_status || ''
       });
     }
   }, [theme]);
@@ -54,7 +56,7 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
     const payload = new FormData();
     payload.append('theme_name', formData.theme_name);
     payload.append('theme_description', formData.description);
-    payload.append('theme_status', 'active');
+    payload.append('theme_status', formData.theme_status);
     if (formData.imageFile) {
       payload.append('theme_image', formData.imageFile);
     }
@@ -154,6 +156,16 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
               />
             )}
           </div>
+
+          <label>Status</label>
+          <select
+            name="theme_status"
+            value={formData.theme_status}
+            onChange={handleChange}
+          >
+            <option value="available">Available</option>
+            <option value="archived">Archived</option>
+          </select>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>

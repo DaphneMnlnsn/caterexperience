@@ -8,7 +8,7 @@ function EditAddonModal({ show, onClose, onSave, addon }) {
     addon_name: '',
     addon_type: '',
     addon_description: '',
-    addon_status: 'active',
+    addon_status: '',
     prices: []
   });
 
@@ -19,7 +19,7 @@ function EditAddonModal({ show, onClose, onSave, addon }) {
         addon_name: addon.addon_name || '',
         addon_type: addon.addon_type || '',
         addon_description: addon.addon_description || '',
-        addon_status: addon.addon_status || 'active',
+        addon_status: addon.addon_status || '',
         prices: addon.prices?.map(p => ({
           addon_price_id: p.addon_price_id,
           description: p.description,
@@ -186,6 +186,16 @@ function EditAddonModal({ show, onClose, onSave, addon }) {
           ))}
 
           <div className="plus-box" onClick={addPriceRow}>+</div>
+
+          <label>Status</label>
+          <select
+            name="addon_status"
+            value={formData.addon_status}
+            onChange={handleChange}
+          >
+            <option value="available">Available</option>
+            <option value="archived">Archived</option>
+          </select>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>

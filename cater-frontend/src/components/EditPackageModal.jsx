@@ -9,8 +9,8 @@ function EditPackageModal({ show, onClose, onSave, pkg }) {
     package_description: '',
     package_type: '',
     package_price: '',
-    package_status: 'active',
-    price_tiers: [{ price_label: '', price_amount: '', pax: '', status: 'active' }]
+    package_status: '',
+    price_tiers: [{ price_label: '', price_amount: '', pax: '', status: 'available' }]
   });
 
   useEffect(() => {
@@ -20,13 +20,13 @@ function EditPackageModal({ show, onClose, onSave, pkg }) {
         package_description: pkg.package_description || '',
         package_type: pkg.package_type || '',
         package_price: pkg.package_price || '',
-        package_status: pkg.package_status || 'active',
+        package_status: pkg.package_status || 'available',
         price_tiers: pkg.price_tiers.map(t => ({
           package_price_id: t.package_price_id || null,
           price_label: t.price_label || '',
           price_amount: t.price_amount || '',
           pax: t.pax || '',
-          status: t.status || 'active'
+          status: t.status || 'available'
         }))
       });
     }
@@ -46,7 +46,7 @@ function EditPackageModal({ show, onClose, onSave, pkg }) {
   const addPriceTier = () => {
     setFormData(prev => ({
       ...prev,
-      price_tiers: [...prev.price_tiers, { price_label: '', price_amount: '', pax: '', status: 'active' }]
+      price_tiers: [...prev.price_tiers, { price_label: '', price_amount: '', pax: '', status: 'available' }]
     }));
   };
 
@@ -92,7 +92,7 @@ function EditPackageModal({ show, onClose, onSave, pkg }) {
             price_label: tier.price_label.trim(),
             price_amount: Number(tier.price_amount),
             pax: Number(tier.pax),
-            status: tier.status || 'active'
+            status: tier.status || 'available'
           }))
         };
 
@@ -219,6 +219,16 @@ function EditPackageModal({ show, onClose, onSave, pkg }) {
           ))}
 
           <div className="plus-box" onClick={addPriceTier}>+</div>
+
+          <label>Status</label>
+          <select
+            name="package_status"
+            value={formData.package_status}
+            onChange={handleChange}
+          >
+            <option value="available">Available</option>
+            <option value="archived">Archived</option>
+          </select>
 
           <div className="modal-buttons">
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>

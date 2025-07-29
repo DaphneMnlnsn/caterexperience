@@ -9,7 +9,7 @@ function AddAddonModal({ show, onClose, onSave }) {
     addon_type: '',
     addon_description: '',
     addon_price: '',
-    addon_status: 'active',
+    addon_status: 'available',
     prices: [
       { description: '', price: '' }
     ]

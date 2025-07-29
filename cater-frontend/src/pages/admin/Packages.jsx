@@ -106,12 +106,14 @@ function Packages() {
                 <div className="packages-grid">
                     {filteredPackages.map(pkg => (
                       <div 
-                      key={pkg.package_id} 
-                      className="small-text-card card-yellow"
-                      onClick={() => {
-                        setSelectedPackage(pkg);
-                        setShowEditPackageModal(true);
-                      }}>
+                        key={pkg.package_id} 
+                        className={`small-text-card card-yellow ${pkg.package_status === 'archived' ? 'archived' : ''}`}
+                        onClick={() => {
+                          setSelectedPackage(pkg);
+                          setShowEditPackageModal(true);
+                        }}
+                      >
+                        {pkg.package_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
                         <h3 className="card-title">{pkg.package_name}</h3>
                         <div className="package-card-content">
                           <div className="package-prices">
@@ -153,12 +155,13 @@ function Packages() {
                     {filteredThemes.map(theme => (
                       <div 
                       key={theme.theme_id} 
-                      className="theme-card"
+                      className={`theme-card ${theme.theme_status === 'archived' ? 'archived' : ''}`}
                       onClick={() => {
                         setSelectedTheme(theme);
                         setShowEditThemeModal(true);
                       }}
                       >
+                        {theme.theme_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
                         <div className="menu-card-content">
                           <img src={`http://localhost:8000/storage/${theme.theme_image_url}`} alt={theme.theme_name} />
                           <div className="theme-name">{theme.theme_name}</div>
@@ -181,12 +184,13 @@ function Packages() {
                   {filteredAddons.map(addon => (
                     <div 
                     key={addon.addon_id} 
-                    className="addon-card card-yellow"
+                    className={`addon-card card-yellow ${addon.addon_status === 'archived' ? 'archived' : ''}`}
                     onClick={() => {
                       setSelectedAddon(addon);
                       setShowEditAddonModal(true);
                     }}
                     >
+                      {addon.addon_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
                       <h3 className="card-title">{addon.addon_name}</h3>
                       <div className="addon-details">
                         <b>Description:</b><br />

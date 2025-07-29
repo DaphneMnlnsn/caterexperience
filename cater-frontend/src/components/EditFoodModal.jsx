@@ -9,6 +9,7 @@ function EditFoodModal({ show, onClose, onSave, food }) {
     food_description: '',
     food_type: '',
     is_halal: false,
+    food_status: '',
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -20,6 +21,7 @@ function EditFoodModal({ show, onClose, onSave, food }) {
         food_description: food.food_description || '',
         food_type: food.food_type || '',
         is_halal: food.is_halal ?? false,
+        food_status: food.food_status || '',
       });
       setIsEditing(false);
     }
@@ -53,7 +55,6 @@ function EditFoodModal({ show, onClose, onSave, food }) {
         axiosClient.put(`/foods/${food.food_id}`, {
           ...formData,
           is_halal: formData.is_halal === true || formData.is_halal === 'true',
-          food_status: 'available'
         })
         .then(() => {
           Swal.fire('Saved!', 'Food has been updated.', 'success');
@@ -135,6 +136,16 @@ function EditFoodModal({ show, onClose, onSave, food }) {
             <option value="Vegetables">Vegetables</option>
             <option value="Pasta or Fish">Pasta or Fish</option>
             <option value="Dessert">Dessert</option>
+          </select>
+
+          <label>Status</label>
+          <select
+            value={formData.food_status}
+            onChange={e => setFormData({ ...formData, food_status: e.target.value })}
+            disabled={!isEditing}
+          >
+            <option value="available">Available</option>
+            <option value="archived">Archived</option>
           </select>
 
           <label className="halal-label">

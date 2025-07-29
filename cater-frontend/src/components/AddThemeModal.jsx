@@ -44,7 +44,7 @@ function AddThemeModal({ show, onClose, onSave }) {
     const payload = new FormData();
     payload.append('theme_name', formData.theme_name);
     payload.append('theme_description', formData.description);
-    payload.append('theme_status', 'active');
+    payload.append('theme_status', 'available');
     payload.append('theme_image', formData.imageFile);
 
     Swal.fire({

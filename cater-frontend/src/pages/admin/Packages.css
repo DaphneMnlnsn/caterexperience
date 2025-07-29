@@ -113,6 +113,13 @@
   margin: 0 0 4px;
 }
 
+.card-yellow,
+.theme-card,
+.addon-card {
+  position: relative;
+  cursor: pointer;
+}
+
 .small-text-card .package-prices,
 .small-text-card .package-inclusions,
 .small-text-card .package-inclusions ul {

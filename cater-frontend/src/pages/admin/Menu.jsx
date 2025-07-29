@@ -32,7 +32,8 @@ function Menu() {
                     name: food.food_name,
                     description: food.food_description,
                     id: food.food_id,
-                    is_halal: food.is_halal
+                    is_halal: food.is_halal,
+                    food_status: food.food_status
                     });
                     return acc;
                 }, {});
@@ -120,9 +121,11 @@ function Menu() {
                                                     food_type: cat.category,
                                                     food_id: item.id,
                                                     is_halal: item.is_halal,
+                                                    food_status: item.food_status
                                                 });
                                                 setShowEditModal(true);
                                             }}>
+                                            {item.food_status !== 'available' && <div className="archive-overlay">Unavailable</div>}
                                             <div className="menu-card-content">
                                                 <span className="menu-name">{item.name}</span>
                                             </div>
