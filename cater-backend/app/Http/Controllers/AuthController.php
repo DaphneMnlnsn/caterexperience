@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -20,6 +21,8 @@ class AuthController extends Controller
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        AuditLogger::log('Login', "Module: Authentication | Role: {$user->role}");
+
         return response()->json([
             'status' => 'success',
             'access_token' => $token,
@@ -36,7 +39,10 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $user = $request->user();
         $request->user()->currentAccessToken()->delete();
+
+        AuditLogger::log('Logout', "Module: Authentication | Role: {$user->role}");
 
         return response()->json(['status' => 'success', 'message' => 'Logged out']);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use App\Models\Payment;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -13,6 +14,9 @@ class PaymentController extends Controller
     public function index()
     {
         $payments = Payment::with(['booking.customer'])->orderBy('payment_date', 'desc')->get();
+        
+        AuditLogger::log('Viewed', 'Module: Payment | Viewed all payments');
+
         return response()->json(['payments' => $payments]);
     }
 
@@ -23,6 +27,8 @@ class PaymentController extends Controller
         if (!$payment) {
             return response()->json(['message' => 'Payment not found'], 404);
         }
+
+        AuditLogger::log('Viewed', "Module: Payment | Viewed payment ID: {$id}");
 
         return response()->json(['payment' => $payment]);
     }
@@ -58,6 +64,8 @@ class PaymentController extends Controller
             'change_given' => $validated['change_given'] ?? null,
         ]);
 
+        AuditLogger::log('Created', "Module: Payment | Created payment for Booking ID: {$payment->booking_id}, Payment ID: {$payment->payment_id}");
+
         return response()->json(['message' => 'Payment recorded successfully', 'payment' => $payment], 201);
     }
 
@@ -91,6 +99,8 @@ class PaymentController extends Controller
             'change_given' => $validated['change_given'] ?? $payment->change_given,
         ]);
 
+        AuditLogger::log('Updated', "Module: Payment | Updated payment ID: {$payment->payment_id}");
+
         return response()->json(['message' => 'Payment updated successfully', 'payment' => $payment]);
     }
 
@@ -102,7 +112,11 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Payment not found'], 404);
         }
 
+        $paymentId = $payment->payment_id;
+        $bookingId = $payment->booking_id;
         $payment->delete();
+
+        AuditLogger::log('Deleted', "Module: Payment | Deleted payment ID: {$paymentId}, Booking ID: {$bookingId}");
 
         return response()->json(['message' => 'Payment deleted successfully'], 200);
     }
@@ -146,6 +160,8 @@ class PaymentController extends Controller
             'generatedBy' => $generatedBy,
             'totalAmount' => $totalAmount,
         ]);
+
+        AuditLogger::log('Viewed', 'Module: Payment | Generated finance report PDF');
 
         return $pdf->stream('finance-report.pdf');
     }

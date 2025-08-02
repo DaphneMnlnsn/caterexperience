@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use App\Models\Addon;
 use App\Models\AddonPrice;
@@ -10,6 +11,8 @@ class AddonController extends Controller
 {
     public function index()
     {
+        AuditLogger::log('Viewed', 'Module: Addon | Viewed addons list');
+
         $addons = Addon::with('prices')->get();
         return response()->json(['addons' => $addons]);
     }
@@ -35,6 +38,8 @@ class AddonController extends Controller
             }
         }
 
+        AuditLogger::log('Created', "Module: Addon | Addon: {$addon->addon_name}, ID: {$addon->addon_id}");
+        
         return response()->json(['message' => 'Addon created successfully!', 'addon' => $addon->load('prices')]);
     }
     public function update(Request $request, $id)
@@ -84,6 +89,8 @@ class AddonController extends Controller
             ->whereNotIn('addon_price_id', $existingIds)
             ->delete();
 
+        AuditLogger::log('Updated', "Module: Addon | Addon: {$addon->addon_name}, ID: {$addon->addon_id}");
+
         return response()->json([
             'message' => 'Addon updated successfully',
             'addon' => $addon->load('prices')
@@ -97,7 +104,11 @@ class AddonController extends Controller
             return response()->json(['message' => 'Addon not found'], 404);
         }
 
+        $addonName = $addon->addon_name;
+        $addonId = $addon->addon_id;
         $addon->delete();
+
+        AuditLogger::log('Deleted', "Module: Addon | Addon: {$addonName}, ID: {$addonId}");
 
         return response()->json(['message' => 'Addon deleted successfully'], 200);
     }

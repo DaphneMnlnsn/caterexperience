@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Theme;
@@ -34,6 +35,8 @@ class ThemeController extends Controller
             'theme_image_url' => $imagePath,
         ]);
 
+        AuditLogger::log('Created', "Module: Theme | Theme: {$theme->theme_name}, ID: {$theme->theme_id}");
+
         return response()->json(['message' => 'Theme created successfully', 'theme' => $theme], 201);
     }
     public function update(Request $request, $id)
@@ -61,6 +64,8 @@ class ThemeController extends Controller
             'theme_status' => $validated['theme_status'],
         ]);
 
+        AuditLogger::log('Updated', "Module: Theme | Theme: {$theme->theme_name}, ID: {$theme->theme_id}");
+
         return response()->json(['message' => 'Theme updated successfully', 'theme' => $theme]);
     }
     public function destroy($id)
@@ -75,7 +80,11 @@ class ThemeController extends Controller
             Storage::disk('public')->delete($theme->theme_image_url);
         }
 
+        $themeName = $theme->theme_name;
+        $themeId = $theme->theme_id;
         $theme->delete();
+
+        AuditLogger::log('Deleted', "Module: Theme | Deleted theme: {$themeName}, ID: {$themeId}");
 
         return response()->json(['message' => 'Theme deleted successfully'], 200);
     }

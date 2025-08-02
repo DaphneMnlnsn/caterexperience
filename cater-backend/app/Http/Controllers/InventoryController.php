@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use App\Models\Inventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -12,12 +13,16 @@ class InventoryController extends Controller
     public function index()
     {
         $items = Inventory::with('updatedBy')->get();
+
+        AuditLogger::log('Viewed', 'Module: Inventory | Viewed inventory list');
+
         return response()->json($items);
     }
 
     public function indexSelected($id)
     {
         $item = Inventory::with('updatedBy')->findOrFail($id);
+
         return response()->json($item);
     }
 
@@ -38,6 +43,8 @@ class InventoryController extends Controller
         $validated['last_updated_by'] = Auth::id();
 
         $item = Inventory::create($validated);
+
+        AuditLogger::log('Created', 'Module: Inventory | Created item: ' . $validated['item_name']);
 
         return response()->json($item, 201);
     }
@@ -62,13 +69,20 @@ class InventoryController extends Controller
 
         $item->update($validated);
 
+        AuditLogger::log('Updated', 'Module: Inventory | Updated item ID: ' . $id);
+
         return response()->json($item);
     }
 
     public function destroy($id)
     {
         $item = Inventory::findOrFail($id);
+
+        $itemName = $item->item_name;
+        $itemId = $item->item_id;
         $item->delete();
+
+        AuditLogger::log('Deleted', "Module: Inventory | Deleted item: {$itemName}, ID: {$itemId}");
 
         return response()->json(['message' => 'Item deleted successfully.']);
     }

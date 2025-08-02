@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use App\Models\Package;
 use App\Models\PackagePrice;
@@ -11,6 +12,9 @@ class PackageController extends Controller
     public function index()
     {
         $packages = Package::with('priceTiers')->get();
+
+        AuditLogger::log('Viewed', 'Module: Packages | Viewed package list');
+
         return response()->json(['packages' => $packages]);
     }
     public function store(Request $request)
@@ -36,6 +40,8 @@ class PackageController extends Controller
                 PackagePrice::create($tier);
             }
         }
+
+        AuditLogger::log('Created', 'Module: Packages | Created package: ' . $validated['package_name']);
 
         return response()->json(['message' => 'Package created successfully', 'package' => $package->load('priceTiers')], 201);
     }
@@ -94,6 +100,8 @@ class PackageController extends Controller
             ->whereNotIn('package_price_id', $existingIds)
             ->delete();
 
+        AuditLogger::log('Updated', 'Module: Packages | Updated package ID: ' . $id);
+
         return response()->json([
             'message' => 'Package updated successfully',
             'package' => $package->load('priceTiers')
@@ -108,7 +116,11 @@ class PackageController extends Controller
             return response()->json(['message' => 'Package not found'], 404);
         }
 
+        $packageName = $package->package_name;
+        $packageId = $package->package_id;
         $package->delete();
+
+        AuditLogger::log('Deleted', "Module: Packages | Deleted package: {$packageName}, ID: {$packageId}");
 
         return response()->json(['message' => 'Package deleted successfully'], 200);
     }

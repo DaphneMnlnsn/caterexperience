@@ -53,7 +53,7 @@ public function getStats()
         $logs->transform(function ($log) {
             $log->user_name = $log->first_name && $log->last_name
                 ? "{$log->first_name} {$log->last_name}"
-                : 'Unknown User';
+                : 'Guest';
             return $log;
         });
 

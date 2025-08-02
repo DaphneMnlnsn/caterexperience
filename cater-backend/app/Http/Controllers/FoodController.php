@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +13,9 @@ class FoodController extends Controller
     public function index()
     {
         $foods = Food::all();
+
+        AuditLogger::log('Viewed', 'Module: Menu | Viewed foods list');
+
         return response()->json(['foods' => $foods]);
     }
     public function store(Request $request)
@@ -31,6 +35,8 @@ class FoodController extends Controller
             'food_status' => $validated['food_status'],
             'is_halal' => $validated['is_halal'],
         ]);
+
+        AuditLogger::log('Created', 'Module: Menu | Created food: ' . $validated['food_name']);
 
         return response()->json(['message' => 'Food created successfully', 'food' => $food], 201);
     }
@@ -55,6 +61,8 @@ class FoodController extends Controller
             'is_halal' => $validated['is_halal'],
         ]);
 
+        AuditLogger::log('Updated', 'Module: Menu | Updated food ID: ' . $id);
+
         return response()->json(['message' => 'Food updated successfully', 'food' => $food]);
     }
     public function destroy($id)
@@ -65,7 +73,11 @@ class FoodController extends Controller
             return response()->json(['message' => 'Food not found'], 404);
         }
 
+        $foodName = $food->food_name;
+        $foodId = $food->food_id;
         $food->delete();
+
+        AuditLogger::log('Deleted', "Module: Menu | Deleted food: {$foodName}, ID: {$foodId}");
 
         return response()->json(['message' => 'Food deleted successfully'], 200);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use App\Models\Task;
 use Illuminate\Http\Request;
 
@@ -45,6 +46,8 @@ class TaskController extends Controller
 
         $task = Task::create($validated);
 
+        AuditLogger::log('Created', "Module: Booking Details | Created task ID: {$task->task_id} for Booking ID: {$task->booking_id}");
+
         return response()->json([
             'message' => 'Task created successfully',
             'task' => $task->load(['booking', 'assignee', 'creator']),
@@ -60,6 +63,8 @@ class TaskController extends Controller
 
         $task->status = $request->input('status');
         $task->save();
+
+        AuditLogger::log('Updated', "Module: Booking Details | Updated status of task ID: {$task->task_id} to '{$task->status}'");
 
         return response()->json(['message' => 'Task status updated']);
     }
@@ -89,6 +94,8 @@ class TaskController extends Controller
             'status' => $validated['status'] ?? $task->status,
         ]);
 
+        AuditLogger::log('Updated', "Module: Booking Details | Updated task ID: {$task->task_id}");
+
         return response()->json([
             'message' => 'Task updated successfully',
             'task' => $task->load(['booking', 'assignee', 'creator']),
@@ -102,7 +109,13 @@ class TaskController extends Controller
             return response()->json(['message' => 'Task not found'], 404);
         }
 
+        $taskTitle = $task->title;
+        $taskBookingId = $task->booking_id;
+        $taskId = $task->task_id;
+
         $task->delete();
+
+        AuditLogger::log('Deleted', "Module: Booking Details | Deleted task ID: {$taskId}, Title: {$taskTitle}, Booking ID: {$taskBookingId}");
 
         return response()->json(['message' => 'Task deleted successfully']);
     }

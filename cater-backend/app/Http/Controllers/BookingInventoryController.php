@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use App\Models\BookingInventory;
 use App\Models\EventInventoryUsage;
@@ -57,6 +58,8 @@ class BookingInventoryController extends Controller
 
             DB::commit();
 
+            AuditLogger::log('Created', 'Module: Booking Details | Assigned item ID: ' . $validated['item_id'] . ' to Booking ID: ' . $validated['booking_id'] . ' (Qty: ' . $validated['quantity_assigned'] . ')');
+
             return response()->json([
                 'message' => 'Inventory assigned and usage row created',
                 'data' => $bookingInventory,
@@ -81,6 +84,8 @@ class BookingInventoryController extends Controller
 
         $inventory->update($validated);
 
+        AuditLogger::log('Updated', 'Module: Booking Details | Updated item ID: ' . $inventory->item_id . ' for Booking ID: ' . $inventory->booking_id . ' (New Qty: ' . $validated['quantity_assigned'] . ')');
+
         return response()->json(['message' => 'Inventory item updated successfully', 'inventory' => $inventory->load('item')]);
     }
     
@@ -101,6 +106,8 @@ class BookingInventoryController extends Controller
             ]
         );
 
+        AuditLogger::log('Updated', 'Module: Booking Details | Item ID: ' . $bookingInventoryId . ' | Used: ' . ($validated['quantity_used'] ?? 0) . ' | Returned: ' . ($validated['quantity_returned'] ?? 0));
+
         return response()->json(['message' => 'Usage saved.', 'usage' => $usage]);
     }
 
@@ -113,6 +120,8 @@ class BookingInventoryController extends Controller
         }
 
         $inventory->delete();
+
+        AuditLogger::log('Deleted', 'Module: Booking Details | Deleted item ID: ' . $inventory->item_id . ' from Booking ID: ' . $inventory->booking_id);
 
         return response()->json(['message' => 'Inventory item deleted successfully'], 200);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,8 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $customers = Customer::orderBy('customer_id', 'desc')->paginate(10);
+
+        AuditLogger::log('Viewed', 'Module: Customer | Viewed customer list');
 
         return response()->json([
             'customers' => $customers->items(),
@@ -29,6 +32,8 @@ class CustomerController extends Controller
         if (!$customer) {
             return response()->json(['message' => 'Customer not found'], 404);
         }
+
+        AuditLogger::log('Viewed', 'Module: Customer | Viewed customer ID: ' . $id);
 
         return response()->json([
             'customer' => $customer
@@ -54,6 +59,8 @@ class CustomerController extends Controller
             'customer_address' => $validated['customer_address'],
         ]);
 
+        AuditLogger::log('Created', 'Module: Customer | Registered customer: ' . $validated['customer_firstname'] . ' ' . $validated['customer_lastname']);
+
         return response()->json(['message' => 'Customer registered successfully']);
     }
     public function update(Request $request, $id)
@@ -75,6 +82,8 @@ class CustomerController extends Controller
             'customer_address' => $validated['customer_address'],
         ]);
 
+        AuditLogger::log('Updated', 'Module: Customer | Updated customer ID: ' . $customer->customer_id);
+
         return response()->json(['message' => 'Customer updated successfully', 'customer' => $customer]);
     }
     public function destroy($id)
@@ -84,6 +93,8 @@ class CustomerController extends Controller
         if (!$customer) {
             return response()->json(['message' => 'Customer not found'], 404);
         }
+
+        AuditLogger::log('Deleted', 'Module: Customer | Deleted customer ID: ' . $id);
 
         $customer->delete();
 

@@ -16,4 +16,9 @@ class AuditLog extends Model
         'timestamp',
         'details',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

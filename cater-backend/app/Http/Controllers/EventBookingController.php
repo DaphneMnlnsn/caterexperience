@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use App\Models\BookingInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -34,6 +35,8 @@ class EventBookingController extends Controller
         $bookings = EventBooking::with('customer')
                     ->orderBy('booking_id', 'desc')
                     ->paginate(10);
+        
+        AuditLogger::log('Viewed', 'Module: Event Booking | Viewed booking list');
 
         return response()->json([
             'bookings' => $bookings->items(),
@@ -62,6 +65,8 @@ class EventBookingController extends Controller
         if (!$booking) {
             return response()->json(['message' => 'Event booking not found'], 404);
         }
+
+        AuditLogger::log('Viewed', 'Module: Booking Details | Viewed booking ID: ' . $id);
 
         return response()->json([
             'booking' => $booking
@@ -256,6 +261,8 @@ class EventBookingController extends Controller
 
             DB::commit();
 
+            AuditLogger::log('Created', 'Module: Event Booking | Created booking: ' . $validated['event_name']);
+
             return response()->json(['message' => 'Booking and tasks successfully created.', 'booking' => $booking]);
 
         } catch (\Exception $e) {
@@ -295,6 +302,8 @@ class EventBookingController extends Controller
         $booking->update([
             'booking_status' => 'Finished',
         ]);
+
+        AuditLogger::log('Updated', 'Module: Event Booking | Finished booking ID: ' . $id);
 
         return response()->json(['message' => 'Event finished', 'event' => $booking]);
     }
@@ -342,6 +351,8 @@ class EventBookingController extends Controller
             }
         }
 
+        AuditLogger::log('Updated', 'Module: Booking Details | Updated booking ID: ' . $id);
+
         return response()->json(['message' => 'Booking updated']);
     }
     public function cancelBooking(Request $request, $id)
@@ -370,6 +381,8 @@ class EventBookingController extends Controller
             StaffAssignment::where('booking_id', $id)->delete();
 
             DB::commit();
+
+            AuditLogger::log('Cancelled', 'Module: Event Booking | Cancelled booking ID: ' . $id);
 
             return response()->json(['message' => 'Booking cancelled successfully.']);
         } catch (\Exception $e) {
@@ -413,6 +426,8 @@ class EventBookingController extends Controller
                 ->update(['due_date' => $validated['event_date']]);
 
             DB::commit();
+
+            AuditLogger::log('Updated', 'Module: Event Booking | Rescheduled booking ID: ' . $id);
 
             return response()->json(['message' => 'Booking successfully rescheduled.']);
         } catch (\Exception $e) {

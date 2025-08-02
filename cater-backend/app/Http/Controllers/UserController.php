@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuditLogger;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,8 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $users = User::orderBy('created_at', 'desc')->paginate(10);
+
+        AuditLogger::log('Viewed', 'Module: User | Viewed user list');
 
         return response()->json([
             'users' => $users->items(),
@@ -45,6 +48,8 @@ class UserController extends Controller
             'password' => Hash::make($validated['last_name'] . ".123"),
         ]);
 
+        AuditLogger::log('Created', "Module: User | Created user: {$user->first_name} {$user->last_name}, ID: {$user->id}");
+
         return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
     }
     public function update(Request $request, $id)
@@ -71,6 +76,8 @@ class UserController extends Controller
             'role' => $validated['role'],
         ]);
 
+        AuditLogger::log('Updated', "Module: User | Updated user: {$user->first_name} {$user->last_name}, ID: {$user->id}");
+
         return response()->json(['message' => 'User updated successfully', 'user' => $user]);
     }
     public function destroy($id)
@@ -81,7 +88,11 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
+        $userName = $user->first_name . ' ' . $user->last_name;
+        $userId = $user->id;
         $user->delete();
+
+        AuditLogger::log('Deleted', "Module: User | Deleted user: {$userName}, ID: {$userId}");
 
         return response()->json(['message' => 'User deleted successfully'], 200);
     }
