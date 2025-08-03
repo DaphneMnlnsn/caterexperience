@@ -24,12 +24,20 @@ function AddBooking() {
     const [staff, setStaff] = useState([]);
     const [availabilityStatus, setAvailabilityStatus] = useState(null);
 
+    const [packageTiers, setPackageTiers] = useState([]);
+    const [selectedPackageTier, setSelectedPackageTier] = useState(null);
+    const [addonTiersMap, setAddonTiersMap] = useState({});
+    const [selectedAddons, setSelectedAddons] = useState([]);
+
+    const [totalAmount, setTotalAmount] = useState(0);
+    const [balance, setBalance] = useState(0);
+
     const [bookingData, setBookingData] = useState([]);
     const [form, setForm] = useState({
         firstName: '', middleName: '', lastName: '', email: '', address: '', contact: '',
         eventName: '', eventType: '', eventDate: location.state?.eventDate || '', eventLocation: '', eventStart: '', eventEnd: '',
         celebrantName: '', ageYear: '', watcher: '', pax: '', waiters: '',
-        package: '', motif: '', addons: '',
+        package: null, motif: '', addons: [],
         beef: '', pork: '', chicken: '', vegetables: '', pastaFish: '', dessert: '',
         downpayment: '', totalPrice: '', specialRequests: '', freebies: '',
         stylist: '', cook: '', headWaiter1: '', headWaiter2: '',
@@ -51,6 +59,11 @@ function AddBooking() {
         }));
     };
 
+    const getMinSelectableDate = () => {
+        const today = new Date();
+        today.setDate(today.getDate() + 8);
+        return today.toISOString().split('T')[0];
+    };
 
     useEffect(() => {
         axiosClient.get('/bookings')
@@ -62,19 +75,19 @@ function AddBooking() {
         .catch(err => console.error('Failed to fetch customers:', err.response?.data || err.message));
 
         axiosClient.get('/packages')
-        .then(res => setPackages(res.data.packages))
+        .then(res => setPackages(res.data.packages.filter(p => p.package_status === 'available')))
         .catch(err => console.error('Failed to fetch packages:', err.response?.data || err.message));
 
         axiosClient.get('/themes')
-        .then(res => setThemes(res.data.themes))
+        .then(res => setThemes(res.data.themes.filter(t => t.theme_status === 'available')))
         .catch(err => console.error('Failed to fetch themes:', err.response?.data || err.message));
 
         axiosClient.get('/addons')
-        .then(res => setAddons(res.data.addons))
+        .then(res => setAddons(res.data.addons.filter(a => a.addon_status === 'available')))
         .catch(err => console.error('Failed to fetch addons:', err.response?.data || err.message));
 
         axiosClient.get('/foods')
-        .then(res => setFoods(res.data.foods))
+        .then(res => setFoods(res.data.foods.filter(f => f.food_status === 'available')))
         .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
 
         axiosClient.get('/users')
@@ -90,7 +103,11 @@ function AddBooking() {
             }
 
             const start = new Date(`2000-01-01T${form.eventStart}`);
-            const end = new Date(`2000-01-01T${form.eventEnd}`);
+            let end = new Date(`2000-01-01T${form.eventEnd}`);
+
+            if (end <= start) {
+                end.setDate(end.getDate() + 1);
+            }
             if (end <= start || (end - start) / (1000 * 60 * 60) < 4) {
             setAvailabilityStatus(null);
             return;
@@ -117,18 +134,55 @@ function AddBooking() {
 
     useEffect(() => {
         const start = form.eventStart ? new Date(`2000-01-01T${form.eventStart}`) : null;
-        const end = form.eventEnd ? new Date(`2000-01-01T${form.eventEnd}`) : null;
+        let end = form.eventEnd ? new Date(`2000-01-01T${form.eventEnd}`) : null;
 
         if (start && end) {
+            if (end <= start) {
+                end.setDate(end.getDate() + 1);
+            }
+
             const diffHours = (end - start) / (1000 * 60 * 60);
 
-            if (end <= start) {
-            setAvailabilityStatus('error-start-end');
-            } else if (diffHours < 4) {
-            setAvailabilityStatus('error-duration');
+            if (diffHours < 4) {
+                setAvailabilityStatus('error-duration');
+            } else {
+                setAvailabilityStatus(null);
             }
         }
+
     }, [form.eventStart, form.eventEnd]);
+
+    useEffect(() => {
+        if (!form.package) {
+            setPackageTiers([]);
+            setSelectedPackageTier(null);
+            return;
+        }
+        const pkg = packages.find(p => p.package_id === form.package);
+        setPackageTiers(pkg?.price_tiers || []);
+    }, [form.package, packages]);
+
+
+    useEffect(() => {
+        selectedAddons.forEach(({ addonId }) => {
+            if (!addonTiersMap[addonId]) {
+            const addon = addons.find(a => a.addon_id === addonId);
+            setAddonTiersMap(prev => ({
+                ...prev,
+                [addonId]: addon?.prices || []
+            }));
+            }
+        });
+    }, [selectedAddons, addons]);
+
+    useEffect(() => {
+        let total = 0;
+        if (selectedPackageTier) total += parseFloat(selectedPackageTier.price_amount);
+        selectedAddons.forEach(({ tier, qty }) => {
+            if (tier) total += parseFloat(tier.price * qty);
+        });
+        setTotalAmount(total);
+    }, [selectedPackageTier, selectedAddons]);
 
 
     const handleCustomerSearch = e => {
@@ -183,14 +237,42 @@ function AddBooking() {
         }));
     };
 
+    const handlePackageChange = e => {
+        const pkgId = +e.target.value;
+        setForm(f => ({ ...f, package: pkgId }));
+        setSelectedPackageTier(null);
+    };
+
+    const addAddonRow = () => {
+        setSelectedAddons(prev => [...prev, { addonId: null, tier: null, qty: 1 }]);
+    };
+
+    const updateAddonRow = (index, field, value) => {
+        setSelectedAddons(prev => prev.map((row, i) => i === index ? { ...row, [field]: value } : row));
+    };
+
+    const removeAddonRow = index => {
+        setSelectedAddons(prev => prev.filter((_, i) => i !== index));
+    };
+
     const validateForm = () => {
         const requiredFields = [
             'firstName', 'lastName', 'email', 'contact', 'address',
             'eventName', 'eventDate', 'eventStart', 'eventEnd', 'eventLocation',
-            'package', 'motif', 'pax', 'watcher', 'waiters', 'totalPrice'
+            'package', 'motif', 'pax', 'watcher', 'waiters'
         ];
 
-        const missing = requiredFields.filter(field => !form[field] || form[field].trim() === '');
+    const missing = requiredFields.filter(field => {
+        const val = form[field];
+        if (val === null || val === undefined) return true;
+        if (typeof val === 'string') {
+            return val.trim() === '';
+        }
+        if (Array.isArray(val)) {
+            return val.length === 0;
+        }
+        return false;
+    });
 
         if (form.eventLocation === 'outside' && !form.customLocation.trim()) {
             missing.push('customLocation');
@@ -245,7 +327,6 @@ function AddBooking() {
         return true;
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -278,7 +359,14 @@ function AddBooking() {
             package_id: parseInt(form.package),
             theme_id: parseInt(form.motif),
             food_ids: foodIds,
-            event_total_price: parseFloat(form.totalPrice),
+            package_price_id: selectedPackageTier.package_price_id,
+            event_addons: selectedAddons.map(a => ({
+                addon_id: a.addonId,
+                addon_price_id: a.tier.addon_price_id,
+                quantity: a.qty,
+                total_price: parseFloat(a.tier.price) * a.qty,
+            })),
+            event_total_price: totalAmount,
             price_breakdown: {
                 package: form.package,
                 addons: form.addons,
@@ -483,6 +571,7 @@ function AddBooking() {
                                 name="eventDate"
                                 type="date"
                                 value={form.eventDate}
+                                min={getMinSelectableDate()}
                                 onChange={handleChange}
                             />
                         </div>
@@ -544,6 +633,14 @@ function AddBooking() {
                             {availabilityStatus === 'error-duration' && (
                                 <div className="availability conflict">❌ Minimum event duration is 4 hours</div>
                             )}
+                            {form.eventStart && form.eventEnd && (() => {
+                                const start = new Date(`2000-01-01T${form.eventStart}`);
+                                const end = new Date(`2000-01-01T${form.eventEnd}`);
+                                if (end <= start) {
+                                    return <div className="availability note">🕛 Event ends the next day</div>;
+                                }
+                                return null;
+                            })()}
                         </div>
 
                         <div className="booking-field-group">
@@ -634,55 +731,115 @@ function AddBooking() {
                 <div className="booking-grid booking-grid-2">
 
                     <div className="booking-field-group">
-                    <label htmlFor="package" className="booking-field-label">Package</label>
-                    <select
-                        id="package"
-                        name="package"
-                        value={form.package}
-                        onChange={handleChange}
-                    >
-                        <option value="">Select Package</option>
-                        {packages.map(pkg => (
+                        <label htmlFor="package" className="booking-field-label">Package</label>
+                        <select
+                            id="package"
+                            name="package"
+                            value={form.package || ''}
+                            onChange={e => {
+                            handlePackageChange(e);
+                            setSelectedPackageTier(null);
+                            }}
+                        >
+                            <option value="">Select Package</option>
+                            {packages.map(pkg => (
                             <option key={pkg.package_id} value={pkg.package_id}>
-                            {pkg.package_name}
+                                {pkg.package_name}
                             </option>
-                        ))}
-                    </select>
+                            ))}
+                        </select>
                     </div>
 
+                    {packageTiers.length > 0 && (
                     <div className="booking-field-group">
-                    <label htmlFor="motif" className="booking-field-label">Motif/Theme</label>
-                    <select
-                        id="motif"
-                        name="motif"
-                        value={form.motif}
-                        onChange={handleChange}
-                    >
-                        <option value="">Select Theme</option>
-                        {themes.map(theme => (
-                            <option key={theme.theme_id} value={theme.theme_id}>
-                            {theme.theme_name}
+                        <label className="booking-field-label">Package Tier</label>
+                        <select
+                        value={selectedPackageTier?.package_price_id || ''}
+                        onChange={e => {
+                            const tier = packageTiers.find(t => t.package_price_id === +e.target.value);
+                            setSelectedPackageTier(tier);
+                        }}
+                        >
+                        <option value="">Choose Tier…</option>
+                        {packageTiers.map(t => (
+                            <option key={t.package_price_id} value={t.package_price_id}>
+                            {t.price_label} – ₱{t.price_amount}
                             </option>
                         ))}
-                    </select>
+                        </select>
+                    </div>
+                    )}
+
+
+                    <div className="booking-field-group">
+                        <label htmlFor="motif" className="booking-field-label">Motif/Theme</label>
+                        <select
+                            id="motif"
+                            name="motif"
+                            value={form.motif}
+                            onChange={handleChange}
+                        >
+                            <option value="">Select Theme</option>
+                            {themes.map(theme => (
+                                <option key={theme.theme_id} value={theme.theme_id}>
+                                {theme.theme_name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="booking-field-group" style={{ gridColumn: '1 / span 2' }}>
-                    <label htmlFor="addons" className="booking-field-label">Addons</label>
-                    <select
-                        id="addons"
-                        name="addons"
-                        value={form.addons}
-                        onChange={handleChange}
-                    >
-                        <option value="">Select Addon</option>
-                        {addons.map(addon => (
-                            <option key={addon.addon_id} value={addon.addon_id}>
-                            {addon.addon_name}
-                            </option>
+                        <label className="booking-field-label">Addons</label>
+
+                        {selectedAddons.map((row, idx) => (
+                            <div key={idx} className="addon-row" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <select
+                                value={row.addonId || ''}
+                                onChange={e => updateAddonRow(idx, 'addonId', +e.target.value)}
+                            >
+                                <option value="">Select Addon…</option>
+                                {addons.map(a => (
+                                <option key={a.addon_id} value={a.addon_id}>
+                                    {a.addon_name}
+                                </option>
+                                ))}
+                            </select>
+
+                            {addonTiersMap[row.addonId]?.length > 0 && (
+                                <select
+                                value={row.tier?.addon_price_id || ''}
+                                onChange={e => {
+                                    const tier = addonTiersMap[row.addonId].find(t => t.addon_price_id === +e.target.value);
+                                    updateAddonRow(idx, 'tier', tier);
+                                }}
+                                >
+                                <option value="">Select Tier…</option>
+                                {addonTiersMap[row.addonId].map(t => (
+                                    <option key={t.addon_price_id} value={t.addon_price_id}>
+                                    {t.description} – ₱{t.price}
+                                    </option>
+                                ))}
+                                </select>
+                            )}
+
+                            <input
+                                type="number"
+                                min="1"
+                                value={row.qty}
+                                style={{ width: '3rem' }}
+                                onChange={e => updateAddonRow(idx, 'qty', +e.target.value)}
+                            />
+
+                            <button type="button" className='close-btn' onClick={() => removeAddonRow(idx)}>
+                                ×
+                            </button>
+                            </div>
                         ))}
-                    </select>
-                    </div>
+
+                        <button type="button" onClick={addAddonRow} className='addon-btn'>
+                            + Add Addon
+                        </button>
+                        </div>
 
                 </div>
                 </div>
@@ -812,47 +969,50 @@ function AddBooking() {
 
                 {/* Payment Details */}
                 <div className="booking-section">
-                <h3 className="booking-form-section-title">Payment Details</h3>
-                <hr className="booking-section-divider" />
-                <div className="booking-grid booking-grid-2">
+                    <h3 className="booking-form-section-title">Payment Details</h3>
+                    <hr className="booking-section-divider" />
+                    <div className="booking-grid booking-grid-2">
+                        <div className="booking-field-group">
+                        <label htmlFor="downpayment" className="booking-field-label">
+                            Downpayment/Reservation Amount
+                        </label>
+                        <input
+                            id="downpayment"
+                            name="downpayment"
+                            type="number"
+                            placeholder="e.g. 1000"
+                            value={form.downpayment}
+                            onChange={handleChange}
+                        />
+                        </div>
+                        <div className="booking-field-group">
+                        <label htmlFor="totalPrice" className="booking-field-label">
+                            Total Price
+                        </label>
+                        <input
+                            id="totalPrice"
+                            name="totalPrice"
+                            type="number"
+                            value={totalAmount}
+                            readOnly
+                        />
+                        </div>
+                        <div className="booking-field-group" style={{ gridColumn: '1 / span 2' }}>
+                        <label htmlFor="freebies" className="booking-field-label">
+                            Freebies
+                        </label>
+                        <input
+                            id="freebies"
+                            name="freebies"
+                            placeholder="Free Items"
+                            value={form.freebies}
+                            onChange={handleChange}
+                        />
+                        </div>
 
-                    <div className="booking-field-group">
-                    <label htmlFor="downpayment" className="booking-field-label">Downpayment Amount</label>
-                    <input
-                        id="downpayment"
-                        name="downpayment"
-                        type="number"
-                        placeholder="e.g. 1000"
-                        value={form.downpayment}
-                        onChange={handleChange}
-                    />
+                    </div>
                     </div>
 
-                    <div className="booking-field-group">
-                    <label htmlFor="totalPrice" className="booking-field-label">Total Price</label>
-                    <input
-                        id="totalPrice"
-                        name="totalPrice"
-                        type="number"
-                        placeholder="e.g. 5000"
-                        value={form.totalPrice}
-                        onChange={handleChange}
-                    />
-                    </div>
-
-                    <div className="booking-field-group" style={{ gridColumn: '1 / span 2' }}>
-                    <label htmlFor="freebies" className="booking-field-label">Freebies</label>
-                    <input
-                        id="freebies"
-                        name="freebies"
-                        placeholder="Free Items"
-                        value={form.freebies}
-                        onChange={handleChange}
-                    />
-                    </div>
-
-                </div>
-                </div>
 
                 {/* Staff Assignment */}
                 <div className="booking-section">

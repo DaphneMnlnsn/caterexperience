@@ -159,6 +159,17 @@
   transition: background 0.2s;
 }
 
+.addon-btn {
+  margin-top: 0.5rem;
+  border-radius: 5px;
+  background-color: #f6f6f6;
+  border: 0.5px solid #b9b9b9;
+  font-family: 'Lora', serif;
+  font-size: 0.9rem;
+  padding: 0.3rem;
+  cursor: pointer;
+}
+
 .cancel-btn:hover { background: #f6f6f6; }
 
 .address-field {

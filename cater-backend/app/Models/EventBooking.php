@@ -13,6 +13,7 @@ class EventBooking extends Model
     protected $fillable = [
         'customer_id',
         'package_id',
+        'package_price_id',
         'menu_id',
         'theme_id',
         'event_name',
@@ -44,6 +45,10 @@ class EventBooking extends Model
 
     public function package() {
         return $this->belongsTo(Package::class, 'package_id', 'package_id');
+    }
+
+    public function packagePrice() {
+        return $this->belongsTo(PackagePrice::class, 'package_price_id', 'package_price_id');
     }
 
     public function menu() {

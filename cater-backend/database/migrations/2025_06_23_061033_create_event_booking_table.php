@@ -16,6 +16,7 @@ return new class extends Migration
 
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('package_id');
+            $table->unsignedBigInteger('package_price_id');
             $table->unsignedBigInteger('menu_id')->nullable();
             $table->unsignedBigInteger('theme_id')->nullable();
 
@@ -44,6 +45,7 @@ return new class extends Migration
 
             $table->foreign('customer_id')->references('customer_id')->on('customers')->onDelete('cascade');
             $table->foreign('package_id')->references('package_id')->on('packages')->onDelete('cascade');
+            $table->foreign('package_price_id')->references('package_price_id')->on('package_price')->onDelete('cascade');
             $table->foreign('menu_id')->references('menu_id')->on('menu')->onDelete('set null');
             $table->foreign('theme_id')->references('theme_id')->on('themes')->onDelete('set null');
         });

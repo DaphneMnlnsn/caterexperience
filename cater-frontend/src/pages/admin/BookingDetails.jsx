@@ -579,7 +579,12 @@ function BookingDetails() {
           <h3>Menu & Packages</h3>
           <div className="menu-package-container">
             <div className="menu-left">
-              <p><strong>Package:</strong> {booking.package?.package_name} – {booking.pax} pax</p>
+              <p>
+                <strong>Package:</strong> {booking.package?.package_name}
+                {booking.package_price && (
+                  <> | {booking.package_price.price_label}: ₱{parseFloat(booking.package_price.price_amount).toLocaleString()}</>
+                )}
+              </p>
               <p><strong>Theme:</strong> {booking.theme?.theme_name}</p>
             </div>
             <div className="menu-right">
@@ -617,6 +622,22 @@ function BookingDetails() {
                 </div>
               ))}
             </div>
+          </div>
+          <div className="addons-section">
+            <h4>Selected Add-ons</h4>
+            {booking.event_addons?.length ? (
+              <ul className="addons-list">
+                {booking.event_addons.map((addon) => (
+                  <li key={addon.id}>
+                    {addon.addon?.addon_name} ({addon.addon_price?.description}) × {addon.quantity} = 
+                    ₱{parseFloat(addon.total_price).toLocaleString()}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No add-ons selected.</p>
+            )}
+            <p><strong>Freebies:</strong> {booking.freebies || 'None'}</p>
           </div>
         </div>
 

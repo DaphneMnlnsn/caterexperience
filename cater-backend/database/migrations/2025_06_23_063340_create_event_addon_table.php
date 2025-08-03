@@ -16,17 +16,16 @@ return new class extends Migration
 
             $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('addon_id');
+            $table->unsignedBigInteger('addon_price_id');
 
             $table->integer('quantity')->default(1);
-            $table->decimal('price_each', 10, 2);
             $table->decimal('total_price', 10, 2);
-
-            $table->text('remarks')->nullable();
 
             $table->timestamps();
 
             $table->foreign('booking_id')->references('booking_id')->on('event_booking')->onDelete('cascade');
             $table->foreign('addon_id')->references('addon_id')->on('addons')->onDelete('cascade');
+            $table->foreign('addon_price_id')->references('addon_price_id')->on('addon_prices')->onDelete('set null');
         });
     }
 

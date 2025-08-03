@@ -14,7 +14,15 @@ function AdminBookings() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
-  const isPastDate = new Date(selectedDate) < new Date(new Date().toDateString());
+  const isWithinRestrictedRange = (() => {
+    const today = new Date();
+    const selected = new Date(selectedDate);
+    today.setHours(0, 0, 0, 0);
+    selected.setHours(0, 0, 0, 0);
+    const oneWeekFromToday = new Date(today);
+    oneWeekFromToday.setDate(today.getDate() + 7);
+    return selected <= oneWeekFromToday;
+  })();
 
   useEffect(() => {
     axiosClient.get('/bookings')
@@ -116,7 +124,7 @@ function AdminBookings() {
 
               {selectedBookings.length >= 3 ? (
                 <div className="event-limit-warning">⚠ Cannot handle more events on this day</div>
-              ) : !isPastDate ? (
+              ) : !isWithinRestrictedRange ? (
                 <button
                   className="add-event-btn"
                   onClick={() =>
@@ -125,7 +133,7 @@ function AdminBookings() {
                   + Add Event
                 </button>
               ) : (
-                <div className="event-limit-warning">⚠ Cannot add events to past dates</div>
+                <div className="event-limit-warning">⚠ Cannot add events to past, today, or close dates</div>
               )}
 
               {selectedBookings.length > 0 ? (

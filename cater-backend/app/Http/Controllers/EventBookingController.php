@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\AuditLogger;
+use App\Models\AddonPrice;
 use App\Models\BookingInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -54,11 +55,13 @@ class EventBookingController extends Controller
             'customer',
             'menu.foods',
             'package',
+            'packagePrice',
             'theme',
             'staffAssignments.user',
             'tasks',
             'payments',
             'eventAddons.addon',
+            'eventAddons.addonPrice'
         ])->find($id);
 
 
@@ -66,7 +69,7 @@ class EventBookingController extends Controller
             return response()->json(['message' => 'Event booking not found'], 404);
         }
 
-        AuditLogger::log('Viewed', 'Module: Booking Details | Viewed booking ID: ' . $id);
+        //AuditLogger::log('Viewed', 'Module: Booking Details | Viewed booking ID: ' . $id);
 
         return response()->json([
             'booking' => $booking
@@ -147,6 +150,7 @@ class EventBookingController extends Controller
             'waiter_count' => 'required|integer',
             'pax' => 'required|integer',
             'package_id' => 'required|integer',
+            'package_price_id' => 'required|integer|exists:package_price,package_price_id',
             'food_ids' => 'required|array',
             'food_ids.*' => 'integer|exists:food,food_id',
             'theme_id' => 'required|integer',
@@ -154,6 +158,11 @@ class EventBookingController extends Controller
             'price_breakdown' => 'required|array',
             'freebies' => 'nullable|string',
             'special_request' => 'nullable|string',
+
+            'event_addons.*.addon_id' => 'nullable|integer|exists:addons,addon_id',
+            'event_addons.*.addon_price_id' => 'nullable|integer|exists:addon_prices,addon_price_id',
+            'event_addons.*.quantity' => 'nullable|integer|min:1',
+            'event_addons.*.total_price' => 'nullable|numeric|min:0',
 
             'customer_email' => 'required|email',
             'customer_firstname' => 'required|string',
@@ -203,6 +212,7 @@ class EventBookingController extends Controller
             $booking = EventBooking::create([
                 'customer_id' => $customer->customer_id,
                 'package_id' => $validated['package_id'],
+                'package_price_id' => $validated['package_price_id'],
                 'menu_id' => $menu->menu_id,
                 'theme_id' => $validated['theme_id'],
                 'event_name' => $validated['event_name'],
@@ -233,14 +243,16 @@ class EventBookingController extends Controller
             $this->generateAutoTasks($booking, $validated['assigned_user_ids'], $validated['created_by']);
 
             if ($request->has('event_addons')) {
-                foreach ($request->event_addons as $addon) {
+                foreach ($request->input('event_addons', []) as $addonData) {
+                    $addon = (array) $addonData;
+                    $price = AddonPrice::find($addon['addon_price_id']);
+
                     EventAddon::create([
-                        'booking_id'   => $booking->booking_id,
-                        'addon_id'     => $addon['addon_id'],
-                        'quantity'     => $addon['quantity'],
-                        'price_each'   => $addon['price_each'],
-                        'total_price'  => $addon['total_price'],
-                        'remarks'      => $addon['remarks'] ?? null,
+                        'booking_id'      => $booking->booking_id,
+                        'addon_id'        => $addon['addon_id'],
+                        'addon_price_id'  => $addon['addon_price_id'],
+                        'quantity'        => $addon['quantity'],
+                        'total_price'     => $addon['total_price'],
                     ]);
                 }
             }

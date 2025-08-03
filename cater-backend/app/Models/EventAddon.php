@@ -11,14 +11,12 @@ class EventAddon extends Model
     protected $fillable = [
         'booking_id',
         'addon_id',
+        'addon_price_id',
         'quantity',
-        'price_each',
         'total_price',
-        'remarks',
     ];
 
     protected $casts = [
-        'price_each' => 'float',
         'total_price' => 'float',
         'quantity' => 'integer',
     ];
@@ -31,5 +29,10 @@ class EventAddon extends Model
     public function addon()
     {
         return $this->belongsTo(Addon::class, 'addon_id', 'addon_id');
+    }
+
+    public function addonPrice()
+    {
+        return $this->belongsTo(AddonPrice::class, 'addon_price_id', 'addon_price_id');
     }
 }

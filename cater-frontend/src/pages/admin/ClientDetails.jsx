@@ -211,7 +211,7 @@ function ClientDetails() {
                       <td>{event.event_date || 'TBD'}</td>
                       <td>{event.event_type}</td>
                       <td>{event.booking_status}</td>
-                      <td><button className="view-btn">View Booking</button></td>
+                      <td><button className="view-btn" onClick={() => navigate(`/admin/bookings/${event.booking_id}`)}>View Booking</button></td>
                     </tr>
                   ))}
                 </tbody>
