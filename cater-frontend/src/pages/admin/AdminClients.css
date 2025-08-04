@@ -12,6 +12,7 @@
 .client-header-actions {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .client-search-box input {
@@ -111,3 +112,4 @@
 .delete-icon {
   color: red;
 }
+

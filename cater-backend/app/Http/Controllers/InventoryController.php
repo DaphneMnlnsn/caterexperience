@@ -74,6 +74,28 @@ class InventoryController extends Controller
         return response()->json($item);
     }
 
+    public function archive($id)
+    {
+        $item = Inventory::findOrFail($id);
+        $item->item_status = 'archived';
+        $item->save();
+
+        AuditLogger::log('Archived', 'Module: Inventory | Archived item: ' . $item->item_name);
+
+        return response()->json(['message' => 'Item archived successfully.']);
+    }
+
+    public function restore($id)
+    {
+        $item = Inventory::findOrFail($id);
+        $item->item_status = 'available';
+        $item->save();
+
+        AuditLogger::log('Restored', 'Module: Inventory | Restored item: ' . $item->item_name);
+
+        return response()->json(['message' => 'Item restored successfully.']);
+    }
+
     public function destroy($id)
     {
         $item = Inventory::findOrFail($id);

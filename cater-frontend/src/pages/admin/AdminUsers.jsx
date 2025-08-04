@@ -4,7 +4,7 @@ import AddUserModal from '../../components/AddUserModal';
 import EditUserModal from '../../components/EditUserModal';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
+import { FaBell, FaFilter, FaPen, FaArchive, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 
 function AdminUsers() {
@@ -14,6 +14,7 @@ function AdminUsers() {
     const [showEditModal, setShowEditModal] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showArchived, setShowArchived] = useState(0);
     
     const formatRole = (role) => {
         return role
@@ -30,41 +31,71 @@ function AdminUsers() {
     };
 
     useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = () => {
         axiosClient.get('/users')
         .then(res => {
             setStaffData(res.data.users);
         })
         .catch(err => console.error('Failed to fetch users:', err.response?.data || err.message));
-    }, []);
+    };
 
-    const filteredUsers = staffData.filter(user => {
-        const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+    const displayedUsers = staffData.filter(u => !!u.archived === !!showArchived);
+
+    const filteredUsers = displayedUsers.filter(user => {
+        const fullName = `${user.first_name} ${user.middle_name || ''} ${user.last_name}`.toLowerCase();
         return (
             fullName.includes(searchTerm.toLowerCase()) ||
-            user.user_phone.includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.role.toLowerCase().includes(searchTerm.toLowerCase())
         );
     });
 
-    const handleDeleteUser = (user) => {
+    const handleArchiveUser = (user) => {
         Swal.fire({
-            title: 'Are you sure?',
-            text: `This will permanently delete ${user.first_name} ${user.last_name}.`,
+            title: 'Archive User?',
+            text: `This will hide ${user.first_name} ${user.last_name} from the list and remove their access.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e74c3c',
             cancelButtonColor: '#aaa',
-            confirmButtonText: 'Yes, delete it!',
+            confirmButtonText: 'Yes, archive it!',
         }).then((result) => {
             if (result.isConfirmed) {
-                axiosClient.delete(`/users/${user.id}`)
+                axiosClient.put(`/users/${user.id}/archive`)
                 .then(() => {
-                    Swal.fire('Deleted!', 'User has been deleted.', 'success');
-                    setStaffData(prev => prev.filter(u => u.id !== user.id));
+                    Swal.fire('Archived!', 'User has been archived.', 'success');
+                    fetchUsers();
                 })
                 .catch(err => {
-                    console.error('Delete error:', err.response?.data || err.message);
-                    Swal.fire('Error', 'Could not delete user.', 'error');
+                    console.error('Archive error:', err.response?.data || err.message);
+                    Swal.fire('Error', 'Could not archive user.', 'error');
+                });
+            }
+        });
+    }
+
+    const handleRestoreUser = (user) => {
+        Swal.fire({
+            title: 'Restore User?',
+            text: `This will show ${user.first_name} ${user.last_name} on the list and restore their access.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#2ecc71',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes, restore it!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axiosClient.put(`/users/${user.id}/restore`)
+                .then(() => {
+                    Swal.fire('Restored!', 'User has been restored.', 'success');
+                    fetchUsers();
+                })
+                .catch(err => {
+                    console.error('Restore error:', err.response?.data || err.message);
+                    Swal.fire('Error', 'Could not restore user.', 'error');
                 });
             }
         });
@@ -97,6 +128,12 @@ function AdminUsers() {
                             />
                         </div>
                         <div className="spacer" />
+                        <button
+                        className="edit-btn"
+                        onClick={() => setShowArchived(prev => +!prev)}
+                        >
+                            {showArchived ? 'Show Active Staff' : 'Show Archived Staff'}
+                        </button>
                         <div className="button-group">
                             <button className="add-btn" onClick={() => {setShowModal(true);}}>+ Add New Staff</button>
                         </div>
@@ -121,13 +158,19 @@ function AdminUsers() {
                                     <td>{user.first_name} {user.last_name}</td>
                                     <td>{user.user_phone}</td>
                                     <td>{formatRole(user.role)}</td>
-                                    <td>{user.tasks || 0}</td>
+                                    <td>{user.tasks_count ?? 0}</td>
                                     <td className="actions">
-                                        <FaPen className="icon edit-icon" onClick={() => {
-                                        setSelectedUser(user);
-                                        setShowEditModal(true);
-                                        }}/>
-                                        <FaTrash className="icon delete-icon" onClick={() => handleDeleteUser(user)} />
+                                        {!showArchived ? (
+                                            <>
+                                                <FaPen className="icon edit-icon" onClick={() => {
+                                                setSelectedUser(user);
+                                                setShowEditModal(true);
+                                                }}/>
+                                                <FaArchive className="icon delete-icon" onClick={() => handleArchiveUser(user)} />
+                                            </>
+                                        ) : (
+                                            <FaUndo className="icon edit-icon" onClick={() => handleRestoreUser(user)} />
+                                        )}
                                     </td>
                                     </tr>
                                 ))}

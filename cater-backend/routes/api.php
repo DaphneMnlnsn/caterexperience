@@ -44,6 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [UserController::class, 'store']);
         Route::get('/', [UserController::class, 'index']);
         Route::put('/{id}', [UserController::class, 'update']);
+        Route::put('/{id}/archive', [UserController::class, 'archive']);
+        Route::put('/{id}/restore', [UserController::class, 'restore']);
         Route::delete('/{id}', [UserController::class, 'destroy']);
     });
 
@@ -51,6 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [CustomerController::class, 'index']);
         Route::get('/{id}', [CustomerController::class, 'indexSelected']);
         Route::put('/{id}', [CustomerController::class, 'update']);
+        Route::put('/{id}/archive', [CustomerController::class, 'archive']);
+        Route::put('/{id}/restore', [CustomerController::class, 'restore']);
         Route::delete('/{id}', [CustomerController::class, 'destroy']);
     });
 
@@ -108,6 +112,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [InventoryController::class, 'indexSelected']);
         Route::post('/', [InventoryController::class, 'store']);
         Route::put('/{id}', [InventoryController::class, 'update']);
+        Route::put('/{id}/archive', [InventoryController::class, 'archive']);
+        Route::put('/{id}/restore', [InventoryController::class, 'restore']);
         Route::delete('/{id}', [InventoryController::class, 'destroy']);
     });
 

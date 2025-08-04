@@ -4,7 +4,7 @@ import AddItemModal from '../../components/AddItemModal';
 import EditItemModal from '../../components/EditItemModal';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
+import { FaBell, FaArchive, FaPen, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 
 function AdminInventory() {
@@ -14,6 +14,7 @@ function AdminInventory() {
     const [showEditModal, setShowEditModal] = React.useState(false);
     const [selectedItem, setSelectedItem] = React.useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showArchived, setShowArchived] = useState(false);
 
     useEffect(() => {
         fetchitems();
@@ -27,35 +28,60 @@ function AdminInventory() {
         .catch(err => console.error('Failed to fetch items:', err.response?.data || err.message));
     }
 
-    const filteredItems = inventoryData.filter(item => 
+    const filteredItems = inventoryData
+    .filter(item => item.item_status === (showArchived ? 'archived' : 'available'))
+    .filter(item =>
         item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.item_type.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleDeleteItem = (item) => {
+    const handleArchiveItem = (item) => {
         Swal.fire({
-            title: 'Are you sure?',
-            text: `This will permanently delete the item.`,
+            title: 'Archive Item?',
+            text: `This will hide the item from the list.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e74c3c',
             cancelButtonColor: '#aaa',
-            confirmButtonText: 'Yes, delete it!',
+            confirmButtonText: 'Yes, archive it!',
         }).then((result) => {
             if (result.isConfirmed) {
-                axiosClient.delete(`/inventory/${item.item_id}`)
+                axiosClient.put(`/inventory/${item.item_id}/archive`)
                 .then(() => {
-                    Swal.fire('Deleted!', 'Item has been deleted.', 'success');
+                    Swal.fire('Archived!', 'Item has been archived.', 'success');
                     fetchitems();
                 })
                 .catch(err => {
-                    console.error('Delete error:', err.response?.data || err.message);
-                    Swal.fire('Error', 'Could not delete item.', 'error');
+                    console.error('Archive error:', err.response?.data || err.message);
+                    Swal.fire('Error', 'Could not archive item.', 'error');
                 });
             }
         });
     }
 
+    const handleRestoreItem = (item) => {
+        Swal.fire({
+            title: 'Restore Item?',
+            text: `This will show the item on the list.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#2ecc71',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes, restore it!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axiosClient.put(`/inventory/${item.item_id}/restore`)
+                .then(() => {
+                    Swal.fire('Restored!', 'Item has been restored.', 'success');
+                    fetchitems();
+                })
+                .catch(err => {
+                    console.error('Restore error:', err.response?.data || err.message);
+                    Swal.fire('Error', 'Could not restore item.', 'error');
+                });
+            }
+        });
+    }
     return (
         <div className="page-container">
             <Sidebar />
@@ -83,6 +109,12 @@ function AdminInventory() {
                             />
                         </div>
                         <div className="spacer" />
+                        <button
+                        className="edit-btn"
+                        onClick={() => setShowArchived(prev => !prev)}
+                        >
+                            {showArchived ? 'Show Available Items' : 'Show Archived Items'}
+                        </button>
                         <div className="button-group">
                             <button className="add-btn" onClick={() => {setShowModal(true);}}>+ Add New Item</button>
                         </div>
@@ -111,11 +143,17 @@ function AdminInventory() {
                                         <td>{item.item_current_quantity}</td>
                                         <td>{item.item_quantity}</td>
                                         <td className="actions">
-                                        <FaPen className="icon edit-icon" onClick={() => {
-                                            setSelectedItem(item);
-                                            setShowEditModal(true);
-                                        }}/>
-                                        <FaTrash className="icon delete-icon" onClick={() => handleDeleteItem(item)} />
+                                            {!showArchived ? (
+                                                <>
+                                                    <FaPen className="icon edit-icon" onClick={() => {
+                                                        setSelectedItem(item);
+                                                        setShowEditModal(true);
+                                                    }}/>
+                                                    <FaArchive className="icon delete-icon" onClick={() => handleArchiveItem(item)} />
+                                                </>
+                                            ) : (
+                                                <FaUndo className="icon edit-icon" onClick={() => handleRestoreItem(item)} />
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

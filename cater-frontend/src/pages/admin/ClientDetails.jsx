@@ -16,6 +16,7 @@ function ClientDetails() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isArchived = client?.archived === 1 || client?.archived === true;
 
   useEffect(() => {
     axiosClient.get(`/customers/${id}`)
@@ -29,26 +30,50 @@ function ClientDetails() {
     });
   }, [id]);
 
-  const handleDeleteClient = () => {
+  const handleArchiveClient = () => {
     Swal.fire({
-      title: 'Are you sure?',
-      text: `This will permanently delete ${client.customer_firstname} ${client.customer_lastname}.`,
+      title: 'Archive Client Record?',
+      text: `This will hide ${client.customer_firstname} ${client.customer_lastname} from active lists.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#e74c3c',
       cancelButtonColor: '#aaa',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: 'Yes, archive it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.delete(`/customers/${id}`)
+        axiosClient.put(`/customers/${id}/archive`)
         .then(() => {
-          Swal.fire('Deleted!', 'Client has been deleted.', 'success');
+          Swal.fire('Archived!', 'Client has been archived.', 'success');
           navigate('/admin/clients');
         })
         .catch(err => {
-          console.error('Delete error:', err.response?.data || err.message);
-          Swal.fire('Error', 'Could not delete client.', 'error');
+          console.error('Archive error:', err.response?.data || err.message);
+          Swal.fire('Error', 'Could not archive client.', 'error');
         });
+      }
+    });
+  };
+
+  const handleRestoreClient = () => {
+    Swal.fire({
+      title: 'Restore Client Record?',
+      text: `This will return ${client.customer_firstname} ${client.customer_lastname} to the active client list.`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#2ecc71',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Yes, restore it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.put(`/customers/${id}/restore`)
+          .then(() => {
+            Swal.fire('Restored!', 'Client has been restored.', 'success');
+            navigate('/admin/clients');
+          })
+          .catch(err => {
+            console.error('Restore error:', err.response?.data || err.message);
+            Swal.fire('Error', 'Could not restore client.', 'error');
+          });
       }
     });
   };
@@ -89,7 +114,7 @@ function ClientDetails() {
         <section className="client-section white-bg">
           <div className="section-title">
             <h3>Client Details</h3>
-            {!isEditing && (
+            {!isEditing && !isArchived && (
               <button
                 className="booking-edit-btn"
                 onClick={() => {
@@ -222,7 +247,11 @@ function ClientDetails() {
           )}
 
           <div className="delete-section">
-            <button className="delete-btn" onClick={handleDeleteClient}>Delete Client Record</button>
+            {isArchived ? (
+              <button className="edit-btn" onClick={handleRestoreClient}>Restore Client Record</button>
+            ) : (
+              <button className="delete-btn" onClick={handleArchiveClient}>Archive Client Record</button>
+            )}
           </div>
         </section>
       </div>

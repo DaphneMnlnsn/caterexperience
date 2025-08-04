@@ -11,7 +11,15 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $users = User::orderBy('created_at', 'desc')->paginate(10);
+        $query = User::orderBy('created_at', 'desc');
+
+        $query->withCount([
+            'tasks as tasks_count' => function ($q) {
+                $q->where('status', '!=', 'Done');
+            }
+        ]);
+
+        $users = $query->paginate(10);
 
         AuditLogger::log('Viewed', 'Module: User | Viewed user list');
 
@@ -79,6 +87,26 @@ class UserController extends Controller
         AuditLogger::log('Updated', "Module: User | Updated user: {$user->first_name} {$user->last_name}, ID: {$user->id}");
 
         return response()->json(['message' => 'User updated successfully', 'user' => $user]);
+    }
+    public function archive($id)
+    {
+        $user = User::findOrFail($id);
+        $user->archived = 1;
+        $user->save();
+        
+        AuditLogger::log('Archived', 'Module: User | Archived user ID: ' . $user -> $id);
+
+        return response()->json(['message' => 'User archived successfully.']);
+    }
+    public function restore($id)
+    {
+        $user = User::findOrFail($id);
+        $user->archived = 0;
+        $user->save();
+
+        AuditLogger::log('Restored', 'Module: User | Restored user ID: ' . $user -> $id);
+
+        return response()->json(['message' => 'User restored successfully.']);
     }
     public function destroy($id)
     {

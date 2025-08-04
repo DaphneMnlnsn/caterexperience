@@ -86,6 +86,27 @@ class CustomerController extends Controller
 
         return response()->json(['message' => 'Customer updated successfully', 'customer' => $customer]);
     }
+
+    public function archive($id)
+    {
+        $customer = Customer::findOrFail($id);
+        $customer->archived = 1;
+        $customer->save();
+
+        AuditLogger::log('Archived', 'Module: Customer | Archived customer ID: ' . $customer->customer_id);
+
+        return response()->json(['message' => 'Client archived successfully.']);
+    }
+    public function restore($id)
+    {
+        $customer = Customer::findOrFail($id);
+        $customer->archived = 0;
+        $customer->save();
+
+        AuditLogger::log('Restored', 'Module: Customer | Restored customer ID: ' . $customer->customer_id);
+
+        return response()->json(['message' => 'Client restored successfully.']);
+    }
     public function destroy($id)
     {
         $customer = Customer::find($id);

@@ -11,6 +11,7 @@ function AdminClients() {
     const user = JSON.parse(localStorage.getItem('user'));
     const [selectedCustomer, setSelectedCustomer] = React.useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showArchived, setShowArchived] = useState(0);
 
     useEffect(() => {
         axiosClient.get('/customers')
@@ -20,7 +21,9 @@ function AdminClients() {
         .catch(err => console.error('Failed to fetch clients:', err.response?.data || err.message));
     }, []);
     
-    const filteredCustomers = customerData.filter(customer => {
+    const displayedCustomers = customerData.filter(c => !!c.archived === !!showArchived);
+
+    const filteredCustomers = displayedCustomers.filter(customer => {
         const fullName = `${customer.customer_firstname} ${customer.customer_middlename} ${customer.customer_lastname}`.toLowerCase();
         return (
             fullName.includes(searchTerm.toLowerCase()) ||
@@ -48,6 +51,12 @@ function AdminClients() {
                 <section className="client-header">
                     <h3>Client Management</h3>
                     <div className="client-header-actions">
+                        <button
+                        className="edit-btn"
+                        onClick={() => setShowArchived(!showArchived)}
+                        >
+                            {showArchived ? 'Show Active Clients' : 'Show Archived Clients'}
+                        </button>
                         <div className="client-search-box">
                             <input
                             type="text"
@@ -83,6 +92,9 @@ function AdminClients() {
                                         </td>
                                     </tr>
                                 ))}
+                                {filteredCustomers.length === 0 && (
+                                    <td>No clients found.</td>
+                                )}
                             </tbody>
                         </table>
                     </div>
