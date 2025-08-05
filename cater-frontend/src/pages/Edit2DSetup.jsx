@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
+import VenueCanvas from '../components/VenueCanvas';
 
 function Edit2DSetup() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
   const [selectedLayout, setSelectedLayout] = useState('Birthday (200 pax)');
+  const [selectedVenue, setSelectedVenue] = useState('pavilion');
 
   return (
     <div className="page-container setup-page-container">
@@ -48,10 +50,20 @@ function Edit2DSetup() {
           </div>
         </header>
 
+        <select
+          value={selectedVenue}
+          onChange={(e) => setSelectedVenue(e.target.value)}
+          className="layout-dropdown"
+        >
+          <option value="pavilion">Pavilion</option>
+          <option value="poolside">Poolside</option>
+          <option value="aircon-room">Airconditioned Room</option>
+          <option value="outside">Outside Venue</option>
+        </select>
+
+
         <div className="canvas-container">
-          <div className="venue-layout-placeholder">
-            <p>Venue layout will appear here</p>
-          </div>
+          <VenueCanvas venue={selectedVenue} />
         </div>
       </div>
     </div>
