@@ -16,6 +16,7 @@ import Unauthorized from './pages/Unauthorized';
 import ClientDetails from "./pages/admin/ClientDetails";
 import BookingDetails from "./pages/admin/BookingDetails";
 import AddBooking from "./pages/admin/AddBooking";
+import Edit2DSetup from "./pages/Edit2DSetup";
 
 export default function App(){
   return(
@@ -120,6 +121,15 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminVenue />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Edit2DSetup />
             </ProtectedRoute>
           }
         />

@@ -122,11 +122,11 @@ function VenueSetups() {
                         </div>
                         <div className="venue-actions">
                         {setup.design_status != 'Completed' ? (
-                            <button className="edit-2d-btn" onClick={() => navigate(`/edit2DSetup/${setup.setup_id}`)}>
+                            <button className="edit-2d-btn" onClick={() => navigate(`/edit`)}> {/*/${setup.setup_id}*/}
                                 Edit 2D Design
                             </button>
                         ) : (
-                            <button className="edit-2d-btn" onClick={() => navigate(`/edit2DSetup/${setup.setup_id}`)}>
+                            <button className="edit-2d-btn" onClick={() => navigate(`/edit`)}>
                                 View 2D Design
                             </button>
                         )}

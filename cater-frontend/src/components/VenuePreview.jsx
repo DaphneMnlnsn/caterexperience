@@ -1,7 +1,10 @@
 import React from 'react';
 import './VenuePreview.css';
+import { useNavigate } from 'react-router-dom';
 
 function VenuePreview({ imagePath }) {
+  const navigate = useNavigate();
+
   return (
     <div className="venue-preview">
       {imagePath ? (
@@ -13,7 +16,7 @@ function VenuePreview({ imagePath }) {
       ) : (
         <div className="preview-placeholder">[Preview here]</div>
       )}
-      <button className="booking-edit-btn">Edit 2D Design</button>
+      <button className="booking-edit-btn" onClick={() => navigate('/edit')}>Edit 2D Design</button>
     </div>
   );
 }
