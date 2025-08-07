@@ -8,7 +8,7 @@ import OutsideVenueLayout from './OutsideVenueLayout';
 
 const CANVAS_WIDTH = 1000;
 const CANVAS_HEIGHT = 400;
-const BASE_SCALE = 0.15;
+const BASE_SCALE = 0.25;
 
 function VenueCanvas({ venue }) {
   const stageRef = useRef();
@@ -64,7 +64,7 @@ function VenueCanvas({ venue }) {
             imagePath={airconImg}
             originalWidth={1559}
             originalHeight={610}
-            baseScale={BASE_SCALE}
+            baseScale={BASE_SCALE * 2}
           />
         )}
         {venue === 'poolside' && (
@@ -72,7 +72,7 @@ function VenueCanvas({ venue }) {
             imagePath={poolsideImg}
             originalWidth={1500}
             originalHeight={1200}
-            baseScale={BASE_SCALE}
+            baseScale={BASE_SCALE * 1.3}
           />
         )}
         {venue === 'outside' && <OutsideVenueLayout />}

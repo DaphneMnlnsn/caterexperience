@@ -14,10 +14,13 @@ return new class extends Migration
         Schema::create('venue_objects', function (Blueprint $table) {
             $table->id('object_id');
             $table->string('object_name');
-            $table->string('object_category');
-            $table->integer('object_width');
-            $table->integer('object_height');
-            $table->string('image_url');
+            $table->string('object_type');
+            $table->json('object_props');
+            $table->float('default_x')->nullable();
+            $table->float('default_y')->nullable();
+            $table->float('default_rotation')->default(0);
+            $table->float('default_scale')->default(1);
+            $table->integer('z_index')->default(0);
             $table->boolean('archived')->default(false);
         });
     }

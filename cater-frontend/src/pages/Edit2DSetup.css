@@ -19,6 +19,12 @@
   overflow-y: auto;
 }
 
+.palette-scroll {
+  overflow-y: auto;
+  flex-grow: 1;
+  margin: 10px 0;
+}
+
 .sidebar-logo {
   width: 70%;
   margin-top: 5%;

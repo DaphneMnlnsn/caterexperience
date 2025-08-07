@@ -12,10 +12,22 @@ class VenueObject extends Model
 
     protected $fillable = [
         'object_name',
-        'object_category',
-        'object_width',
-        'object_height',
-        'image_url',
+        'object_type',
+        'object_props',
+        'default_x',
+        'default_y',
+        'default_rotation',
+        'default_scale',
+        'z_index',
         'archived',
+    ];
+
+    protected $casts = [
+        'object_props'     => 'array',
+        'default_x'        => 'float',
+        'default_y'        => 'float',
+        'default_rotation' => 'float',
+        'default_scale'    => 'float',
+        'z_index'          => 'integer',
     ];
 }

@@ -4,6 +4,7 @@ import { FaBell } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
 import VenueCanvas from '../components/VenueCanvas';
+import ObjectPalette from '../components/ObjectPalette';
 
 function Edit2DSetup() {
   const navigate = useNavigate();
@@ -14,11 +15,10 @@ function Edit2DSetup() {
   return (
     <div className="page-container setup-page-container">
       <aside className="sidebar setup-sidebar">
-        <img src={logo} alt="Ollinati Catering Logo" className="sidebar-logo" />
-
-        <div className="table-guide">
+        <img src={logo} alt="Logo" className="sidebar-logo" />
+        <div className="palette-scroll">
+          <ObjectPalette onSelect={(type) => console.log('Selected:', type)} />
         </div>
-
         <div className="layout-select-container">
           <h3 className="layout-select-title">Use Predefined Layouts</h3>
           <select
@@ -31,7 +31,6 @@ function Edit2DSetup() {
             <option value="Corporate (100 pax)">Corporate (100 pax)</option>
             <option value="Anniversary (80 pax)">Anniversary (80 pax)</option>
           </select>
-
           <div className="sidebar-buttons">
             <button className="setup-btn cancel-btn-small" onClick={() => navigate(-1)}>Back</button>
             <button className="setup-btn edit-btn">Save</button>

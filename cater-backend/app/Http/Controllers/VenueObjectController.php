@@ -11,23 +11,32 @@ class VenueObjectController extends Controller
     public function index()
     {
         return response()->json(
-            VenueObject::where('archived', 0)->get()
+            VenueObject::where('archived', false)->get()
         );
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'object_name' => 'required|string',
-            'object_category' => 'required|string',
-            'object_width' => 'required|numeric|min:0',
-            'object_height' => 'required|numeric|min:0',
-            'image_url' => 'nullable|string',
+            'object_name'      => 'required|string|max:255',
+            'object_type'      => 'required|string|max:100',
+            'object_props'     => 'required|json',
+            'default_x'        => 'nullable|numeric',
+            'default_y'        => 'nullable|numeric',
+            'default_rotation' => 'nullable|numeric',
+            'default_scale'    => 'nullable|numeric|min:0',
+            'z_index'          => 'nullable|integer|min:0',
         ]);
 
-        $object = VenueObject::create($validated);
+        // merge in default archived = false
+        $data = array_merge($validated, ['archived' => false]);
 
-        AuditLogger::log('Created', "Module: Venue Object | Created object: {$object->object_name}, ID: {$object->object_id}");
+        $object = VenueObject::create($data);
+
+        AuditLogger::log(
+            'Created',
+            "Module: Venue Object | Created object: {$object->object_name} (type: {$object->object_type}), ID: {$object->object_id}"
+        );
 
         return response()->json($object, 201);
     }
@@ -35,13 +44,25 @@ class VenueObjectController extends Controller
     public function update(Request $request, $id)
     {
         $object = VenueObject::findOrFail($id);
-        $object->update($request->only([
-            'object_name', 'object_category',
-            'object_width', 'object_height',
-            'image_url'
-        ]));
 
-        AuditLogger::log('Updated', "Module: Venue Object | Updated object: {$object->object_name}, ID: {$object->object_id}");
+        $validated = $request->validate([
+            'object_name'      => 'sometimes|required|string|max:255',
+            'object_type'      => 'sometimes|required|string|max:100',
+            'object_props'     => 'sometimes|required|json',
+            'default_x'        => 'nullable|numeric',
+            'default_y'        => 'nullable|numeric',
+            'default_rotation' => 'nullable|numeric',
+            'default_scale'    => 'nullable|numeric|min:0',
+            'z_index'          => 'nullable|integer|min:0',
+            'archived'         => 'nullable|boolean',
+        ]);
+
+        $object->update($validated);
+
+        AuditLogger::log(
+            'Updated',
+            "Module: Venue Object | Updated object: {$object->object_name} (type: {$object->object_type}), ID: {$object->object_id}"
+        );
 
         return response()->json($object);
     }
@@ -49,10 +70,12 @@ class VenueObjectController extends Controller
     public function archive($id)
     {
         $object = VenueObject::findOrFail($id);
+        $object->update(['archived' => true]);
 
-        $object->update(['archived' => 1]);
-
-        AuditLogger::log('Archived', "Module: Venue Object | Archived object: {$object->object_name}, ID: {$object->object_id}");
+        AuditLogger::log(
+            'Archived',
+            "Module: Venue Object | Archived object: {$object->object_name}, ID: {$object->object_id}"
+        );
 
         return response()->json(['message' => 'Object archived.']);
     }
@@ -60,17 +83,21 @@ class VenueObjectController extends Controller
     public function destroy($id)
     {
         $object = VenueObject::find($id);
-
         if (!$object) {
             return response()->json(['message' => 'Object not found'], 404);
         }
 
-        $objectName = $object->object_name;
-        $objectId = $object->object_id;
+        $name = $object->object_name;
+        $type = $object->object_type;
+        $id   = $object->object_id;
+
         $object->delete();
 
-        AuditLogger::log('Deleted', "Module: Venue Object | Deleted object: {$objectName}, ID: {$objectId}");
+        AuditLogger::log(
+            'Deleted',
+            "Module: Venue Object | Deleted object: {$name} (type: {$type}), ID: {$id}"
+        );
 
-        return response()->json(['message' => 'User deleted successfully'], 200);
+        return response()->json(['message' => 'Object deleted successfully'], 200);
     }
 }
