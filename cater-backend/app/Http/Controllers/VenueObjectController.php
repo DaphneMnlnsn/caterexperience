@@ -28,7 +28,6 @@ class VenueObjectController extends Controller
             'z_index'          => 'nullable|integer|min:0',
         ]);
 
-        // merge in default archived = false
         $data = array_merge($validated, ['archived' => false]);
 
         $object = VenueObject::create($data);
