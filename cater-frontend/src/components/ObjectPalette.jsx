@@ -6,6 +6,25 @@ import axiosClient from '../axiosClient';
 const shared = { stroke: '#000', strokeWidth: 1.5, fill: 'transparent' };
 const CHAIR_W = 15, CHAIR_H = 20;
 
+const PX_PER_M = 50;
+
+const parseProps = (p) => {
+  if (!p) return {};
+  if (typeof p === 'string') {
+    try { return JSON.parse(p); } catch { return {}; }
+  }
+  return { ...p };
+};
+
+const getMeterValue = (props, name, fallback = undefined) => {
+  if (!props) return fallback;
+  if (props[`${name}_m`] !== undefined) return props[`${name}_m`];
+  if (props[name] !== undefined) return props[name];
+  const lower = name.toLowerCase();
+  if (props[lower] !== undefined) return props[lower];
+  return fallback;
+};
+
 const AutoScaler = ({ children, canvasWidth = 100, canvasHeight = 100 }) => {
   const groupRef = useRef();
   const [scale, setScale] = useState({ x: 1, y: 1 });
@@ -15,7 +34,6 @@ const AutoScaler = ({ children, canvasWidth = 100, canvasHeight = 100 }) => {
     let raf = requestAnimationFrame(() => {
       const g = groupRef.current;
       if (!g) return;
-
       const box = g.getClientRect({ relativeTo: g.getStage() });
       const boxWidth = box.width || 1;
       const boxHeight = box.height || 1;
@@ -30,9 +48,7 @@ const AutoScaler = ({ children, canvasWidth = 100, canvasHeight = 100 }) => {
       const clamped = Math.max(0.6, Math.min(rawScale || 1, 1));
 
       const boxCenterStage = { x: box.x + boxWidth / 2, y: box.y + boxHeight / 2 };
-
       const absPos = g.getAbsolutePosition();
-
       const localCenter = { x: boxCenterStage.x - absPos.x, y: boxCenterStage.y - absPos.y };
 
       setScale({ x: clamped, y: clamped });
@@ -202,25 +218,43 @@ const FanPreview = ({ props = {} }) => <Group><Line points={[-10,0,0,-10,10,0,0,
 const renderPreviewFromServer = (obj) => {
   const rawType = (obj.object_type || '').toString();
   const type = rawType.replace(/[^a-z0-9]/gi, '').toLowerCase();
-  const props = typeof obj.object_props === 'string' ? (() => {
-    try { return JSON.parse(obj.object_props); } catch (e) { return {}; }
-  })() : (obj.object_props || {});
+  const parsed = parseProps(obj.object_props);
+
+  const previewProps = { ...parsed };
+  const radius_m = getMeterValue(parsed, 'radius', parsed.radius ?? parsed.radius_m ?? undefined);
+  if (radius_m !== undefined) previewProps.radius = radius_m * PX_PER_M;
+  const w_m = getMeterValue(parsed, 'w', parsed.w ?? parsed.w_m ?? undefined);
+  if (w_m !== undefined) previewProps.w = w_m * PX_PER_M;
+  const h_m = getMeterValue(parsed, 'h', parsed.h ?? parsed.h_m ?? undefined);
+  if (h_m !== undefined) previewProps.h = h_m * PX_PER_M;
+  const rx_m = getMeterValue(parsed, 'rx', parsed.rx ?? parsed.rx_m ?? undefined);
+  if (rx_m !== undefined) previewProps.rx = rx_m * PX_PER_M;
+  const ry_m = getMeterValue(parsed, 'ry', parsed.ry ?? parsed.ry_m ?? undefined);
+  if (ry_m !== undefined) previewProps.ry = ry_m * PX_PER_M;
+  const length_m = getMeterValue(parsed, 'length', parsed.length ?? parsed.length_m ?? undefined);
+  if (length_m !== undefined) previewProps.length = length_m * PX_PER_M;
+  previewProps.count = parsed.count ?? parsed.count;
+  previewProps.petals = parsed.petals ?? parsed.petals;
+  previewProps.topBottom = parsed.topBottom ?? parsed.topbottom ?? parsed.topBottom ?? parsed.topbottom ?? 0;
+  previewProps.sides = parsed.sides ?? 0;
+  previewProps.dash = parsed.dash ?? parsed.dash;
+  previewProps.label = parsed.label ?? parsed.label;
 
   switch (type) {
     case 'chair': return <Chair />;
-    case 'singleroundtable': return <SingleRoundTablePreview props={props} />;
-    case 'roundtable': return <RoundTablePreview count={props.count ?? 6} props={props} />;
-    case 'recttable': return <RectTablePreview topBottom={props.topBottom ?? props.topbottom ?? 0} sides={props.sides ?? 0} props={props} />;
-    case 'squaretable': return <SquareTablePreview props={props} />;
-    case 'ovaltable': return <OvalTablePreview count={props.count ?? 8} props={props} />;
-    case 'buffettable': return <BuffetTablePreview props={props} />;
-    case 'plant': return <PlantPreview props={props} />;
-    case 'divider': return <DividerPreview props={props} />;
-    case 'arch': case 'arches': return <ArchPreview props={props} />;
-    case 'stageoutline': case 'stage': return <StagePreview props={props} />;
-    case 'backdropline': case 'backdrop': return <BackdropPreview props={props} />;
-    case 'lightoutline': case 'light': return <LightPreview props={props} />;
-    case 'fanoutline': case 'fan': return <FanPreview props={props} />;
+    case 'singleroundtable': return <SingleRoundTablePreview props={previewProps} />;
+    case 'roundtable': return <RoundTablePreview count={previewProps.count ?? 6} props={previewProps} />;
+    case 'recttable': return <RectTablePreview topBottom={previewProps.topBottom ?? 0} sides={previewProps.sides ?? 0} props={previewProps} />;
+    case 'squaretable': return <SquareTablePreview props={previewProps} />;
+    case 'ovaltable': return <OvalTablePreview count={previewProps.count ?? 8} props={previewProps} />;
+    case 'buffettable': return <BuffetTablePreview props={previewProps} />;
+    case 'plant': return <PlantPreview props={previewProps} />;
+    case 'divider': return <DividerPreview props={previewProps} />;
+    case 'arch': case 'arches': return <ArchPreview props={previewProps} />;
+    case 'stageoutline': case 'stage': return <StagePreview props={previewProps} />;
+    case 'backdropline': case 'backdrop': return <BackdropPreview props={previewProps} />;
+    case 'lightoutline': case 'light': return <LightPreview props={previewProps} />;
+    case 'fanoutline': case 'fan': return <FanPreview props={previewProps} />;
     default:
       return (
         <Group>
@@ -255,7 +289,8 @@ const ObjectPalette = ({ onSelect, apiBase = '/objects' }) => {
   }, [apiBase]);
 
   const handleDragStart = (e, item) => {
-    e.dataTransfer.setData('application/json', JSON.stringify(item));
+    const copy = { ...item, object_props: parseProps(item.object_props) };
+    e.dataTransfer.setData('application/json', JSON.stringify(copy));
     e.dataTransfer.effectAllowed = 'copy';
   };
 
