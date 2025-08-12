@@ -1,22 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './VenuePreview.css';
 import { useNavigate } from 'react-router-dom';
+import axiosClient from '../axiosClient';
 
-function VenuePreview({ imagePath }) {
+function VenuePreview({ bookingId }) {
   const navigate = useNavigate();
+  const [objects, setObjects] = useState(null);
+
+  useEffect(() => {
+    if (!bookingId) return;
+
+    axiosClient.get(`/setups/${bookingId}`)
+      .then(res => {
+        if (res.data) {
+          try {
+            const parsed = JSON.parse(res.data.objects);
+            setObjects(parsed);
+          } catch (e) {
+            console.error('Invalid layout JSON:', e);
+          }
+        }
+      })
+      .catch(err => console.error('Failed to load venue setup:', err));
+  }, [bookingId]);
 
   return (
     <div className="venue-preview">
-      {imagePath ? (
-        <img
-          src={`http://localhost:8000/storage/${imagePath}`}
-          alt="Venue Design"
-          className="venue-image"
-        />
+      {objects ? (
+        <div className="preview-placeholder">
+          <span>[2D Layout Loaded]</span>
+        </div>
       ) : (
         <div className="preview-placeholder">[Preview here]</div>
       )}
-      <button className="booking-edit-btn" onClick={() => navigate('/edit')}>Edit 2D Design</button>
+      <button
+        className="booking-edit-btn"
+        onClick={() => navigate(`/edit/${bookingId}`)}
+      >
+        Edit 2D Design
+      </button>
     </div>
   );
 }

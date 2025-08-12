@@ -668,7 +668,7 @@ function BookingDetails() {
         {/* Venue Design Preview */}
         <div className="section white-bg">
           <h3>Venue Design</h3>
-          <VenuePreview imagePath={booking.venue_design_image} />
+          <VenuePreview bookingId={booking.booking_id} />
         </div>
 
         <hr className="booking-section-divider" />

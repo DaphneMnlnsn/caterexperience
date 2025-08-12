@@ -126,7 +126,7 @@ export default function App(){
         />
 
         <Route
-          path="/edit"
+          path="/edit/:id"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <Edit2DSetup />

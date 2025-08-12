@@ -1,16 +1,47 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
 import VenueCanvas from '../components/VenueCanvas';
 import ObjectPalette from '../components/ObjectPalette';
+import axiosClient from '../axiosClient';
 
 function Edit2DSetup() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
+
   const [selectedLayout, setSelectedLayout] = useState('Birthday (200 pax)');
-  const [selectedVenue, setSelectedVenue] = useState('pavilion');
+  const [setupId, setSetupId] = useState(null);
+  const [venue, setVenue] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+
+    setLoading(true);
+    axiosClient.get(`/setups/${id}`)
+      .then((res) => {
+        const setup = res.data;
+        if (setup.setup_id) {
+          setSetupId(setup.setup_id);
+          setVenue(setup.layout_type);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching setup:', err);
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return <div>Loading setup...</div>;
+  }
+
+  if (!setupId) {
+    return <div>No setup found for this booking.</div>;
+  }
 
   return (
     <div className="page-container setup-page-container">
@@ -50,19 +81,18 @@ function Edit2DSetup() {
         </header>
 
         <select
-          value={selectedVenue}
-          onChange={(e) => setSelectedVenue(e.target.value)}
+          value={venue}
           className="layout-dropdown"
+          disabled
         >
-          <option value="pavilion">Pavilion</option>
-          <option value="poolside">Poolside</option>
-          <option value="aircon-room">Airconditioned Room</option>
-          <option value="outside">Outside Venue</option>
+          <option value="Pavilion">Pavilion</option>
+          <option value="Poolside">Poolside</option>
+          <option value="Airconditioned Room">Airconditioned Room</option>
+          <option value="Custom Venue">Outside Venue</option>
         </select>
 
-
         <div className="canvas-container">
-          <VenueCanvas venue={selectedVenue} />
+          <VenueCanvas setupId={setupId} />
         </div>
       </div>
     </div>

@@ -11,9 +11,22 @@ use Illuminate\Support\Facades\DB;
 
 class VenueSetupController extends Controller
 {
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         $setups = VenueSetup::all();
         return response()->json(['setups' => $setups]);
+    }
+    
+    public function indexSelected($bookingId)
+    {
+        $setup = VenueSetup::where('booking_id', $bookingId)->first();
+        return response()->json($setup);
+    }
+
+    public function indexSetup($setupId)
+    {
+        $setup = VenueSetup::where('setup_id', $setupId)->first();
+        return response()->json($setup);
     }
     
     public function store(Request $request)

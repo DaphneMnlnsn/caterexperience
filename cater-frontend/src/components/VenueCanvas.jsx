@@ -6,6 +6,7 @@ import pavilionImg from '../assets/Pavilion.svg';
 import airconImg from '../assets/Aircon.svg';
 import poolsideImg from '../assets/Poolside.svg';
 import OutsideVenueLayout from './OutsideVenueLayout';
+import axiosClient from '../axiosClient';
 
 const CANVAS_WIDTH = 1000;
 const CANVAS_HEIGHT = 400;
@@ -53,14 +54,15 @@ const getAnyProp = (props, name, fallback = undefined) => {
   return fallback;
 };
 
-function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters = null }) {
+function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters = null }) {
   const stageRef = useRef();
   const trRef = useRef();
   const groupRefs = useRef({});
 
   const [predefinedLayout, setPredefinedLayout] = useState(null);
+  const [layoutType, setLayoutType] = useState(null);
 
-  const predefKey = `predef-layout-${venue ?? 'default'}`;
+  const predefKey = `predef-layout-${layoutType ?? 'default'}`;
 
   useEffect(() => {
     try {
@@ -75,7 +77,7 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
       console.warn('Failed to read predefined layout from localStorage', err);
       setPredefinedLayout(null);
     }
-  }, [predefKey, venue]);
+  }, [predefKey, layoutType]);
 
   const handleResetLayout = () => {
     setSelectedId(null);
@@ -126,10 +128,23 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
   const [gridEnabled, setGridEnabled] = useState(true);
   const [gridSizeMeters, setGridSizeMeters] = useState(0.5);
 
+  useEffect(() => {
+    if(!setupId) return;
+
+    axiosClient.get(`/setups/setup/${setupId}`)
+    .then(res => {
+      setLayoutType(res.data.layout_type);
+    })
+    .catch(err => {
+      console.error("Error fetching setup", err);
+      setLayoutType('outside');
+    })
+  }, [setupId]);
+
   const venueConfig = (() => {
-    if (venue === 'pavilion') return { originalWidth: 2733, originalHeight: 1556, baseScale: BASE_SCALE };
-    if (venue === 'aircon-room') return { originalWidth: 1559, originalHeight: 610, baseScale: BASE_SCALE * 2 };
-    if (venue === 'poolside') return { originalWidth: 1500, originalHeight: 1200, baseScale: BASE_SCALE * 1.3 };
+    if (layoutType === 'Pavilion') return { originalWidth: 2733, originalHeight: 1556, baseScale: BASE_SCALE };
+    if (layoutType === 'Airconditioned Room') return { originalWidth: 1559, originalHeight: 610, baseScale: BASE_SCALE * 2 };
+    if (layoutType === 'Poolside') return { originalWidth: 1500, originalHeight: 1200, baseScale: BASE_SCALE * 1.3 };
     return { originalWidth: 1000, originalHeight: 800, baseScale: BASE_SCALE };
   })();
 
@@ -698,6 +713,8 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
     }
   };
 
+  const normalizedType = layoutType?.trim().toLowerCase();
+
   return (
     <div
       onDrop={handleDrop}
@@ -721,7 +738,6 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
 
       <div style={{ position: "absolute", top: 100, left: 10, display: "flex", flexDirection: "column", gap: "10px", zIndex: 1000 }}>
         <button onClick={handleResetLayout} style={{ background: "#ff4e4eff", color: "#fff", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Reset Layout</button>
-
         <button onClick={handleSavePredefinedLayout} style={{ background: "#ffe066", color: "#000", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Save as Predefined</button>
       </div>
 
@@ -765,10 +781,18 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
       >
         <Layer>
           {renderGrid()}
-          {venue === 'pavilion' && <VenueImageLayout imagePath={pavilionImg} originalWidth={2733} originalHeight={1556} baseScale={BASE_SCALE} />}
-          {venue === 'aircon-room' && <VenueImageLayout imagePath={airconImg} originalWidth={1559} originalHeight={610} baseScale={BASE_SCALE * 2} />}
-          {venue === 'poolside' && <VenueImageLayout imagePath={poolsideImg} originalWidth={1500} originalHeight={1200} baseScale={BASE_SCALE * 1.3} />}
-          {venue === 'outside' && <OutsideVenueLayout />}
+          {normalizedType === 'pavilion' && (
+            <VenueImageLayout imagePath={pavilionImg} originalWidth={2733} originalHeight={1556} baseScale={BASE_SCALE} />
+          )}
+          {normalizedType === 'airconditioned room' && (
+            <VenueImageLayout imagePath={airconImg} originalWidth={1559} originalHeight={610} baseScale={BASE_SCALE * 2} />
+          )}
+          {normalizedType === 'poolside' && (
+            <VenueImageLayout imagePath={poolsideImg} originalWidth={1500} originalHeight={1200} baseScale={BASE_SCALE * 1.3} />
+          )}
+          {normalizedType === 'custom venue' && (
+            <OutsideVenueLayout />
+          )}
 
           {placedSorted.map(p => renderPlaced(p))}
 
