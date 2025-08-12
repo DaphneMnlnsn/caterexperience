@@ -56,7 +56,63 @@ const getAnyProp = (props, name, fallback = undefined) => {
 function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters = null }) {
   const stageRef = useRef();
   const trRef = useRef();
-  const groupRefs = useRef({}); // store group node refs keyed by placed.id
+  const groupRefs = useRef({});
+
+  const [predefinedLayout, setPredefinedLayout] = useState(null);
+
+  const predefKey = `predef-layout-${venue ?? 'default'}`;
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(predefKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setPredefinedLayout(parsed);
+      } else {
+        setPredefinedLayout(null);
+      }
+    } catch (err) {
+      console.warn('Failed to read predefined layout from localStorage', err);
+      setPredefinedLayout(null);
+    }
+  }, [predefKey, venue]);
+
+  const handleResetLayout = () => {
+    setSelectedId(null);
+    if (trRef.current) {
+      trRef.current.nodes([]);
+      trRef.current.getLayer() && trRef.current.getLayer().batchDraw();
+    }
+
+    setPlaced([]);
+  };
+
+  const handleSavePredefinedLayout = () => {
+    const payload = JSON.parse(JSON.stringify(placed || []));
+    setPredefinedLayout(payload);
+    try {
+      localStorage.setItem(predefKey, JSON.stringify(payload));
+      window.alert('Layout saved as predefined for this venue.');
+    } catch (err) {
+      console.error('Failed to save predefined layout', err);
+      window.alert('Failed to save layout locally.');
+    }
+  };
+
+  const handleLoadPredefinedLayout = () => {
+    if (!predefinedLayout || !Array.isArray(predefinedLayout)) {
+      window.alert('No predefined layout saved for this venue.');
+      return;
+    }
+
+    setSelectedId(null);
+    if (trRef.current) {
+      trRef.current.nodes([]);
+      trRef.current.getLayer() && trRef.current.getLayer().batchDraw();
+    }
+
+    setPlaced(JSON.parse(JSON.stringify(predefinedLayout)));
+  };
 
   const [deleteHover, setDeleteHover] = useState(false);
   const [stageScale, setStageScale] = useState(1);
@@ -65,7 +121,10 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
   const [selectedId, setSelectedId] = useState(null);
 
   const [editingLabel, setEditingLabel] = useState(null);
-  const editingRef = useRef(null); // input ref
+  const editingRef = useRef(null);
+
+  const [gridEnabled, setGridEnabled] = useState(true);
+  const [gridSizeMeters, setGridSizeMeters] = useState(0.5);
 
   const venueConfig = (() => {
     if (venue === 'pavilion') return { originalWidth: 2733, originalHeight: 1556, baseScale: BASE_SCALE };
@@ -87,6 +146,14 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
   };
 
   const pxPerMeter = computePxPerMeter();
+
+  const snapMeters = (m) => {
+    if (!gridEnabled || !gridSizeMeters || gridSizeMeters <= 0) return m;
+    return Math.round(m / gridSizeMeters) * gridSizeMeters;
+  };
+
+  const metersToPx = (m) => m*pxPerMeter;
+  const pxToMeters = (px) => px / pxPerMeter;
 
   const handleWheel = (e) => {
     e.evt.preventDefault();
@@ -119,8 +186,11 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
     const xOnStage = (clientX - rect.left - (stage.x() || 0)) / (stage.scaleX() || 1);
     const yOnStage = (clientY - rect.top - (stage.y() || 0)) / (stage.scaleY() || 1);
 
-    const x_m = xOnStage / pxPerMeter;
-    const y_m = yOnStage / pxPerMeter;
+    const x_m_raw = xOnStage / pxPerMeter;
+    const y_m_raw = yOnStage / pxPerMeter;
+
+    const x_m = gridEnabled ? snapMeters(x_m_raw) : x_m_raw;
+    const y_m = gridEnabled ? snapMeters(y_m_raw) : y_m_raw;
 
     const parsedProps = parseProps(obj.object_props);
 
@@ -147,6 +217,7 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
     }, 50);
   };
 
+
   const handleDragOver = (e) => e.preventDefault();
 
   const handlePlacedDragEnd = (id, e) => {
@@ -156,12 +227,27 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
     const stageScaleNow = stage ? stage.scaleX() : 1;
     const stageX = stage ? (stage.x() || 0) : 0;
     const stageY = stage ? (stage.y() || 0) : 0;
-    const x_stage = (abs.x - stageX) / stageScaleNow;
-    const y_stage = (abs.y - stageY) / stageScaleNow;
-    const newX_m = x_stage / pxPerMeter;
-    const newY_m = y_stage / pxPerMeter;
+
+    const x_stage_px = (abs.x - stageX) / stageScaleNow;
+    const y_stage_px = (abs.y - stageY) / stageScaleNow;
+
+    const newX_m_raw = pxToMeters(x_stage_px);
+    const newY_m_raw = pxToMeters(y_stage_px);
+
+    const newX_m = gridEnabled ? snapMeters(newX_m_raw) : newX_m_raw;
+    const newY_m = gridEnabled ? snapMeters(newY_m_raw) : newY_m_raw;
+
+    if (gridEnabled) {
+      const snappedX_px = metersToPx(newX_m);
+      const snappedY_px = metersToPx(newY_m);
+
+      node.position({ x: snappedX_px, y: snappedY_px });
+      node.getLayer() && node.getLayer().batchDraw();
+    }
+
     setPlaced(prev => prev.map(p => p.id === id ? { ...p, x_m: newX_m, y_m: newY_m } : p));
   };
+
 
   const handleTransformEnd = (id, e) => {
     const node = e.target;
@@ -176,10 +262,23 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
     const stageScaleNow = stage ? stage.scaleX() : 1;
     const stageX = stage ? (stage.x() || 0) : 0;
     const stageY = stage ? (stage.y() || 0) : 0;
-    const x_stage = (abs.x - stageX) / stageScaleNow;
-    const y_stage = (abs.y - stageY) / stageScaleNow;
-    const newX_m = x_stage / pxPerMeter;
-    const newY_m = y_stage / pxPerMeter;
+    
+    const x_stage_px = (abs.x - stageX) / stageScaleNow;
+    const y_stage_px = (abs.y - stageY) / stageScaleNow;
+    
+    const newX_m_raw = pxToMeters(x_stage_px);
+    const newY_m_raw = pxToMeters(y_stage_px);
+
+    const newX_m = gridEnabled ? snapMeters(newX_m_raw) : newX_m_raw;
+    const newY_m = gridEnabled ? snapMeters(newY_m_raw) : newY_m_raw;
+
+    if (gridEnabled) {
+      const snappedX_px = metersToPx(newX_m);
+      const snappedY_px = metersToPx(newY_m);
+
+      node.position({ x: snappedX_px, y: snappedY_px });
+      node.getLayer() && node.getLayer().batchDraw();
+    }
 
     setPlaced(prev => prev.map(p => p.id === id ? {
       ...p,
@@ -189,6 +288,7 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
       y_m: newY_m,
     } : p));
   };
+
 
   useEffect(() => {
     if (!trRef.current) return;
@@ -423,6 +523,43 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
     }
   };
 
+  const renderGrid = () => {
+    if(!gridEnabled) return null;
+    const gridMeters = gridSizeMeters > 0 ? gridSizeMeters : 0.5;
+    const gridPx = gridMeters * pxPerMeter;
+    if (gridPx <= 2) {
+      const dots = [];
+      const step = Math.max(2, Math.round(gridPx));
+
+      const wCount = Math.ceil(CANVAS_WIDTH / step) + 4;
+      const hCount = Math.ceil(CANVAS_HEIGHT / step) + 4;
+      for (let i = -2; i <= wCount; i++) {
+        for(let j = -2; j <= hCount; j++) {
+          const x = i * step;
+          const y = j * step;
+          dots.push(<Rect key={`dot-${i}-${j}`} x={x} y={y} width={1} height={1} fill="#ddd" listening={false} />);
+        }
+      }
+      return <Group>{dots}</Group>
+    } else {
+      const lines = [];
+      const big = Math.max(CANVAS_WIDTH, CANVAS_HEIGHT) * 10;
+      const vCount = Math.ceil(CANVAS_WIDTH / gridPx) + 4;
+      for (let i = -2; i <= vCount; i++) {
+        const x = i * gridPx;
+        lines.push(<Line key={`v-${i}`} points={[x, -big, x, big]} stroke="#e9e9e9" strokeWidth={1} listening={false} />);
+      }
+      const hCount = Math.ceil(CANVAS_HEIGHT / gridPx) + 4;
+      for (let j = -2; j <= hCount; j++) {
+        const y = j * gridPx;
+        lines.push(<Line key={`h-${j}`} points={[-big, y, big, y]} stroke="#e9e9e9" strokeWidth={1} listening={false} />);
+      }
+      lines.push(<Line key="axis-x" points={[0, 0, CANVAS_WIDTH, 0]} stroke="#f0f0f0" strokeWidth={1} listening={false} />);
+      lines.push(<Line key="axis-y" points={[0, 0, 0, CANVAS_HEIGHT]} stroke="#f0f0f0" strokeWidth={1} listening={false} />);
+      return <Group>{lines}</Group>;
+    }
+  }
+
   const handleStageDragEnd = (e) => {
     const target = e.target;
     const stageNode = stageRef.current;
@@ -434,7 +571,7 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
   };
 
   const openLabelEditor = (id) => {
-    if (editingLabel && editingLabel.id === id) return; // already editing
+    if (editingLabel && editingLabel.id === id) return;
     const node = groupRefs.current[id];
     const stage = stageRef.current;
     if (!node || !stage) return;
@@ -567,6 +704,27 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
       onDragOver={handleDragOver}
       style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, border: '1px solid #ddd', background: '#f7f7f7', position: 'relative' }}
     >
+      <div style={{
+        position: 'absolute', left: 10, top: 10, zIndex: 9999, background: 'rgba(255,255,255,0.95)',
+        padding: 8, borderRadius: 6, boxShadow: '0 6px 12px rgba(0,0,0,0.08)', fontSize: 13
+      }}>
+        <label style={{display: 'flex', alignItems:'center', gap:8}}>
+          <input type="checkbox" checked={gridEnabled} onChange={(e)=>setGridEnabled(e.target.checked)} />
+          <span style={{fontSize:12}}>Grid</span>
+        </label>
+        <div style={{marginTop: 6, display: 'flex', gap: 6, alignItems: 'center'}}>
+          <input type="number" step="0.1" min="0.1" value={gridSizeMeters} onChange={(e)=>setGridSizeMeters(parseFloat(e.target.value)||0.1)} style={{width: 70, padding: 4}} />
+          <span style={{fontSize: 12}}>m</span>
+        </div>
+
+      </div>
+
+      <div style={{ position: "absolute", top: 100, left: 10, display: "flex", flexDirection: "column", gap: "10px", zIndex: 1000 }}>
+        <button onClick={handleResetLayout} style={{ background: "#ff4e4eff", color: "#fff", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Reset Layout</button>
+
+        <button onClick={handleSavePredefinedLayout} style={{ background: "#ffe066", color: "#000", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Save as Predefined</button>
+      </div>
+
       {editingLabel && (
         <input
           ref={editingRef}
@@ -606,6 +764,7 @@ function VenueCanvas({ venue, venueRealWidthMeters = null, venueRealAreaMeters =
         ref={stageRef}
       >
         <Layer>
+          {renderGrid()}
           {venue === 'pavilion' && <VenueImageLayout imagePath={pavilionImg} originalWidth={2733} originalHeight={1556} baseScale={BASE_SCALE} />}
           {venue === 'aircon-room' && <VenueImageLayout imagePath={airconImg} originalWidth={1559} originalHeight={610} baseScale={BASE_SCALE * 2} />}
           {venue === 'poolside' && <VenueImageLayout imagePath={poolsideImg} originalWidth={1500} originalHeight={1200} baseScale={BASE_SCALE * 1.3} />}
