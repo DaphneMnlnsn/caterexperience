@@ -4,15 +4,23 @@ import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import logo from '../assets/logo.png';
 import { FaCalendarAlt, FaUser, FaMoneyCheckAlt, FaUtensils, FaBox, FaWarehouse, FaUsersCog, FaClipboardList, FaSignOutAlt, FaHome, FaMapMarkedAlt } from 'react-icons/fa';
+import axiosClient from '../axiosClient';
 
 export default function Sidebar() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            await axiosClient.post('/logout');
+        } catch (error) {
+            console.error(error);
+        } finally {
+            localStorage.clear();
+            navigate( '/');
+        }
     };
+    
     return (
     <aside className="sidebar">
         <img src={logo} alt="Ollinati Catering Logo" className="logo-sidebar" />

@@ -7,37 +7,8 @@ import axiosClient from '../../axiosClient';
 import { useNavigate } from 'react-router-dom';
 
 function VenueSetups() {
-    const mockSetups = [
-  {
-    setup_id: 1,
-    client_name: 'Daphne Alwyn',
-    event_type: 'Anniversary Celebration',
-    event_schedule: 'April 21, 2025 9:00AM-2:00PM',
-    design_status: 'Pending Design',
-    venue_name: 'Ron Pavilion - Banquet Room',
-    theme: 'Garden Fairy Theme',
-  },
-  {
-    setup_id: 2,
-    client_name: 'Marco Rivera',
-    event_type: 'Wedding Reception',
-    event_schedule: 'May 10, 2025 3:00PM-8:00PM',
-    design_status: 'Completed',
-    venue_name: 'Bella Casa Garden',
-    theme: 'Rustic Romantic',
-  },
-  {
-    setup_id: 3,
-    client_name: 'Aira Mendez',
-    event_type: 'Debut',
-    event_schedule: 'June 2, 2025 5:00PM-10:00PM',
-    design_status: 'Pending Design',
-    venue_name: 'The Grand Ballroom',
-    theme: 'Enchanted Forest',
-  },
-];
-
-  const user = JSON.parse(localStorage.getItem('user'));
+  const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [setups, setSetups] = useState([]);
@@ -89,44 +60,50 @@ function VenueSetups() {
 
         <section className="page-bottom">
             <div className="venue-grid">
-                {setups.map((setup) => (
+                {filteredSetups.map((setup) => (
                     <div key={setup.setup_id} className="venue-card">
                     <div className="venue-details">
                         <div className="venue-info">
-                        <div className="venue-field">
-                            <span className="field-label">Client:</span>
-                            <span className="field-value"> {setup.client_name}</span>
-                        </div>
-                        <div className="venue-field">
-                            <span className="field-label">Event Type:</span>
-                            <span className="field-value"> {setup.event_type}</span>
-                        </div>
-                        <div className="venue-field">
-                            <span className="field-label">Schedule:</span>
-                            <span className="field-value"> {setup.event_schedule}</span>
-                        </div>
-                        <div className="venue-field">
-                            <span className="field-label">Design Status: </span>
-                            <span className={`status-badge ${setup.design_status.toLowerCase().replace(/\s+/g, '-')}`}>
-                                {setup.design_status}
-                            </span>
-                        </div>
-                        <div className="venue-field">
-                            <span className="field-label">Event Venue:</span>
-                            <span className="field-value"> {setup.venue_name}</span>
-                        </div>
-                        <div className="venue-field">
-                            <span className="field-label">Theme:</span>
-                            <span className="field-value"> {setup.theme}</span>
-                        </div>
+                          <div className="venue-field">
+                              <span className="field-label">Layout Name:</span>
+                              <span className="field-value"> {setup.layout_name}</span>
+                          </div>
+                          <div className="venue-field">
+                              <span className="field-label">Client:</span>
+                              <span className="field-value"> {setup.booking.customer.customer_firstname + " " + setup.booking.customer.customer_lastname}</span>
+                          </div>
+                          <div className="venue-field">
+                              <span className="field-label">Event Type:</span>
+                              <span className="field-value"> {setup.booking.event_type}</span>
+                          </div>
+                          <div className="venue-field">
+                              <span className="field-label">Schedule:</span>
+                              <span className="field-value"> {setup.booking.event_date + " " + setup.booking.event_start_time + "-" + setup.booking.event_end_time}</span>
+                          </div>
+                          <div className="venue-field">
+                              <span className="field-label">Design Status: </span>
+                              <span 
+                                className={`status-badge ${setup.status ? setup.status.toLowerCase().replace(/\s+/g, '-') : ''}`}
+                              >
+                                {setup.status || 'Unknown'}
+                              </span>
+                          </div>
+                          <div className="venue-field">
+                              <span className="field-label">Event Venue:</span>
+                              <span className="field-value"> {setup.booking.event_location}</span>
+                          </div>
+                          <div className="venue-field">
+                              <span className="field-label">Theme:</span>
+                              <span className="field-value"> {setup.booking.theme?.theme_name || 'N/A'}</span>
+                          </div>
                         </div>
                         <div className="venue-actions">
-                        {setup.design_status != 'Completed' ? (
-                            <button className="edit-2d-btn" onClick={() => navigate(`/edit`)}> {/*/${setup.setup_id}*/}
+                        {setup.status != 'accepted' ? (
+                            <button className="edit-2d-btn" onClick={() => navigate(`/edit/${setup.booking_id}`)}>
                                 Edit 2D Design
                             </button>
                         ) : (
-                            <button className="edit-2d-btn" onClick={() => navigate(`/edit`)}>
+                            <button className="edit-2d-btn" onClick={() => navigate(`/view/${setup.booking_id}`)}>
                                 View 2D Design
                             </button>
                         )}

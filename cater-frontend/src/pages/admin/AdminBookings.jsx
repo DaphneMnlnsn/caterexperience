@@ -7,7 +7,8 @@ import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 
 function AdminBookings() {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const navigate = useNavigate();
   const [bookingData, setBookingData] = React.useState([]);  
   const [selectedDate, setSelectedDate] = useState(() => {

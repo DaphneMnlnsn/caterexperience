@@ -10,7 +10,8 @@ import axiosClient from '../../axiosClient';
 function AdminInventory() {
     const [inventoryData, setInventoryData] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
-    const user = JSON.parse(localStorage.getItem('user'));
+    const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [showEditModal, setShowEditModal] = React.useState(false);
     const [selectedItem, setSelectedItem] = React.useState(null);
     const [searchTerm, setSearchTerm] = useState('');

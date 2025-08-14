@@ -12,7 +12,8 @@ import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 
 function Packages() {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const [showAddPackageModal, setShowAddPackageModal] = useState(false);
   const [showEditPackageModal, setShowEditPackageModal] = useState(false);
   const [showAddThemeModal, setShowAddThemeModal] = useState(false);

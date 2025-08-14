@@ -19,6 +19,7 @@ use App\Models\Menu;
 use App\Models\EventAddon;
 use App\Models\EventInventoryUsage;
 use App\Models\Food;
+use App\Models\VenueSetup;
 
 class EventBookingController extends Controller
 {
@@ -270,6 +271,19 @@ class EventBookingController extends Controller
                     'proof_image' => null,
                 ]);
             }
+
+            $layoutType = in_array($validated['event_location'], [
+                'Pavilion',
+                'Airconditioned Room',
+                'Poolside'
+            ]) ? $validated['event_location'] : 'Custom Venue';
+
+            VenueSetup::create([
+                'booking_id'   => $booking->booking_id,
+                'layout_name'  => $validated['event_name'] . ' Layout',
+                'layout_type'  => $layoutType,
+                'status'       => 'pending',
+            ]);
 
             DB::commit();
 

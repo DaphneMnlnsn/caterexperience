@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 import { Stage, Layer, Group, Rect, Circle, Ellipse, Text, Line, Path } from 'react-konva';
 import { Transformer } from 'react-konva';
 import VenueImageLayout from './VenueImageLayout';
@@ -7,6 +7,7 @@ import airconImg from '../assets/Aircon.svg';
 import poolsideImg from '../assets/Poolside.svg';
 import OutsideVenueLayout from './OutsideVenueLayout';
 import axiosClient from '../axiosClient';
+import Swal from 'sweetalert2';
 
 const CANVAS_WIDTH = 1000;
 const CANVAS_HEIGHT = 400;
@@ -54,13 +55,17 @@ const getAnyProp = (props, name, fallback = undefined) => {
   return fallback;
 };
 
-function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters = null }) {
+function VenueCanvas(props, ref) {
+  const { setupId, templateId, venueRealWidthMeters = null, venueRealAreaMeters = null } = props;
   const stageRef = useRef();
   const trRef = useRef();
   const groupRefs = useRef({});
 
   const [predefinedLayout, setPredefinedLayout] = useState(null);
   const [layoutType, setLayoutType] = useState(null);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState(null);
+  const [templateNotes, setTemplateNotes] = useState(null);
 
   const predefKey = `predef-layout-${layoutType ?? 'default'}`;
 
@@ -89,31 +94,85 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
     setPlaced([]);
   };
 
-  const handleSavePredefinedLayout = () => {
-    const payload = JSON.parse(JSON.stringify(placed || []));
-    setPredefinedLayout(payload);
-    try {
-      localStorage.setItem(predefKey, JSON.stringify(payload));
-      window.alert('Layout saved as predefined for this venue.');
-    } catch (err) {
-      console.error('Failed to save predefined layout', err);
-      window.alert('Failed to save layout locally.');
-    }
-  };
-
-  const handleLoadPredefinedLayout = () => {
-    if (!predefinedLayout || !Array.isArray(predefinedLayout)) {
-      window.alert('No predefined layout saved for this venue.');
+  const handleSavePredefinedLayout = async () => {
+    if (!placed || placed.length === 0) {
+      Swal.fire('Nothing to save', 'There are no placed objects to save as a predefined layout.', 'info');
       return;
     }
 
-    setSelectedId(null);
-    if (trRef.current) {
-      trRef.current.nodes([]);
-      trRef.current.getLayer() && trRef.current.getLayer().batchDraw();
+    const { value: formValues } = await Swal.fire({
+      title: templateId ? 'Update predefined layout' : 'Save predefined layout',
+      html:
+        `<input id="swal-layout-name" class="swal2-input" placeholder="Layout name" value="${templateName || ''}">` +
+        `<textarea id="swal-layout-notes" class="swal2-textarea" placeholder="Notes (optional)" style="height:80px">${templateNotes || ''}</textarea>`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: templateId ? 'Update' : 'Save',
+      preConfirm: () => {
+        const nameEl = document.getElementById('swal-layout-name');
+        const notesEl = document.getElementById('swal-layout-notes');
+        const name = nameEl ? nameEl.value.trim() : '';
+        const notes = notesEl ? notesEl.value.trim() : '';
+        if (!name) {
+          Swal.showValidationMessage('Please enter a layout name');
+          return false;
+        }
+        return { name, notes };
+      }
+    });
+
+    if (!formValues) return;
+
+    const placementsPayload = placed
+      .map(p => {
+        const objectId = p.object_id ?? (p.object_props && p.object_props.object_id) ?? null;
+        if (!objectId) return null;
+        return {
+          object_id: objectId,
+          x_position: Number(p.x_m ?? 0),
+          y_position: Number(p.y_m ?? 0),
+          rotation: Number(p.rotation ?? 0),
+          status: p.status ?? 'active',
+        };
+      })
+      .filter(Boolean);
+
+    if (placementsPayload.length === 0) {
+      Swal.fire('Invalid layout', 'No valid objects with `object_id` found to save.', 'warning');
+      return;
     }
 
-    setPlaced(JSON.parse(JSON.stringify(predefinedLayout)));
+    const payload = {
+      template_name: formValues.name,
+      layout_type: layoutType ?? null,
+      notes: formValues.notes ?? null,
+      placements: placementsPayload
+    };
+
+    setSavingTemplate(true);
+    try {
+      let res;
+      if (templateId) {
+        res = await axiosClient.put(`/templates/${templateId}`, payload);
+      } else {
+        res = await axiosClient.post('/templates', payload);
+      }
+
+      const localPlacements = JSON.parse(JSON.stringify(placementsPayload));
+      setPredefinedLayout(localPlacements);
+      try { localStorage.setItem(predefKey, JSON.stringify(localPlacements)); } catch (err) {}
+
+      setSavingTemplate(false);
+      Swal.fire('Success', templateId ? 'Template updated successfully.' : 'Template saved successfully.', 'success');
+
+      return res;
+    } catch (err) {
+      setSavingTemplate(false);
+      console.error('Failed to save template', err);
+      const serverMsg = err?.response?.data?.error ?? err?.response?.data?.message ?? null;
+      Swal.fire('Error', `Failed to save template`, 'error');
+      throw err;
+    }
   };
 
   const [deleteHover, setDeleteHover] = useState(false);
@@ -129,18 +188,109 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
   const [gridSizeMeters, setGridSizeMeters] = useState(0.5);
 
   useEffect(() => {
-    if(!setupId) return;
+    if(!templateId)
+    {
+          if (!setupId) return;
 
-    axiosClient.get(`/setups/setup/${setupId}`)
-    .then(res => {
-      setLayoutType(res.data.layout_type);
-    })
-    .catch(err => {
-      console.error("Error fetching setup", err);
-      setLayoutType('outside');
-    })
-  }, [setupId]);
+          axiosClient.get(`/setups/setup/${setupId}`)
+            .then(res => {
+              const data = res.data;
+              const layoutTypeFromServer = data.layout_type ?? (data.setup && data.setup.layout_type) ?? data.layoutType;
+              setLayoutType(layoutTypeFromServer);
 
+              const placementsRaw = (data.setup && data.setup.placements) ?? data.placements ?? data.setup_placements ?? null;
+              if (Array.isArray(placementsRaw)) {
+                const mapped = placementsRaw.map(pl => ({
+                  id: pl.placement_id ? `p-${pl.placement_id}` : `p-local-${Date.now() + Math.random()}`,
+                  placement_id: pl.placement_id ?? null,
+                  object_id: pl.object_id ?? (pl.object && pl.object.object_id) ?? (pl.object && pl.object.id) ?? null,
+                  object_type: (pl.object && pl.object.object_type) ?? pl.object_type ?? pl.type ?? 'unknown',
+                  object_name: (pl.object && pl.object.object_name) ?? pl.object_name ?? null,
+                  object_props: pl.object_props ? (typeof pl.object_props === 'string' ? JSON.parse(pl.object_props) : pl.object_props) : (pl.object && pl.object.object_props) ?? {},
+                  x_m: (pl.x_position ?? pl.x_m ?? pl.x) * 1,   // ensure numeric meters
+                  y_m: (pl.y_position ?? pl.y_m ?? pl.y) * 1,
+                  rotation: pl.rotation ?? 0,
+                  scale: pl.scale ?? 1,
+                  z_index: pl.z_index ?? 1,
+                  status: pl.status ?? 'active',
+                }));
+                setPlaced(mapped);
+              } else {
+                setPlaced([]);
+              }
+            })
+            .catch(err => {
+              console.error("Error fetching setup", err);
+              setLayoutType('outside');
+              setPlaced([]);
+            })
+    }
+    else{
+        if (!setupId) return;
+
+        axiosClient.get(`/templates/${templateId}`)
+        .then(res => {
+          const data = res.data.template;
+          setTemplateName(data.template_name);
+          setTemplateNotes(data.notes);
+
+          const placementsRaw =
+            (data.template && data.template.placements) ??
+            data.placements ??
+            data.template_placements ??
+            null;
+
+          if (!Array.isArray(placementsRaw)) {
+            setPlaced([]);
+            return;
+          }
+
+          const mapped = placementsRaw.map(pl => ({
+            id: pl.placement_id
+              ? `p-${pl.placement_id}`
+              : `p-local-${Date.now() + Math.random()}`,
+            placement_id: pl.placement_id ?? null,
+            object_id:
+              pl.object_id ??
+              (pl.object && pl.object.object_id) ??
+              (pl.object && pl.object.id) ??
+              null,
+            object_type:
+              (pl.object && pl.object.object_type) ??
+              pl.object_type ??
+              pl.type ??
+              'unknown',
+            object_name:
+              (pl.object && pl.object.object_name) ??
+              pl.object_name ??
+              null,
+            object_props: pl.object_props
+              ? typeof pl.object_props === 'string'
+                ? JSON.parse(pl.object_props)
+                : pl.object_props
+              : (pl.object && pl.object.object_props) ?? {},
+            x_m: (pl.x_position ?? pl.x_m ?? pl.x) * 1,
+            y_m: (pl.y_position ?? pl.y_m ?? pl.y) * 1,
+            rotation: pl.rotation ?? 0,
+            scale: pl.scale ?? 1,
+            z_index: pl.z_index ?? 1,
+            status: pl.status ?? 'active',
+          }));
+
+          setSelectedId(null);
+          if (trRef.current) {
+            trRef.current.nodes([]);
+            trRef.current.getLayer()?.batchDraw();
+          }
+
+          setPlaced(mapped);
+        })
+        .catch(err => {
+          console.error("Error fetching template layout", err);
+          setPlaced([]);
+        });
+  }}, [setupId, templateId]);
+  
   const venueConfig = (() => {
     if (layoutType === 'Pavilion') return { originalWidth: 2733, originalHeight: 1556, baseScale: BASE_SCALE };
     if (layoutType === 'Airconditioned Room') return { originalWidth: 1559, originalHeight: 610, baseScale: BASE_SCALE * 2 };
@@ -211,6 +361,7 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
 
     const placedObj = {
       id: `p-${Date.now()}`,
+      object_id: obj.object_id ?? obj.objectId ?? obj.objectId_ ?? null,
       object_type: obj.object_type,
       object_props: parsedProps,
       object_name: obj.object_name,
@@ -231,7 +382,6 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
       }
     }, 50);
   };
-
 
   const handleDragOver = (e) => e.preventDefault();
 
@@ -303,7 +453,6 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
       y_m: newY_m,
     } : p));
   };
-
 
   useEffect(() => {
     if (!trRef.current) return;
@@ -585,6 +734,58 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
     }
   };
 
+  const handleSave = async () => {
+    if (!setupId) {
+      window.alert('No setup selected');
+      return;
+    }
+
+    const payload = {
+      placements: placed.map(p => {
+        return {
+          ...(p.placement_id ? { placement_id: p.placement_id } : {}),
+          object_id: p.object_id ?? (p.object_props && p.object_props.object_id) ?? null,
+          x_position: typeof p.x_m === 'number' ? p.x_m : parseFloat(p.x_m || 0),
+          y_position: typeof p.y_m === 'number' ? p.y_m : parseFloat(p.y_m || 0),
+          rotation: p.rotation ?? 0,
+          status: p.status ?? 'active',
+        };
+      })
+    };
+
+    try {
+      const res = await axiosClient.put(`/setups/${setupId}`, payload);
+
+      const updatedSetup = res.data.setup ?? res.data;
+
+      const placementsRaw = (updatedSetup && updatedSetup.placements) ?? res.data.placements ?? null;
+      if (Array.isArray(placementsRaw)) {
+        const mapped = placementsRaw.map(pl => ({
+          id: pl.placement_id ? `p-${pl.placement_id}` : `p-local-${Date.now() + Math.random()}`,
+          placement_id: pl.placement_id ?? null,
+          object_id: pl.object_id ?? (pl.object && pl.object.object_id) ?? null,
+          object_type: (pl.object && pl.object.object_type) ?? pl.object_type ?? 'unknown',
+          object_name: (pl.object && pl.object.object_name) ?? pl.object_name ?? null,
+          object_props: pl.object_props ? (typeof pl.object_props === 'string' ? JSON.parse(pl.object_props) : pl.object_props) : (pl.object && pl.object.object_props) ?? {},
+          x_m: pl.x_position ?? pl.x_m ?? pl.x,
+          y_m: pl.y_position ?? pl.y_m ?? pl.y,
+          rotation: pl.rotation ?? 0,
+          scale: pl.scale ?? 1,
+          z_index: pl.z_index ?? 1,
+          status: pl.status ?? 'active',
+        }));
+        setPlaced(mapped);
+      }
+
+      Swal.fire('Saved!', 'Layout has been saved.', 'success');
+      return res;
+    } catch (err) {
+      console.error('Failed to save layout', err);
+      window.alert('Failed to save layout.');
+      throw err;
+    }
+  };
+
   const openLabelEditor = (id) => {
     if (editingLabel && editingLabel.id === id) return;
     const node = groupRefs.current[id];
@@ -650,6 +851,11 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
       </Group>
     );
   };
+
+  useImperativeHandle(ref, () => ({
+    save: handleSave,
+    getPlaced: () => placed,
+  }), [handleSave, placed]);
 
   const placedSorted = [...placed].sort((a, b) => (a.z_index ?? 0) - (b.z_index ?? 0));
 
@@ -738,7 +944,24 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
 
       <div style={{ position: "absolute", top: 100, left: 10, display: "flex", flexDirection: "column", gap: "10px", zIndex: 1000 }}>
         <button onClick={handleResetLayout} style={{ background: "#ff4e4eff", color: "#fff", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Reset Layout</button>
-        <button onClick={handleSavePredefinedLayout} style={{ background: "#ffe066", color: "#000", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Save as Predefined</button>
+        <button
+          onClick={handleSavePredefinedLayout}
+          style={{
+            background: "#f9ebb4ff",
+            color: "#000",
+            padding: "8px 12px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: savingTemplate ? "not-allowed" : "pointer",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+            fontFamily: 'Lora, serif',
+            fontWeight: 800,
+            opacity: savingTemplate ? 0.7 : 1
+          }}
+          disabled={savingTemplate}
+        >
+          {savingTemplate ? 'Saving...' : 'Save as Predefined'}
+        </button>
       </div>
 
       {editingLabel && (
@@ -805,4 +1028,4 @@ function VenueCanvas({ setupId, venueRealWidthMeters = null, venueRealAreaMeters
   );
 }
 
-export default VenueCanvas;
+export default forwardRef(VenueCanvas);

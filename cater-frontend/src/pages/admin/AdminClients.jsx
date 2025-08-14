@@ -8,7 +8,8 @@ import axiosClient from '../../axiosClient';
 function AdminClients() {
     
     const [customerData, setCustomerData] = React.useState([]);
-    const user = JSON.parse(localStorage.getItem('user'));
+    const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [selectedCustomer, setSelectedCustomer] = React.useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [showArchived, setShowArchived] = useState(0);

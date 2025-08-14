@@ -13,7 +13,7 @@ class VenueSetupController extends Controller
 {
     public function index(Request $request)
     {
-        $setups = VenueSetup::all();
+        $setups = VenueSetup::with(['booking.customer', 'booking.theme'])->get();
         return response()->json(['setups' => $setups]);
     }
     
@@ -25,7 +25,7 @@ class VenueSetupController extends Controller
 
     public function indexSetup($setupId)
     {
-        $setup = VenueSetup::where('setup_id', $setupId)->first();
+        $setup = VenueSetup::with(['placements.object'])->where('setup_id', $setupId)->firstOrFail();
         return response()->json($setup);
     }
     
@@ -34,7 +34,6 @@ class VenueSetupController extends Controller
         $validated = $request->validate([
             'booking_id'    => 'required|exists:event_bookings,booking_id',
             'layout_name'   => 'required|string',
-            'layout_theme'  => 'nullable|string',
             'layout_type'   => 'nullable|string',
             'notes'         => 'nullable|string',
             'status'        => 'nullable|string',
@@ -51,7 +50,6 @@ class VenueSetupController extends Controller
             $setup = VenueSetup::create([
                 'booking_id'   => $validated['booking_id'],
                 'layout_name'  => $validated['layout_name'],
-                'layout_theme' => $validated['layout_theme'] ?? null,
                 'layout_type'  => $validated['layout_type'] ?? null,
                 'notes'        => $validated['notes'] ?? null,
                 'status'       => $validated['status'] ?? 'Pending',
@@ -80,38 +78,59 @@ class VenueSetupController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'layout_name'   => 'required|string',
-            'layout_theme'  => 'nullable|string',
-            'layout_type'   => 'nullable|string',
-            'notes'         => 'nullable|string',
-            'status'        => 'nullable|string',
-            'placements'    => 'array',
-            'placements.*.object_id'   => 'required|exists:venue_objects,object_id',
-            'placements.*.x_position'  => 'required|numeric',
-            'placements.*.y_position'  => 'required|numeric',
-            'placements.*.rotation'    => 'nullable|numeric',
-            'placements.*.status'      => 'nullable|string',
+            'placements'                    => 'array',
+            'placements.*.placement_id'     => 'sometimes|nullable|integer',
+            'placements.*.object_id'        => 'required|exists:venue_objects,object_id',
+            'placements.*.x_position'       => 'required|numeric',
+            'placements.*.y_position'       => 'required|numeric',
+            'placements.*.rotation'         => 'nullable|numeric',
+            'placements.*.status'           => 'nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
-            $setup = VenueSetup::findOrFail($id);
+            $setup = VenueSetup::where('setup_id', $id)->lockForUpdate()->firstOrFail();
 
-            $setup->update([
-                'layout_name'  => $validated['layout_name'],
-                'layout_theme' => $validated['layout_theme'] ?? null,
-                'layout_type'  => $validated['layout_type'] ?? null,
-                'notes'        => $validated['notes'] ?? null,
-                'status'       => $validated['status'] ?? $setup->status,
-            ]);
+            $existingPlacements = $setup->placements()->get();
+            $existingIds = $existingPlacements->pluck('placement_id')->toArray();
 
-            VenueObjectPlacement::where('setup_id', $setup->setup_id)->delete();
+            $processedIds = [];
 
-            if (!empty($validated['placements'])) {
-                foreach ($validated['placements'] as $placementData) {
-                    $placementData['setup_id'] = $setup->setup_id;
-                    VenueObjectPlacement::create($placementData);
+            $placements = $validated['placements'] ?? [];
+
+            foreach ($placements as $p) {
+                $data = [
+                    'setup_id'    => $setup-> setup_id,
+                    'object_id'   => $p['object_id'],
+                    'x_position'  => $p['x_position'],
+                    'y_position'  => $p['y_position'],
+                    'rotation'    => $p['rotation'] ?? 0,
+                    'status'      => $p['status'] ?? null,
+                ];
+
+                if (!empty($p['placement_id'])) {
+                    $placement = VenueObjectPlacement::where('placement_id', $p['placement_id'])
+                        ->where('setup_id', $setup->setup_id)
+                        ->first();
+
+                    if ($placement) {
+                        $placement->update($data);
+                        $processedIds[] = $placement->placement_id;
+                    } else {
+                        $new = VenueObjectPlacement::create(array_merge($data, ['setup_id' => $setup->setup_id]));
+                        $processedIds[] = $new->placement_id;
+                    }
+                } else {
+                    $new = VenueObjectPlacement::create(array_merge($data, ['setup_id' => $setup->setup_id]));
+                    $processedIds[] = $new->placement_id;
                 }
+            }
+
+            $toDelete = array_diff($existingIds, $processedIds);
+            if (!empty($toDelete)) {
+                VenueObjectPlacement::whereIn('placement_id', $toDelete)
+                    ->where('setup_id', $setup->setup_id)
+                    ->delete();
             }
 
             DB::commit();
@@ -123,10 +142,11 @@ class VenueSetupController extends Controller
                 'setup'   => $setup->load('placements.object'),
             ]);
         } catch (\Exception $e) {
-            DB::rollback();
-            return response()->json(['error' => 'Failed to update venue setup.'], 500);
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to update venue setup.', 'details' => $e->getMessage()], 500);
         }
     }
+
     public function applyTemplate(Request $request)
     {
         $validated = $request->validate([
@@ -141,7 +161,6 @@ class VenueSetupController extends Controller
             $setup = VenueSetup::create([
                 'booking_id' => $validated['booking_id'],
                 'layout_name' => $template->layout_name,
-                'layout_theme' => $template->layout_theme,
                 'layout_type' => $template->layout_type,
                 'notes' => '[Generated from template] ' . $template->notes,
                 'status' => 'Pending',

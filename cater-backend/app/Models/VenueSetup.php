@@ -12,7 +12,6 @@ class VenueSetup extends Model
     protected $fillable = [
         'booking_id',
         'layout_name',
-        'layout_theme',
         'layout_type',
         'notes',
         'status',

@@ -10,7 +10,8 @@ import axiosClient from '../../axiosClient';
 function AdminUsers() {
     const [staffData, setStaffData] = React.useState([]);
     const [showModal, setShowModal] = React.useState(false);
-    const user = JSON.parse(localStorage.getItem('user'));
+    const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [showEditModal, setShowEditModal] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState(null);
     const [searchTerm, setSearchTerm] = useState('');

@@ -9,7 +9,8 @@ import axiosClient from '../../axiosClient';
 function ClientDetails() {
 
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const { id } = useParams();
   const [client, setClient] = useState(null);
   const [editedClient, setEditedClient] = useState(null);

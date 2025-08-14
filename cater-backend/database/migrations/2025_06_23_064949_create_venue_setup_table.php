@@ -16,8 +16,7 @@ return new class extends Migration
 
             $table->unsignedBigInteger('booking_id');
             $table->string('layout_name');
-            $table->string('layout_theme')->nullable();
-            $table->string('layout_type')->default('custom');
+            $table->string('layout_type')->default('Custom Venue');
             $table->text('notes')->nullable();
             $table->string('status')->default('draft');
 

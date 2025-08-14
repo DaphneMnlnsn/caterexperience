@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
 import logo from '../assets/logo.png';
@@ -10,10 +10,13 @@ import axiosClient from '../axiosClient';
 function Edit2DSetup() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+  const canvasRef = useRef(null);
 
-  const [selectedLayout, setSelectedLayout] = useState('Birthday (200 pax)');
+  const [selectedLayout, setSelectedLayout] = useState(null);
   const [setupId, setSetupId] = useState(null);
+  const [templates, setTemplates] = useState(null);
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +36,36 @@ function Edit2DSetup() {
         console.error('Error fetching setup:', err);
       })
       .finally(() => setLoading(false));
+
+      axiosClient.get(`/templates`)
+      .then((res) => {
+        const filtered = res.data.templates.filter(t => t.layout_type === venue);
+        setTemplates(filtered);
+      })
+      .catch((err) => {
+        console.error('Error fetching templates:', err);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    setLoading(true);
+      axiosClient.get(`/templates`)
+      .then((res) => {
+        const filtered = res.data.templates.filter(t => t.layout_type === venue);
+        setTemplates(filtered);
+      })
+      .catch((err) => {
+        console.error('Error fetching templates:', err);
+      })
+      .finally(() => setLoading(false));
+  }, [venue]);
+
+  const handleChange = (e) => {
+    setSelectedLayout(e.target.value);
+  }
 
   if (loading) {
     return <div>Loading setup...</div>;
@@ -52,19 +84,29 @@ function Edit2DSetup() {
         </div>
         <div className="layout-select-container">
           <h3 className="layout-select-title">Use Predefined Layouts</h3>
-          <select
-            value={selectedLayout}
-            onChange={(e) => setSelectedLayout(e.target.value)}
-            className="layout-dropdown"
-          >
-            <option value="Birthday (200 pax)">Birthday (200 pax)</option>
-            <option value="Wedding (150 pax)">Wedding (150 pax)</option>
-            <option value="Corporate (100 pax)">Corporate (100 pax)</option>
-            <option value="Anniversary (80 pax)">Anniversary (80 pax)</option>
+          <select name="template" className='layout-dropdown' onChange={handleChange}>
+            <option value="">Select Predefined Layout</option>
+            {templates?.map(template => (
+              <option key={template.template_id} value={template.template_id}>
+                {template.template_name}
+              </option>
+            ))}
           </select>
           <div className="sidebar-buttons">
             <button className="setup-btn cancel-btn-small" onClick={() => navigate(-1)}>Back</button>
-            <button className="setup-btn edit-btn">Save</button>
+            <button
+              className="setup-btn edit-btn"
+              onClick={async () => {
+                if (!canvasRef.current || !canvasRef.current.save) {
+                  window.alert('Canvas not ready yet.');
+                  return;
+                }
+                try {
+                  await canvasRef.current.save();
+                } catch (err) {
+                }
+              }}
+            >Save</button>
           </div>
         </div>
       </aside>
@@ -92,7 +134,7 @@ function Edit2DSetup() {
         </select>
 
         <div className="canvas-container">
-          <VenueCanvas setupId={setupId} />
+          <VenueCanvas ref={canvasRef} setupId={setupId} templateId={selectedLayout}/>
         </div>
       </div>
     </div>

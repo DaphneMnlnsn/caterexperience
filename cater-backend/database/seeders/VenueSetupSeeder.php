@@ -13,7 +13,6 @@ class VenueSetupSeeder extends Seeder
             [
                 'booking_id'   => 16,
                 'layout_name'  => "Kiana's Birthday Layout",
-                'layout_theme' => 'Birthday',
                 'layout_type'  => 'Airconditioned Room',
                 'notes'        => 'Auto-generated from booking seed data.',
                 'status'       => 'pending'
@@ -21,7 +20,6 @@ class VenueSetupSeeder extends Seeder
             [
                 'booking_id'   => 12,
                 'layout_name'  => 'Secret Meeting 2 Layout',
-                'layout_theme' => 'Corporate',
                 'layout_type'  => 'Airconditioned Room',
                 'notes'        => 'Imported from booking EVT-25-ST5FST.',
                 'status'       => 'accepted'
@@ -29,7 +27,6 @@ class VenueSetupSeeder extends Seeder
             [
                 'booking_id'   => 11,
                 'layout_name'  => 'Secret Meeting Layout',
-                'layout_theme' => 'Corporate',
                 'layout_type'  => 'Custom Venue',
                 'notes'        => 'Free room included.',
                 'status'       => 'accepted'
@@ -37,7 +34,6 @@ class VenueSetupSeeder extends Seeder
             [
                 'booking_id'   => 10,
                 'layout_name'  => "Daphne's 23rd Birthday Layout",
-                'layout_theme' => 'Birthday',
                 'layout_type'  => 'Pavilion',
                 'notes'        => null,
                 'status'       => 'pending'
@@ -45,7 +41,6 @@ class VenueSetupSeeder extends Seeder
             [
                 'booking_id'   => 8,
                 'layout_name'  => "Daphne's 21st Birthday Layout",
-                'layout_theme' => 'Birthday',
                 'layout_type'  => 'Pavilion',
                 'notes'        => 'Vegetarian option for 10 guests.',
                 'status'       => 'pending'
@@ -53,8 +48,7 @@ class VenueSetupSeeder extends Seeder
             [
                 'booking_id'   => 1,
                 'layout_name'  => 'William & Daph Wedding Layout',
-                'layout_theme' => 'Wedding',
-                'layout_type'  => 'Aircondition',
+                'layout_type'  => 'Airconditioned Room',
                 'notes'        => null,
                 'status'       => 'accepted'
             ],

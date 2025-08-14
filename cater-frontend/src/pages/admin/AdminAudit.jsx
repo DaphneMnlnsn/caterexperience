@@ -11,7 +11,8 @@ function AdminAudit() {
     const [paymentData, setPaymentData] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [showInvoice, setShowInvoice] = useState(false);
-    const user = JSON.parse(localStorage.getItem('user'));
+    const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [filters, setFilters] = useState({
         search: '',

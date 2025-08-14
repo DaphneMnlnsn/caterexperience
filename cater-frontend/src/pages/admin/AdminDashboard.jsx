@@ -7,7 +7,8 @@ import axios from 'axios';
 import axiosClient from '../../axiosClient';
 
 function AdminDashboard() {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const storedUser = localStorage.getItem('user');
+const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
   const [stats, setStats] = useState({
     total_events: 0,

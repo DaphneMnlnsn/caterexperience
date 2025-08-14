@@ -12,8 +12,7 @@ class TemplateSetup extends Model
     protected $primaryKey = 'template_id';
 
     protected $fillable = [
-        'layout_name',
-        'layout_theme',
+        'template_name',
         'layout_type',
         'notes',
     ];

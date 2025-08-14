@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('template_setups', function (Blueprint $table) {
             $table->id('template_id');
             $table->string('template_name');
-            $table->string('layout_theme')->nullable();
             $table->string('layout_type')->nullable();
             $table->text('notes')->nullable();
             $table->string('status')->default('Active');

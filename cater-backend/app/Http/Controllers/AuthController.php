@@ -19,6 +19,9 @@ class AuthController extends Controller
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
+
+        $user->tokens()->delete();
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         AuditLogger::log('Login', "Module: Authentication | Role: {$user->role}");
@@ -40,7 +43,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $user = $request->user();
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->tokens()->delete();
 
         AuditLogger::log('Logout', "Module: Authentication | Role: {$user->role}");
 
