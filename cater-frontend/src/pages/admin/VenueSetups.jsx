@@ -29,6 +29,28 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     setup.layout_type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleSubmit = (setup) => {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to submit this layout?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, submit it!',
+    }).then((result) => {
+        if (result.isConfirmed) {
+        axiosClient.put(`/setups/submit/${setup}`)
+        .then((res) => {
+            Swal.fire('Submitted!', 'Layout can now be reviewed by client.', 'success');
+            fetchSetups();
+        })
+        .catch((err) => {
+            console.error(err);
+            Swal.fire('Error', 'Failed to submit.', 'error');
+        });
+        }
+    });
+  }
+
   return (
     <div className="page-container">
       <Sidebar />
@@ -98,10 +120,15 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                           </div>
                         </div>
                         <div className="venue-actions">
-                        {setup.status != 'accepted' ? (
+                        {setup.status != 'accepted' && setup.status != 'submitted' ? (
+                          <>
                             <button className="edit-2d-btn" onClick={() => navigate(`/edit/${setup.booking_id}`)}>
                                 Edit 2D Design
                             </button>
+                            <button className="edit-2d-btn submit-client" onClick={() => handleSubmit(setup.setup_id)}>
+                                Submit to Client
+                            </button>
+                          </>
                         ) : (
                             <button className="edit-2d-btn" onClick={() => navigate(`/view/${setup.booking_id}`)}>
                                 View 2D Design

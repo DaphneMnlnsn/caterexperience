@@ -28,6 +28,7 @@ class TemplateSetupController extends Controller
             'placements.*.x_position'    => 'required|numeric',
             'placements.*.y_position'    => 'required|numeric',
             'placements.*.rotation'      => 'nullable|numeric',
+            'placements.*.object_props'  => 'nullable',
             'placements.*.status'        => 'nullable|string',
         ]);
 
@@ -65,6 +66,7 @@ class TemplateSetupController extends Controller
                     'x_position'   => $p['x_position'],
                     'y_position'   => $p['y_position'],
                     'rotation'     => $p['rotation'] ?? 0,
+                    'object_props' => $op,
                     'status'       => $p['status'] ?? null,
                     'created_at'   => $now,
                     'updated_at'   => $now,
@@ -106,6 +108,7 @@ class TemplateSetupController extends Controller
             'placements.*.x_position'    => 'required|numeric',
             'placements.*.y_position'    => 'required|numeric',
             'placements.*.rotation'      => 'nullable|numeric',
+            'placements.*.object_props' => 'nullable',
             'placements.*.status'        => 'nullable|string',
         ]);
 
@@ -150,6 +153,7 @@ class TemplateSetupController extends Controller
                     'x_position'   => $p['x_position'],
                     'y_position'   => $p['y_position'],
                     'rotation'     => $p['rotation'] ?? 0,
+                    'object_props' => $op,
                     'status'       => $p['status'] ?? null,
                     'created_at'   => $now,
                     'updated_at'   => $now,
@@ -173,7 +177,6 @@ class TemplateSetupController extends Controller
             return response()->json(['error' => 'Failed to update template.', 'details' => $e->getMessage()], 500);
         }
     }
-
 
     public function destroy($id)
     {

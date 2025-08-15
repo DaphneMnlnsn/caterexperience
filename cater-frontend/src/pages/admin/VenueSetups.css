@@ -34,7 +34,23 @@
 }
 
 .venue-actions {
+  display: flex;
   text-align: center;
+  gap: 1rem;
+}
+
+.venue-actions button {
+  flex: 1;
+  padding: 8px;
+  font-size: 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.venue-actions .submit-client {
+  background-color: #4caf50;
+  color: white;
 }
 
 .status-badge {
@@ -61,6 +77,12 @@
   background-color: #d9f7be;
   border: 1px solid #95de64;
   color: #389e0d;
+}
+
+.status-badge.submitted {
+  background-color: #d0d0d0;
+  border: 1px solid #8d8d8d;
+  color: #000000;
 }
 
 .field-label{

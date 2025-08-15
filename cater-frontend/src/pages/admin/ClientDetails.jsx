@@ -10,7 +10,7 @@ function ClientDetails() {
 
   const navigate = useNavigate();
   const storedUser = localStorage.getItem('user');
-const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+  const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const { id } = useParams();
   const [client, setClient] = useState(null);
   const [editedClient, setEditedClient] = useState(null);

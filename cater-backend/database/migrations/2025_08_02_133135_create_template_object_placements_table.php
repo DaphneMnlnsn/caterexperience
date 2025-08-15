@@ -18,6 +18,7 @@ return new class extends Migration
             $table->float('x_position');
             $table->float('y_position');
             $table->float('rotation')->nullable();
+            $table->json('object_props')->nullable();
             $table->string('status')->nullable();
             $table->timestamps();
 

@@ -42,6 +42,7 @@ class VenueSetupController extends Controller
             'placements.*.x_position'  => 'required|numeric',
             'placements.*.y_position'  => 'required|numeric',
             'placements.*.rotation'    => 'nullable|numeric',
+            'placements.*.object_props' => 'nullable',
             'placements.*.status'      => 'nullable|string',
         ]);
 
@@ -58,6 +59,10 @@ class VenueSetupController extends Controller
             if (!empty($validated['placements'])) {
                 foreach ($validated['placements'] as $placementData) {
                     $placementData['setup_id'] = $setup->setup_id;
+                    if (isset($placementData['object_props']) && is_string($placementData['object_props'])) {
+                        $decoded = json_decode($placementData['object_props'], true);
+                        $placementData['object_props'] = $decoded !== null ? $decoded : $placementData['object_props'];
+                    }
                     VenueObjectPlacement::create($placementData);
                 }
             }
@@ -84,6 +89,7 @@ class VenueSetupController extends Controller
             'placements.*.x_position'       => 'required|numeric',
             'placements.*.y_position'       => 'required|numeric',
             'placements.*.rotation'         => 'nullable|numeric',
+            'placements.*.object_props' => 'nullable',
             'placements.*.status'           => 'nullable|string',
         ]);
 
@@ -99,12 +105,23 @@ class VenueSetupController extends Controller
             $placements = $validated['placements'] ?? [];
 
             foreach ($placements as $p) {
+                $object_props = null;
+                if (isset($p['object_props'])) {
+                    if (is_string($p['object_props'])) {
+                        $decoded = json_decode($p['object_props'], true);
+                        $object_props = $decoded !== null ? $decoded : $p['object_props'];
+                    } else {
+                        $object_props = $p['object_props'];
+                    }
+                }
+
                 $data = [
                     'setup_id'    => $setup-> setup_id,
                     'object_id'   => $p['object_id'],
                     'x_position'  => $p['x_position'],
                     'y_position'  => $p['y_position'],
                     'rotation'    => $p['rotation'] ?? 0,
+                    'object_props' => $object_props,
                     'status'      => $p['status'] ?? null,
                 ];
 
@@ -135,7 +152,7 @@ class VenueSetupController extends Controller
 
             DB::commit();
 
-            AuditLogger::log('Updated', "Module: Venue Setup | Updated setup: {$setup->layout_name}, ID: {$setup->setup_id}");
+            AuditLogger::log('Updated', "Module: Venue Setup | Updated setup: {$setup->layout_name}");
 
             return response()->json([
                 'message' => 'Venue setup updated successfully.',
@@ -147,47 +164,19 @@ class VenueSetupController extends Controller
         }
     }
 
-    public function applyTemplate(Request $request)
+    public function submit(Request $request, $id)
     {
-        $validated = $request->validate([
-            'booking_id' => 'required|exists:event_bookings,booking_id',
-            'template_id' => 'required|exists:template_setups,template_id',
-        ]);
+        $setup = VenueSetup::find($id);
 
-        DB::beginTransaction();
-        try {
-            $template = TemplateSetup::with('placements')->findOrFail($validated['template_id']);
-
-            $setup = VenueSetup::create([
-                'booking_id' => $validated['booking_id'],
-                'layout_name' => $template->layout_name,
-                'layout_type' => $template->layout_type,
-                'notes' => '[Generated from template] ' . $template->notes,
-                'status' => 'Pending',
-            ]);
-
-            foreach ($template->placements as $placement) {
-                VenueObjectPlacement::create([
-                    'setup_id' => $setup->setup_id,
-                    'object_id' => $placement->object_id,
-                    'x_position' => $placement->x_position,
-                    'y_position' => $placement->y_position,
-                    'rotation' => $placement->rotation,
-                    'status' => $placement->status,
-                ]);
-            }
-
-            DB::commit();
-
-            AuditLogger::log('Created', "Module: Venue Setup | Applied template: {$template->layout_name} to booking ID: {$validated['booking_id']}, New Setup ID: {$setup->setup_id}");
-
-            return response()->json([
-                'message' => 'Template applied successfully.',
-                'setup' => $setup->load('placements.object'),
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Failed to apply template.'], 500);
+        if (!$setup) {
+            return response()->json(['message' => 'Setup not found'], 404);
         }
+
+        $setup->status = 'submitted';
+        $setup->save();
+
+        AuditLogger::log('Updated', "Module: Venue Setup | Submitted Setup {$setup->layout_name}");
+
+        return response()->json(['message' => 'Setup submitted to client']);
     }
 }

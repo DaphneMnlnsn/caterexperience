@@ -80,7 +80,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
       <aside className="sidebar setup-sidebar">
         <img src={logo} alt="Logo" className="sidebar-logo" />
         <div className="palette-scroll">
-          <ObjectPalette onSelect={(type) => console.log('Selected:', type)} />
+          <ObjectPalette />
         </div>
         <div className="layout-select-container">
           <h3 className="layout-select-title">Use Predefined Layouts</h3>

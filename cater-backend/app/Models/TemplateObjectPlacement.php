@@ -17,6 +17,7 @@ class TemplateObjectPlacement extends Model
         'x_position',
         'y_position',
         'rotation',
+        'object_props',
         'status',
     ];
 

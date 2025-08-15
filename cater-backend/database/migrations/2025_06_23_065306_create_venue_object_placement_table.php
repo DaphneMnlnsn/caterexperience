@@ -20,6 +20,7 @@ return new class extends Migration
             $table->float('x_position');
             $table->float('y_position');
             $table->float('rotation')->default(0);
+            $table->json('object_props')->nullable();
 
             $table->string('status')->default('active');
 

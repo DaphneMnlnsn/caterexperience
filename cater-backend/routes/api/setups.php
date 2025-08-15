@@ -9,5 +9,5 @@ Route::prefix('setups')->group(function() {
     Route::get('/setup/{id}', [VenueSetupController::class, 'indexSetup']);
     Route::post('/', [VenueSetupController::class, 'store']);
     Route::put('/{id}', [VenueSetupController::class, 'update']);
-    Route::post('/apply-template', [VenueSetupController::class, 'applyTemplate']);
+    Route::put('/submit/{id}', [VenueSetupController::class, 'submit']);
 });

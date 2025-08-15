@@ -1,6 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 import { Stage, Layer, Group, Rect, Circle, Ellipse, Text, Line, Path } from 'react-konva';
 import { Transformer } from 'react-konva';
+import Konva from 'konva';
 import VenueImageLayout from './VenueImageLayout';
 import pavilionImg from '../assets/Pavilion.svg';
 import airconImg from '../assets/Aircon.svg';
@@ -90,7 +91,6 @@ function VenueCanvas(props, ref) {
       trRef.current.nodes([]);
       trRef.current.getLayer() && trRef.current.getLayer().batchDraw();
     }
-
     setPlaced([]);
   };
 
@@ -127,12 +127,15 @@ function VenueCanvas(props, ref) {
       .map(p => {
         const objectId = p.object_id ?? (p.object_props && p.object_props.object_id) ?? null;
         if (!objectId) return null;
+        const object_props = p.object_props && Object.keys(p.object_props || {}).length ? p.object_props : null;
+
         return {
           object_id: objectId,
           x_position: Number(p.x_m ?? 0),
           y_position: Number(p.y_m ?? 0),
           rotation: Number(p.rotation ?? 0),
           status: p.status ?? 'active',
+          object_props,
         };
       })
       .filter(Boolean);
@@ -207,11 +210,9 @@ function VenueCanvas(props, ref) {
                   object_type: (pl.object && pl.object.object_type) ?? pl.object_type ?? pl.type ?? 'unknown',
                   object_name: (pl.object && pl.object.object_name) ?? pl.object_name ?? null,
                   object_props: pl.object_props ? (typeof pl.object_props === 'string' ? JSON.parse(pl.object_props) : pl.object_props) : (pl.object && pl.object.object_props) ?? {},
-                  x_m: (pl.x_position ?? pl.x_m ?? pl.x) * 1,   // ensure numeric meters
+                  x_m: (pl.x_position ?? pl.x_m ?? pl.x) * 1,
                   y_m: (pl.y_position ?? pl.y_m ?? pl.y) * 1,
                   rotation: pl.rotation ?? 0,
-                  scale: pl.scale ?? 1,
-                  z_index: pl.z_index ?? 1,
                   status: pl.status ?? 'active',
                 }));
                 setPlaced(mapped);
@@ -272,8 +273,6 @@ function VenueCanvas(props, ref) {
             x_m: (pl.x_position ?? pl.x_m ?? pl.x) * 1,
             y_m: (pl.y_position ?? pl.y_m ?? pl.y) * 1,
             rotation: pl.rotation ?? 0,
-            scale: pl.scale ?? 1,
-            z_index: pl.z_index ?? 1,
             status: pl.status ?? 'active',
           }));
 
@@ -748,6 +747,7 @@ function VenueCanvas(props, ref) {
           x_position: typeof p.x_m === 'number' ? p.x_m : parseFloat(p.x_m || 0),
           y_position: typeof p.y_m === 'number' ? p.y_m : parseFloat(p.y_m || 0),
           rotation: p.rotation ?? 0,
+          object_props: p.object_props && Object.keys(p.object_props || {}).length ? p.object_props : null,
           status: p.status ?? 'active',
         };
       })
@@ -770,8 +770,6 @@ function VenueCanvas(props, ref) {
           x_m: pl.x_position ?? pl.x_m ?? pl.x,
           y_m: pl.y_position ?? pl.y_m ?? pl.y,
           rotation: pl.rotation ?? 0,
-          scale: pl.scale ?? 1,
-          z_index: pl.z_index ?? 1,
           status: pl.status ?? 'active',
         }));
         setPlaced(mapped);
@@ -921,6 +919,60 @@ function VenueCanvas(props, ref) {
 
   const normalizedType = layoutType?.trim().toLowerCase();
 
+  const downloadDataUrl = (dataUrl, fileName = 'layout.png') => {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const exportFullPNG = async (fileName = 'layout-full.png', pixelRatio = 2) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const prevScaleX = stage.scaleX();
+    const prevScaleY = stage.scaleY();
+    const prevPos = { x: stage.x(), y: stage.y() };
+
+    stage.scale({ x: 1, y: 1 });
+    stage.position({ x: 0, y: 0 });
+    stage.batchDraw();
+
+    const prevGrid = gridEnabled;
+    setGridEnabled(false);
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
+    const bgLayer = new Konva.Layer({ listening: false, name: '__export_bg_layer' });
+    const bgRect = new Konva.Rect({
+      x: 0, y: 0,
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      fill: '#ffffff',
+      listening: false
+    });
+    bgLayer.add(bgRect);
+    stage.add(bgLayer);
+    bgLayer.moveToBottom();
+    stage.batchDraw();
+
+    try {
+      const dataUrl = stage.toDataURL({
+        x: 0, y: 0, width: CANVAS_WIDTH, height: CANVAS_HEIGHT,
+        pixelRatio, mimeType: 'image/png'
+      });
+      downloadDataUrl(dataUrl, fileName);
+      return dataUrl;
+    } finally {
+      try { bgLayer.destroy(); } catch (e) {}
+      setGridEnabled(prevGrid);
+      stage.scale({ x: prevScaleX, y: prevScaleY });
+      stage.position(prevPos);
+      stage.batchDraw();
+    }
+  };
+
   return (
     <div
       onDrop={handleDrop}
@@ -962,6 +1014,20 @@ function VenueCanvas(props, ref) {
         >
           {savingTemplate ? 'Saving...' : 'Save as Predefined'}
         </button>
+        <button onClick={() => exportFullPNG()} 
+        style={{
+            background: "#f7ea7a",
+            color: "#000",
+            padding: "8px 12px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: savingTemplate ? "not-allowed" : "pointer",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+            fontFamily: 'Lora, serif',
+            fontWeight: 800,
+            opacity: savingTemplate ? 0.7 : 1
+          }}>
+          Export PNG (full)</button>
       </div>
 
       {editingLabel && (

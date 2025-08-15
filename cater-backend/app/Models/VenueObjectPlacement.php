@@ -15,10 +15,12 @@ class VenueObjectPlacement extends Model
         'x_position',
         'y_position',
         'rotation',
+        'object_props',
         'status',
     ];
 
     protected $casts = [
+        'object_props' => 'array',
         'x_position' => 'float',
         'y_position' => 'float',
         'rotation' => 'float',

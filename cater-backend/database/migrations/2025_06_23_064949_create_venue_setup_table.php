@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('layout_name');
             $table->string('layout_type')->default('Custom Venue');
             $table->text('notes')->nullable();
-            $table->string('status')->default('draft');
+            $table->string('status')->default('pending');
 
             $table->timestamps();
 
