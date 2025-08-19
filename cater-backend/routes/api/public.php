@@ -8,6 +8,7 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\FoodController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\AddonController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\PaymentController;
 
 Route::get('/test', function () {
@@ -22,3 +23,4 @@ Route::get('/addons', [AddonController::class, 'index']);
 Route::get('/foods', [FoodController::class, 'index']);
 Route::post('/customers', [CustomerController::class, 'register']);
 Route::get('/payments/report', [PaymentController::class, 'generateReport']);
+Route::get('/audit/report', [AuditLogController::class, 'generateReport']);

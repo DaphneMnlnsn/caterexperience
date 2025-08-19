@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/api/public.php';
 
 Route::middleware('auth:sanctum')->group(function () {
+    require __DIR__.'/api/audit.php';
     require __DIR__.'/api/auth.php';
     require __DIR__.'/api/dashboard.php';
     require __DIR__.'/api/users.php';
