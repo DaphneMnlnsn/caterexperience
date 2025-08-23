@@ -38,7 +38,7 @@ export default function DashboardCalendar() {
         eventClick={(info) => {
           const bookingId = info.event.extendedProps.booking_id;
           if (bookingId) {
-            navigate(`/admin/bookings/${bookingId}`);
+            navigate(`/bookings/${bookingId}`);
           }
         }}
       />

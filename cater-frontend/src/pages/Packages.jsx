@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import './Packages.css';
-import AddPackageModal from '../../components/AddPackageModal';
-import EditPackageModal from '../../components/EditPackageModal';
-import AddThemeModal from '../../components/AddThemeModal';
-import EditThemeModal from '../../components/EditThemeModal';
-import AddAddonModal from '../../components/AddAddonModal';
-import EditAddonModal from '../../components/EditAddonModal';
-import Sidebar from '../../components/Sidebar';
+import AddPackageModal from '../components/AddPackageModal';
+import EditPackageModal from '../components/EditPackageModal';
+import AddThemeModal from '../components/AddThemeModal';
+import EditThemeModal from '../components/EditThemeModal';
+import AddAddonModal from '../components/AddAddonModal';
+import EditAddonModal from '../components/EditAddonModal';
+import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell } from 'react-icons/fa';
-import axiosClient from '../../axiosClient';
+import axiosClient from '../axiosClient';
 
 function Packages() {
   const storedUser = localStorage.getItem('user');

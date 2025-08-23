@@ -1,23 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../../components/Sidebar';
+import Sidebar from '../components/Sidebar';
 import { useParams } from 'react-router-dom';
 import { FaBell, FaPen, FaTrash } from 'react-icons/fa';
 import Swal from 'sweetalert2';
-import TaskBoard from '../../components/TaskBoard';
-import AddTaskModal from '../../components/AddTaskModal';
-import VenuePreview from '../../components/VenuePreview';
+import TaskBoard from '../components/TaskBoard';
+import AddTaskModal from '../components/AddTaskModal';
+import VenuePreview from '../components/VenuePreview';
 import './BookingDetails.css';
-import axiosClient from '../../axiosClient';
-import AddPaymentModal from '../../components/AddPaymentModal';
-import EditBookingItemModal from '../../components/EditBookingItemModal';
-import AddBookingItemModal from '../../components/AddBookingItemModal';
-import Invoice from '../../components/Invoice';
+import axiosClient from '../axiosClient';
+import AddPaymentModal from '../components/AddPaymentModal';
+import AddBookingItemModal from '../components/AddBookingItemModal';
+import Invoice from '../components/Invoice';
 
 function BookingDetails() {
-
   const { id } = useParams();
   const storedUser = localStorage.getItem('user');
-const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+  const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+
+  const hasRole = (roles) => {
+    if (!user?.role) return false;
+    const current = String(user.role).toLowerCase();
+    if (Array.isArray(roles)) {
+      return roles.some(r => String(r).toLowerCase() === current);
+    }
+    return String(roles).toLowerCase() === current;
+  };
+
+  const isStylist = hasRole('stylist');
+
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [showEditItemModal, setShowEditItemModal] = useState(false);
@@ -43,58 +53,56 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
       .then(res => {
         setBooking(mapBookingData(res.data.booking));
 
-      const staffList = [
-        ...res.data.booking.staff_assignments.map(sa => ({
-          id: sa.user.id,
-          name: `${sa.user.first_name} ${sa.user.last_name}`,
-          role: sa.user.role
-        })),
-        {
-          id: user.id,
-          name: `${user.first_name} ${user.last_name}`,
-          role: user.role
-        }
-      ];
+        const bookingFromServer = res.data.booking || {};
 
-      const uniqueStaff = staffList.filter(
-        (staff, index, self) => index === self.findIndex(s => s.id === staff.id)
-      );
+        const mapped = (bookingFromServer.tasks || []).map(task => ({
+          id: task.task_id,
+          task_name: task.title,
+          status: task.status,
+          deadline: task.due_date,
+          assigned_to_name: task.assignee
+            ? `${toTitleCase(task.assignee.role)} ${task.assignee.first_name}`
+            : 'Unassigned',
+          assignee: task.assignee || null,
+          priority: task.priority,
+          booking_ref: 'Task-' + (task.task_id ?? 'N/A')
+        }));
+        setTasks(mapped);
 
-      setAvailableStaff(uniqueStaff);
-    });
+        const staffList = [
+          ...res.data.booking.staff_assignments.map(sa => ({
+            id: sa.user.id,
+            name: `${sa.user.first_name} ${sa.user.last_name}`,
+            role: sa.user.role
+          })),
+          {
+            id: user.id,
+            name: `${user.first_name} ${user.last_name}`,
+            role: user.role
+          }
+        ];
+
+        const uniqueStaff = staffList.filter(
+          (staff, index, self) => index === self.findIndex(s => s.id === staff.id)
+        );
+
+        setAvailableStaff(uniqueStaff);
+      })
+      .catch(err => {
+        console.error('Failed to fetch booking details:', err.response?.data || err.message);
+      });
 
     axiosClient.get('/foods')
-    .then(res => {
-      setFoods(res.data.foods);
-    })
-    .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
-
-    axiosClient.get(`/bookings/${id}/tasks`)
-    .then(res => {
-      const mapped = res.data.map(task => ({
-        id: task.task_id,
-        task_name: task.title,
-        status: task.status,
-        deadline: task.due_date,
-        assigned_to_name: task.assignee
-          ? `${toTitleCase(task.assignee.role)} ${task.assignee.first_name}`
-          : 'Unassigned',
-        assignee: task.assignee || null,
-        priority: task.priority,
-        booking_ref: 'Task-' + task.task_id ?? 'N/A'
-      }));
-      setTasks(mapped);
-    })
-    .catch(err => console.error('Failed to fetch tasks:', err.response?.data || err.message));
+      .then(res => setFoods(res.data.foods || []))
+      .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
 
     axiosClient.get(`/bookings/${id}/inventory-summary`)
-      .then(res => setInventorySummary(res.data))
-      .catch(err => console.error(err));
-
+      .then(res => setInventorySummary(res.data || []))
+      .catch(err => console.error('Failed to fetch inventory summary:', err.response?.data || err.message));
   };
 
   function toTitleCase(str) {
-    return str
+    return (str || '')
       .toLowerCase()
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -102,6 +110,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   }
 
   function mapBookingData(raw) {
+    if (!raw) return null;
     return {
       ...raw,
       customer_firstname: raw.customer?.customer_firstname || '',
@@ -127,9 +136,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     };
   }
 
-  function groupMenuByCategory(foods) {
+  function groupMenuByCategory(foodsList) {
     const grouped = {};
-    foods.forEach(food => {
+    foodsList.forEach(food => {
       const category = food.food_type || 'Uncategorized';
       if (!grouped[category]) grouped[category] = [];
       grouped[category].push(food.food_name);
@@ -149,13 +158,15 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   }
 
   const groupedFoods = foods.reduce((acc, food) => {
-    const type = food.food_type;
+    const type = food.food_type || 'Uncategorized';
     if (!acc[type]) acc[type] = [];
     acc[type].push(food);
     return acc;
   }, {});
 
   const handleEdit = () => {
+    if (hasRole(['stylist'])) return;
+
     setEditedData({
       ...booking,
       menuSelections: Object.entries(booking.menu || {}).reduce((acc, [type, names]) => {
@@ -176,11 +187,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
   const handleSave = () => {
     const selectedFoodNames = Object.values(editedData.menuSelections || {})
-    .map((foodId) => {
-      const food = foods.find(f => f.food_id === parseInt(foodId));
-      return food ? food.food_name : null;
-    })
-    .filter(Boolean);
+      .map((foodId) => {
+        const food = foods.find(f => f.food_id === parseInt(foodId));
+        return food ? food.food_name : null;
+      })
+      .filter(Boolean);
 
     axiosClient.put(`/bookings/${id}`, {
       event_name: editedData.event_name,
@@ -192,19 +203,20 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
       special_request: editedData.special_request,
       food_names: selectedFoodNames
     })
-    .then(res => {
-      Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
-        setIsEditing(false);
-        window.location.reload();
+      .then(() => {
+        Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
+          setIsEditing(false);
+          fetchDetails();
+        });
+      })
+      .catch(err => {
+        console.error(err.response?.data || err.message);
+        Swal.fire('Error', 'Could not save changes.', 'error');
       });
-    })
-    .catch(err => {
-      console.error(err.response?.data || err.message);
-      Swal.fire('Error', 'Could not save changes.', 'error');
-    });
   };
 
   const handleFinish = () => {
+    if (hasRole(['stylist'])) return;
     Swal.fire({
       title: 'Are you sure?',
       text: `This will mark the event as finished.`,
@@ -216,20 +228,21 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     }).then((result) => {
       if (result.isConfirmed) {
         axiosClient.post(`/bookings/${id}/finish`)
-        .then(() => {
-          Swal.fire('Marked as Done!', 'Event finished.', 'success').then(() => {
-            window.location.reload();
+          .then(() => {
+            Swal.fire('Marked as Done!', 'Event finished.', 'success').then(() => {
+              fetchDetails();
+            });
+          })
+          .catch(err => {
+            console.error('Update error:', err.response?.data || err.message);
+            Swal.fire('Error', 'Could not finish event.', 'error');
           });
-        })
-        .catch(err => {
-          console.error('Update error:', err.response?.data || err.message);
-          Swal.fire('Error', 'Could not finish event.', 'error');
-        });
       }
     });
   };
 
   const handleResched = () => {
+    if (hasRole(['stylist'])) return;
     Swal.fire({
       title: 'Reschedule Event',
       html: `
@@ -296,20 +309,21 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
           event_start_time,
           event_end_time,
         })
-        .then(() => {
-          Swal.fire('Rescheduled!', 'Event was successfully moved.', 'success').then(() => {
-            window.location.reload();
+          .then(() => {
+            Swal.fire('Rescheduled!', 'Event was successfully moved.', 'success').then(() => {
+              fetchDetails();
+            });
+          })
+          .catch((err) => {
+            console.error(err.response?.data || err.message);
+            Swal.fire('Error', 'Failed to reschedule.', 'error');
           });
-        })
-        .catch((err) => {
-          console.error(err.response?.data || err.message);
-          Swal.fire('Error', 'Failed to reschedule.', 'error');
-        });
       }
     });
   };
 
   const handleCancel = () => {
+    if (hasRole(['stylist'])) return;
     Swal.fire({
       title: 'Are you sure you want to cancel?',
       text: `This cannot be undone. It will also delete tasks for the staff.`,
@@ -321,15 +335,15 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     }).then((result) => {
       if (result.isConfirmed) {
         axiosClient.post(`/bookings/${id}/cancel`)
-        .then(() => {
-          Swal.fire('Cancelled!', 'Event cancelled.', 'success').then(() => {
-            window.location.reload();
+          .then(() => {
+            Swal.fire('Cancelled!', 'Event cancelled.', 'success').then(() => {
+              fetchDetails();
+            });
+          })
+          .catch(err => {
+            console.error('Update error:', err.response?.data || err.message);
+            Swal.fire('Error', 'Could not cancel event.', 'error');
           });
-        })
-        .catch(err => {
-          console.error('Update error:', err.response?.data || err.message);
-          Swal.fire('Error', 'Could not cancel event.', 'error');
-        });
       }
     });
   };
@@ -357,7 +371,8 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (bookingInventoryId) => {
+    if (hasRole(['stylist'])) return;
     const confirm = await Swal.fire({
       title: 'Delete Item?',
       text: 'This will remove the inventory assignment.',
@@ -368,7 +383,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
     if (confirm.isConfirmed) {
       try {
-        await axiosClient.delete(`/assigned-inventory/${id}`);
+        await axiosClient.delete(`/assigned-inventory/${bookingInventoryId}`);
         fetchDetails();
         Swal.fire('Deleted!', 'Inventory item removed.', 'success');
       } catch (error) {
@@ -379,6 +394,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   };
 
   const canEditBooking = () => {
+    if (!booking) return false;
     const today = new Date();
     const eventDate = new Date(booking.event_start);
     const oneWeekBefore = new Date(eventDate);
@@ -407,20 +423,22 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             <div className="action-buttons">
               {isEditing ? (
                 <>
-                  <button onClick={handleSave} className="save-btn-small">Save Changes</button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditedData({});
-                    }}
-                    className="cancel-btn-small"
-                  >
-                    Cancel
-                  </button>
+                  {!hasRole(['stylist']) && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
+                  {!hasRole(['stylist']) && (
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedData({});
+                      }}
+                      className="cancel-btn-small"
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
-                  {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                  {!hasRole(['stylist']) && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
                     <>
                       <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
                       {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
@@ -429,8 +447,8 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                 </>
               )}
             </div>
-
           </div>
+
           <div className="info-grid">
             <div>
               <span>Client Name:</span>
@@ -571,7 +589,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
               )}
             </div>
           </div>
-          </div>
+        </div>
 
         <hr className="booking-section-divider" />
 
@@ -593,7 +611,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
               {Object.entries(booking.menu).map(([category, selectedFoodNames]) => (
                 <div className="booking-field-group menu-category" key={category}>
                   <label>{category}</label>
-                  {isEditing ? (
+                  {isEditing && !isStylist ? (
                     <select
                       value={editedData.menuSelections[category] || ''}
                       onChange={(e) =>
@@ -674,11 +692,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
         <hr className="booking-section-divider" />
 
-        {/* Inventory Section */}
+        {/* Inventory Summary */}
         <div className="section white-bg">
           <div className="section-title">
             <h3>Inventory Summary</h3>
-            {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+            {!isStylist && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
               <button className="booking-edit-btn" onClick={() => setShowAddItemModal(true)}>
                 + Add Inventory Item
               </button>
@@ -700,16 +718,14 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
               <tbody className='inventory'>
                 {inventorySummary?.length > 0 ? (
                   inventorySummary.map((row) => {
-                    const isRowEditing =
-                      editingRowId !== null &&
-                      editingRowId === row.booking_inventory_id;
+                    const isRowEditing = editingRowId !== null && editingRowId === row.booking_inventory_id;
 
                     return (
                       <tr key={row.booking_inventory_id}>
                         <td>{row.item_name}</td>
 
                         <td>
-                          {isRowEditing ? (
+                          {isRowEditing && !isStylist ? (
                             <input
                               type="number"
                               value={editedRow.quantity_assigned ?? ''}
@@ -726,7 +742,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         </td>
 
                         <td>
-                          {isRowEditing ? (
+                          {isRowEditing && !isStylist ? (
                             <input
                               type="number"
                               value={editedRow.quantity_used ?? ''}
@@ -743,7 +759,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         </td>
 
                         <td>
-                          {isRowEditing ? (
+                          {isRowEditing && !isStylist ? (
                             <input
                               type="number"
                               value={editedRow.quantity_returned ?? ''}
@@ -760,7 +776,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         </td>
 
                         <td>
-                          {isRowEditing ? (
+                          {isRowEditing && !isStylist ? (
                             <input
                               type="text"
                               value={editedRow.remarks ?? ''}
@@ -776,45 +792,50 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         <td>
                           {booking.booking_status !== 'Finished' &&
                             booking.booking_status !== 'Cancelled' &&
-                            (isRowEditing ? (
-                              <>
-                                <button
-                                  className="save-btn-small"
-                                  onClick={() => handleSaveRow(row.booking_inventory_id)}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  className="cancel-btn-small"
-                                  onClick={() => {
-                                    setEditingRowId(null);
-                                    setEditedRow({});
-                                  }}
-                                >
-                                  Cancel
-                                </button>
-                              </>
+                            (!isStylist ? (
+                              isRowEditing ? (
+                                <>
+                                  <button
+                                    className="save-btn-small"
+                                    onClick={() => handleSaveRow(row.booking_inventory_id)}
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    className="cancel-btn-small"
+                                    onClick={() => {
+                                      setEditingRowId(null);
+                                      setEditedRow({});
+                                    }}
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="action-buttons">
+                                  <FaPen
+                                    className="icon edit-icon"
+                                    onClick={() => {
+                                      setEditingRowId(row.booking_inventory_id);
+                                      setEditedRow({
+                                        quantity_assigned: row.quantity_assigned ?? '',
+                                        quantity_used: row.quantity_used ?? '',
+                                        quantity_returned: row.quantity_returned ?? '',
+                                        remarks: row.remarks ?? '',
+                                      });
+                                    }}
+                                  />
+                                  <FaTrash
+                                    className="icon delete-icon"
+                                    onClick={() =>
+                                      handleDelete(row.booking_inventory_id)
+                                    }
+                                  />
+                                </div>
+                              )
                             ) : (
-                              <div className="action-buttons">
-                                <FaPen
-                                  className="icon edit-icon"
-                                  onClick={() => {
-                                    setEditingRowId(row.booking_inventory_id);
-                                    setEditedRow({
-                                      quantity_assigned: row.quantity_assigned ?? '',
-                                      quantity_used: row.quantity_used ?? '',
-                                      quantity_returned: row.quantity_returned ?? '',
-                                      remarks: row.remarks ?? '',
-                                    });
-                                  }}
-                                />
-                                <FaTrash
-                                  className="icon delete-icon"
-                                  onClick={() =>
-                                    handleDelete(row.booking_inventory_id)
-                                  }
-                                />
-                              </div>
+                              // stylist: no action buttons (read-only)
+                              <span style={{ color: '#666', fontSize: '12px' }}>Read-only</span>
                             ))}
                         </td>
                       </tr>
@@ -835,61 +856,64 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         <hr className="booking-section-divider" />
 
         {/* Payments Table */}
-        <div className="section white-bg">
-          <div className="section-title">
-            <h3>Payments</h3>
-            <>
+        {!hasRole(['stylist']) && (
+          <div className="section white-bg">
+            <div className="section-title">
+              <h3>Payments</h3>
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
-                <>
-                  <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
-                </>
+                <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
               )}
-            </>
-          </div>
+            </div>
 
-          <div className="payments-info">
-            <p><strong>Down payment:</strong> Php {parseFloat(booking.down_payment).toLocaleString()}.00</p>
-            <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.total_amount) - parseFloat(booking.amount_paid)).toLocaleString()}.00</p>
-          </div>
+            <div className="payments-info">
+              <p><strong>Down payment:</strong> Php {parseFloat(booking.down_payment).toLocaleString()}.00</p>
+              <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.total_amount) - parseFloat(booking.amount_paid)).toLocaleString()}.00</p>
+            </div>
 
-          <div className="booking-table-wrapper">
-            <table className="booking-table">
-              <thead>
-                <tr>
-                  <th>Amount Paid</th>
-                  <th>Payment Date</th>
-                  <th>Payment Method</th>
-                  <th>Payment Remarks</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {booking.payments?.map((payment, index) => (
-                  <tr key={index}>
-                    <td>Php {parseFloat(payment.amount_paid).toLocaleString()}</td>
-                    <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
-                    <td>{payment.payment_method}</td>
-                    <td>{payment.remarks}</td>
-                    <td onClick={() => {
-                      setShowInvoice(true); 
-                      setSelectedPayment(payment.payment_id);
-                    }}><i className="fa fa-receipt"></i></td>
+            <div className="booking-table-wrapper">
+              <table className="booking-table">
+                <thead>
+                  <tr>
+                    <th>Amount Paid</th>
+                    <th>Payment Date</th>
+                    <th>Payment Method</th>
+                    <th>Payment Remarks</th>
+                    <th></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {booking.payments?.map((payment, index) => (
+                    <tr key={index}>
+                      <td>Php {parseFloat(payment.amount_paid).toLocaleString()}</td>
+                      <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
+                      <td>{payment.payment_method}</td>
+                      <td>{payment.remarks}</td>
+                      <td onClick={() => {
+                        setShowInvoice(true);
+                        setSelectedPayment(payment.payment_id);
+                      }}><i className="fa fa-receipt"></i></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-        <div className="booking-delete-section">
-          <>
+        )}
+
+        {/* Booking actions */}
+        {!hasRole(['stylist']) && (
+          <div className="booking-delete-section">
             {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
               <>
                 <button className="booking-resched-btn" onClick={handleResched}>Reschedule Booking</button>
-                <button className="booking-delete-btn" onClick={handleCancel}>Cancel Booking</button>              </>
+                <button className="booking-delete-btn" onClick={handleCancel}>Cancel Booking</button>
+              </>
             )}
-          </>
-        </div>
+          </div>
+        )}
       </div>
+
+      {/* Modals */}
       <AddTaskModal
         show={showTaskModal}
         onClose={() => setShowTaskModal(false)}
@@ -909,9 +933,14 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         creatorId={user.id}
         staffOptions={availableStaff}
       />
-      <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
-      <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />
-      <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
+
+      {!hasRole(['stylist']) && (
+        <>
+          <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
+          <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />
+          <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
+        </>
+      )}
     </div>
   );
 }

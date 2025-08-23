@@ -9,6 +9,7 @@ use App\Http\Controllers\FoodController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\AddonController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 
 Route::get('/test', function () {

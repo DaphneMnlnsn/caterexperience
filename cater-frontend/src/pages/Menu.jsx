@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import './Menu.css';
-import AddFoodModal from '../../components/AddFoodModal';
-import EditFoodModal from '../../components/EditFoodModal';
-import Sidebar from '../../components/Sidebar';
+import AddFoodModal from '../components/AddFoodModal';
+import EditFoodModal from '../components/EditFoodModal';
+import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
-import axiosClient from '../../axiosClient';
+import axiosClient from '../axiosClient';
 
 function Menu() {
     const storedUser = localStorage.getItem('user');

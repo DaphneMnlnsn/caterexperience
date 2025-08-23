@@ -1,0 +1,42 @@
+.status-label {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-finished {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-default {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.booking-actions {
+  text-align: center;
+}
+
+.booking-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.booking-actions svg {
+  vertical-align: middle;
+}

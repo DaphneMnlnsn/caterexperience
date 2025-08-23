@@ -23,11 +23,24 @@ use App\Models\VenueSetup;
 
 class EventBookingController extends Controller
 {
-    public function calendarEvents()
+    public function calendarEvents(Request $request)
     {
-        $events = EventBooking::select('booking_id', 'event_name as title', 'event_date as date')
-            ->where('event_date', '>=', now())
-            ->get();
+        $user = $request->user();
+
+        $query = EventBooking::select(
+                'event_booking.booking_id',
+                'event_booking.event_name as title',
+                'event_booking.event_date as date'
+            )
+            ->where('event_booking.event_date', '>=', now());
+
+        if ($user->role === 'stylist') {
+            $query->whereHas('staffAssignments', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        $events = $query->get();
 
         return response()->json($events);
     }
@@ -50,8 +63,34 @@ class EventBookingController extends Controller
             ],
         ]);
     }
-    public function indexSelected($id)
+    public function indexAssigned(Request $request)
     {
+        $userId = $request->user()->id;
+
+        $bookings = EventBooking::with('customer')
+            ->whereHas('staffAssignments', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->orderBy('booking_id', 'asc')
+            ->paginate(10);
+
+        AuditLogger::log('Viewed', 'Module: Event Booking | Viewed assigned bookings');
+
+        return response()->json([
+            'bookings' => $bookings->items(),
+            'pagination' => [
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'per_page' => $bookings->perPage(),
+                'total' => $bookings->total(),
+            ],
+        ]);
+    }
+
+    public function indexSelected(Request $request, $id)
+    {
+        $user = $request->user();
+
         $booking = EventBooking::with([
             'customer',
             'menu.foods',
@@ -59,23 +98,35 @@ class EventBookingController extends Controller
             'packagePrice',
             'theme',
             'staffAssignments.user',
-            'tasks',
             'payments',
             'eventAddons.addon',
             'eventAddons.addonPrice'
         ])->find($id);
 
-
         if (!$booking) {
             return response()->json(['message' => 'Event booking not found'], 404);
         }
 
-        //AuditLogger::log('Viewed', 'Module: Booking Details | Viewed booking ID: ' . $id);
+        if (strtolower($user->role) === 'admin') {
+            $tasks = $booking->tasks()->with('assignee')->get();
+        } else {
+            $tasks = $booking->tasks()
+                ->where(function ($q) use ($user) {
+                    $q->where('assigned_to', $user->id);
+                })
+                ->with('assignee')
+                ->get();
+        }
 
-        return response()->json([
-            'booking' => $booking
-        ]);
+        $booking->setRelation('tasks', $tasks);
+
+        if ($booking->tasks instanceof \Illuminate\Support\Collection) {
+            $booking->tasks = $booking->tasks->values();
+        }
+
+        return response()->json(['booking' => $booking]);
     }
+
     protected function generateAutoTasks($booking, $assignedUserIds, $creatorId)
     {
         $users = User::whereIn('id', $assignedUserIds)->get();
@@ -84,7 +135,6 @@ class EventBookingController extends Controller
             switch ($user->role) {
                 case 'admin':
                     $tasks = [
-                        'Explain Menu and Packages',
                         'Setup Group Chat',
                         'Log Downpayment',
                         'Monitor Event',

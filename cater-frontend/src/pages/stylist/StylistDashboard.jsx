@@ -1,32 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import './AdminDashboard.css';
+import '../admin/AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
 import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
 import axios from 'axios';
 import axiosClient from '../../axiosClient';
 
-function AdminDashboard() {
+function StylistDashboard() {
   const storedUser = localStorage.getItem('user');
 const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
   const [stats, setStats] = useState({
     total_events: 0,
-    pending_bookings: 0,
-    pending_payments: 0,
-    staff_tasks: 0,
+    setup_plans_due: 0,
+    setup_plans_submitted: 0,
+    todo_tasks: 0,
   });
 
-  const [auditLog, setAuditLog] = useState([]);
+  const [deadlines, setDeadlines] = useState([]);
 
   useEffect(() => {
-    axiosClient.get('/dashboard/stats')
-      .then(res => setStats(res.data))
+    axiosClient.get('/dashboard/stylist/stats')
+      .then(res => {
+        setStats(res.data);
+        setDeadlines(res.data.deadlines || []);
+      })
       .catch(err => console.error('Error fetching stats', err));
-
-    axiosClient.get('/dashboard/audit-log')
-      .then(res => setAuditLog(res.data))
-      .catch(err => console.error('Error fetching audit log', err));
   }, []);
 
   return (
@@ -49,9 +48,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
           <p>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           <div className="stats">
             <div className="stat-box">Total Events <span>{stats.total_events}</span></div>
-            <div className="stat-box">Pending Booking <span>{stats.pending_bookings}</span></div>
-            <div className="stat-box">Pending Payments <span>{stats.pending_payments}</span></div>
-            <div className="stat-box">Staff To-Do Tasks <span>{stats.staff_tasks}</span></div>
+            <div className="stat-box">Setup Plans Due <span>{stats.setup_plans_due}</span></div>
+            <div className="stat-box">Setup Plans Submitted <span>{stats.setup_plans_submitted}</span></div>
+            <div className="stat-box">To-Do Tasks <span>{stats.todo_tasks}</span></div>
           </div>
         </section>
 
@@ -61,13 +60,18 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
           </div>
 
           <aside className="audit-log">
-            <h3>Audit Log</h3>
+            <h3>Setup Deadlines</h3>
             <ul>
-              {auditLog.map((log, index) => (
-                <li key={index}>
-                  {log.user_name} <span>{log.details ?? log.action}</span>
-                </li>
-              ))}
+                {deadlines.length > 0 ? (
+                deadlines.map((deadline, index) => (
+                    <li key={index}>
+                    <strong>{deadline.layout_name}</strong> 
+                    <span> – due {new Date(deadline.due_date).toLocaleDateString()}</span>
+                    </li>
+                ))
+                ) : (
+                <li>No upcoming deadlines</li>
+                )}
             </ul>
           </aside>
         </section>
@@ -76,4 +80,4 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   );
 }
 
-export default AdminDashboard;
+export default StylistDashboard;

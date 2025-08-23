@@ -6,18 +6,20 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminClients from './pages/admin/AdminClients';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminPayments from './pages/admin/AdminPayments';
-import Menu from './pages/admin/Menu';
-import Packages from './pages/admin/Packages';
-import AdminVenue from './pages/admin/VenueSetups';
+import Menu from './pages/Menu';
+import Packages from './pages/Packages';
+import AdminVenue from './pages/VenueSetups';
 import AdminInventory from './pages/admin/AdminInventory';
 import AdminAudit from './pages/admin/AdminAudit';
 import Login from './pages/Login';
 import Unauthorized from './pages/Unauthorized';
 import ClientDetails from "./pages/admin/ClientDetails";
-import BookingDetails from "./pages/admin/BookingDetails";
+import BookingDetails from "./pages/BookingDetails";
 import AddBooking from "./pages/admin/AddBooking";
 import Edit2DSetup from "./pages/Edit2DSetup";
 import View2DSetup from "./pages/View2DSetup";
+import StylistDashboard from "./pages/stylist/StylistDashboard";
+import Bookings from "./pages/Bookings";
 
 export default function App(){
   return(
@@ -64,7 +66,7 @@ export default function App(){
         />
 
         <Route
-          path="/admin/bookings"
+          path="/bookings"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminBookings />
@@ -73,9 +75,9 @@ export default function App(){
         />
 
         <Route
-          path="/admin/bookings/:id"
+          path="/bookings/:id"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
               <BookingDetails />
             </ProtectedRoute>
           }
@@ -100,7 +102,7 @@ export default function App(){
         />
 
         <Route
-          path="/admin/menu"
+          path="/menu"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <Menu />
@@ -109,7 +111,7 @@ export default function App(){
         />
 
         <Route
-          path="/admin/package"
+          path="/package"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <Packages />
@@ -118,7 +120,7 @@ export default function App(){
         />
 
         <Route
-          path="/admin/setup"
+          path="/setup"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminVenue />
@@ -158,6 +160,26 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminAudit />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* STYLIST ONLY */}
+        <Route
+          path="/stylist/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['stylist']}>
+              <StylistDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ALL OTHER ROLES ONLY */}
+        <Route
+          path="/assigned/bookings"
+          element={
+            <ProtectedRoute allowedRoles={['stylist','head waiter', 'cook', 'client']}>
+              <Bookings />
             </ProtectedRoute>
           }
         />

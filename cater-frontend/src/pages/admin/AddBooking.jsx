@@ -410,7 +410,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             const res = await axiosClient.post('/bookings', payload);
 
             Swal.fire('Saved!', 'Event successfully booked.', 'success');
-            navigate('/admin/bookings');
+            navigate('/bookings');
         } catch (err) {
             console.error('Error:', err.response?.data || err.message);
             Swal.fire('Error', 'There was a problem saving the event booking.', 'error');

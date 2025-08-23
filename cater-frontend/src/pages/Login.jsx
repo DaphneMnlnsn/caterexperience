@@ -34,12 +34,15 @@ function Login() {
             if (response.data.status === 'success') {
                 const user = response.data.user;
 
-                localStorage.setItem('token', response.data.access_token); // Token stays plain for axios
-                localStorage.setItem('user', btoa(JSON.stringify(user))); // Base64 encode
+                localStorage.setItem('token', response.data.access_token);
+                localStorage.setItem('user', btoa(JSON.stringify(user)));
                 localStorage.setItem('role', user.role);
 
                 if (user.role === 'admin') {
                     navigate('/admin/dashboard');
+                }
+                else if (user.role === 'stylist') {
+                    navigate('/stylist/dashboard');
                 } else {
                     // Redirect to roles
                 }

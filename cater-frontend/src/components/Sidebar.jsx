@@ -9,6 +9,9 @@ import axiosClient from '../axiosClient';
 export default function Sidebar() {
     const location = useLocation();
     const navigate = useNavigate();
+    const storedUser = localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+    const role = user?.role;
 
     const handleLogout = async () => {
         try {
@@ -20,78 +23,81 @@ export default function Sidebar() {
             navigate( '/');
         }
     };
+
+    const menuItems = [
+        { section: "Main", to: "/admin/dashboard", label: "Dashboard", icon: <FaHome />, roles: ["admin"] },
+        { section: "Main", to: "/stylist/dashboard", label: "Dashboard", icon: <FaHome />, roles: ["stylist"] },
+        { section: "Main", to: "/bookings", label: "Event Bookings", icon: <FaCalendarAlt />, roles: ["admin"] },
+        { section: "Main", to: "/assigned/bookings", label: "Event Bookings", icon: <FaCalendarAlt />, roles: ["stylist", "head waiter", "cook", "client"] },
+        { section: "Main", to: "/admin/clients", label: "Clients", icon: <FaUser />, roles: ["admin"] },
+        { section: "Main", to: "/admin/payments", label: "Payment Records", icon: <FaMoneyCheckAlt />, roles: ["admin"] },
+
+        { section: "Management", to: "/menu", label: "Menu", icon: <FaUtensils />, roles: ["admin"] },
+        { section: "Management", to: "/package", label: "Packages", icon: <FaBox />, roles: ["admin", "stylist"] },
+        { section: "Management", to: "/setup", label: "Venue Setups", icon: <FaMapMarkedAlt />, roles: ["admin", "stylist"] },
+        { section: "Management", to: "/admin/inventory", label: "Inventory", icon: <FaWarehouse />, roles: ["admin"] },
+        { section: "Management", to: "/admin/users", label: "Staff Management", icon: <FaUsersCog />, roles: ["admin"] },
+
+        { section: "System", to: "/admin/audit", label: "Audit Log", icon: <FaClipboardList />, roles: ["admin"] },
+        { section: "System", label: "Log Out", icon: <FaSignOutAlt />, roles: ["admin", "stylist"], logout: true },
+    ];
+
+    const groupedMenu = menuItems.reduce((acc, item) => {
+        if (!item.roles.includes(role)) return acc;
+        if (!acc[item.section]) acc[item.section] = [];
+        acc[item.section].push(item);
+        return acc;
+    }, {});
+
+    const filteredMenu = menuItems.filter(item => item.roles.includes(role));
     
     return (
     <aside className="sidebar">
         <img src={logo} alt="Ollinati Catering Logo" className="logo-sidebar" />
         <nav>
-        <ul>
-            <li className="section-header">Main</li>
-
-            <li className={location.pathname === '/admin/dashboard' ? 'active' : ''}>
-                <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaHome /> Dashboard
-                </NavLink>
-            </li>
-
-            <li className={location.pathname === '/admin/bookings' ? 'active' : ''}>
-                <NavLink to="/admin/bookings" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaCalendarAlt /> Event Bookings
-                </NavLink>
-            </li>
-            
-            <li className={location.pathname === '/admin/clients' ? 'active' : ''}>
-                <NavLink to="/admin/clients" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaUser /> Clients
-                </NavLink>
-            </li>
-            
-            <li className={location.pathname === '/admin/payments' ? 'active' : ''}>
-                <NavLink to="/admin/payments" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaMoneyCheckAlt /> Payment Records
-                </NavLink>
-            </li>
-        
-            <li className="section-header">Management</li>
-            <li className={location.pathname === '/admin/menu' ? 'active' : ''}>
-                <NavLink to="/admin/menu" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaUtensils /> Menu
-                </NavLink>
-            </li>
-            
-            <li className={location.pathname === '/admin/package' ? 'active' : ''}>
-                <NavLink to="/admin/package" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaBox /> Packages
-                </NavLink>
-            </li>
-
-            <li className={location.pathname === '/admin/setup' ? 'active' : ''}>
-                <NavLink to="/admin/setup" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaMapMarkedAlt /> Venue Setups
-                </NavLink>
-            </li>
-            
-            <li className={location.pathname === '/admin/inventory' ? 'active' : ''}>
-                <NavLink to="/admin/inventory" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaWarehouse /> Inventory
-                </NavLink>
-            </li>
-            
-            <li className={location.pathname === '/admin/users' ? 'active' : ''}>
-                <NavLink to="/admin/users" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaUsersCog /> Staff Management
-                </NavLink>
-            </li>
-
-            <li className="section-header">System</li>
-            <li className={location.pathname === '/admin/audit' ? 'active' : ''}>
-                <NavLink to="/admin/audit" className={({ isActive }) => isActive ? 'active' : ''}>
-                    <FaClipboardList /> Audit Log
-                </NavLink>
-            </li>
-            
-            <li onClick={handleLogout}><FaSignOutAlt /> Log Out</li>
-        </ul>
+            <ul>
+                {role === "admin" ? (
+                    Object.keys(groupedMenu).map(section => (
+                        <React.Fragment key={section}>
+                        <li className="section-header">{section}</li>
+                        {groupedMenu[section].map(item => (
+                            <li 
+                            key={item.label} 
+                            className={item.to && location.pathname === item.to ? "active" : ""}
+                            onClick={item.logout ? handleLogout : undefined}
+                            >
+                            {item.to ? (
+                                <NavLink to={item.to} className={({ isActive }) => (isActive ? "active" : "")}>
+                                {item.icon} {item.label}
+                                </NavLink>
+                            ) : (
+                                <span>{item.icon} {item.label}</span>
+                            )}
+                            </li>
+                        ))}
+                        </React.Fragment>
+                    ))
+                    ) : (
+                    <>
+                        <li className="section-header">Main</li>
+                        {filteredMenu.map(item => (
+                        <li 
+                            key={item.label} 
+                            className={item.to && location.pathname === item.to ? "active" : ""}
+                            onClick={item.logout ? handleLogout : undefined}
+                        >
+                            {item.to ? (
+                            <NavLink to={item.to} className={({ isActive }) => (isActive ? "active" : "")}>
+                                {item.icon} {item.label}
+                            </NavLink>
+                            ) : (
+                            <span>{item.icon} {item.label}</span>
+                            )}
+                        </li>
+                        ))}
+                    </>
+                )}
+            </ul>
         </nav>
     </aside>
     );
