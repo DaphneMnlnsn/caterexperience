@@ -13,10 +13,21 @@ class VenueSetupController extends Controller
 {
     public function index(Request $request)
     {
-        $setups = VenueSetup::with(['booking.customer', 'booking.theme'])->get();
+        $user = $request->user();
+
+        $query = VenueSetup::with(['booking.customer', 'booking.theme']);
+
+        if (strtolower($user->role) !== 'admin') {
+            $query->whereHas('booking.staffAssignments', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        $setups = $query->get();
+
         return response()->json(['setups' => $setups]);
     }
-    
+
     public function indexSelected($bookingId)
     {
         $setup = VenueSetup::where('booking_id', $bookingId)->first();

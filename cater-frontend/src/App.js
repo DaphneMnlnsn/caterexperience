@@ -75,15 +75,6 @@ export default function App(){
         />
 
         <Route
-          path="/bookings/:id"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
-              <BookingDetails />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/admin/book"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
@@ -111,42 +102,6 @@ export default function App(){
         />
 
         <Route
-          path="/package"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <Packages />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/setup"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminVenue />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/edit/:id"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <Edit2DSetup />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/view/:id"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <View2DSetup />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/admin/inventory"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
@@ -160,6 +115,52 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminAudit />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ADMIN AND OTHER STAFF */}
+        <Route
+          path="/bookings/:id"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+              <BookingDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/package"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+              <Packages />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/setup"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+              <AdminVenue />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit/:id"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+              <Edit2DSetup />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/view/:id"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+              <View2DSetup />
             </ProtectedRoute>
           }
         />

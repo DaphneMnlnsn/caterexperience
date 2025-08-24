@@ -44,7 +44,7 @@ function Login() {
                 else if (user.role === 'stylist') {
                     navigate('/stylist/dashboard');
                 } else {
-                    // Redirect to roles
+                    // Redirect to other roles
                 }
             }
         } catch (error) {

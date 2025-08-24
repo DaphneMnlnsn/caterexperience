@@ -13,7 +13,7 @@ import axiosClient from '../axiosClient';
 
 function Packages() {
   const storedUser = localStorage.getItem('user');
-const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+  const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const [showAddPackageModal, setShowAddPackageModal] = useState(false);
   const [showEditPackageModal, setShowEditPackageModal] = useState(false);
   const [showAddThemeModal, setShowAddThemeModal] = useState(false);
@@ -65,6 +65,8 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     addon.addon_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const isAdmin = user && user.role?.toLowerCase() === 'admin';
+
   return (
     <div className="page-container">
       <Sidebar />
@@ -100,9 +102,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                 <div className="page-header-actions">
                     <h3 className="category-title">Packages</h3>
                     <div className="spacer" />
-                    <div className="button-group">
-                        <button className="add-btn" onClick={() => setShowAddPackageModal(true)}>+ Add New Package</button>
-                    </div>
+                    {isAdmin && (
+                      <div className="button-group">
+                          <button className="add-btn" onClick={() => setShowAddPackageModal(true)}>+ Add New Package</button>
+                      </div>
+                    )}
                 </div>
                 <div className="packages-grid">
                     {filteredPackages.map(pkg => (
@@ -110,8 +114,10 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         key={pkg.package_id} 
                         className={`small-text-card card-yellow ${pkg.package_status === 'archived' ? 'archived' : ''}`}
                         onClick={() => {
-                          setSelectedPackage(pkg);
-                          setShowEditPackageModal(true);
+                          if (isAdmin) {
+                            setSelectedPackage(pkg);
+                            setShowEditPackageModal(true);
+                          }
                         }}
                       >
                         {pkg.package_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
@@ -148,9 +154,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                 <div className="page-header-actions">
                     <h3 className="category-title other-title">Themes</h3>
                     <div className="spacer" />
-                    <div className="button-group">
-                        <button className="add-btn" onClick={() => setShowAddThemeModal(true)}>+ Add New Theme</button>
-                    </div>
+                    {isAdmin && (
+                      <div className="button-group">
+                          <button className="add-btn" onClick={() => setShowAddThemeModal(true)}>+ Add New Theme</button>
+                      </div>
+                    )}
                 </div>
                 <div className="packages-grid">
                     {filteredThemes.map(theme => (
@@ -158,8 +166,10 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                       key={theme.theme_id} 
                       className={`theme-card ${theme.theme_status === 'archived' ? 'archived' : ''}`}
                       onClick={() => {
-                        setSelectedTheme(theme);
-                        setShowEditThemeModal(true);
+                        if (isAdmin) {
+                          setSelectedTheme(theme);
+                          setShowEditThemeModal(true);
+                        }
                       }}
                       >
                         {theme.theme_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
@@ -177,9 +187,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                 <div className="page-header-actions">
                     <h3 className="category-title other-title">Addons</h3>
                     <div className="spacer" />
-                    <div className="button-group">
-                        <button className="add-btn" onClick={() => setShowAddAddonModal(true)}>+ Add New Addon</button>
-                    </div>
+                    {isAdmin && (
+                      <div className="button-group">
+                          <button className="add-btn" onClick={() => setShowAddAddonModal(true)}>+ Add New Addon</button>
+                      </div>
+                    )}
                 </div>
                 <div className="packages-grid">
                   {filteredAddons.map(addon => (
@@ -187,8 +199,10 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     key={addon.addon_id} 
                     className={`addon-card card-yellow ${addon.addon_status === 'archived' ? 'archived' : ''}`}
                     onClick={() => {
-                      setSelectedAddon(addon);
-                      setShowEditAddonModal(true);
+                      if (isAdmin) {
+                        setSelectedAddon(addon);
+                        setShowEditAddonModal(true);
+                      }
                     }}
                     >
                       {addon.addon_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
@@ -215,36 +229,42 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
           </div>
         </section>
       </div>
-      <AddPackageModal show={showAddPackageModal} onClose={() => setShowAddPackageModal(false)} onSave={fetchPackages} />
-      <EditPackageModal
-        show={showEditPackageModal}
-        onClose={() => {
-          setShowEditPackageModal(false);
-          setSelectedPackage(null);
-        }}
-        onSave={fetchPackages}
-        pkg={selectedPackage}
-      />
-      <AddThemeModal show={showAddThemeModal} onClose={() => setShowAddThemeModal(false)} onSave={fetchThemes} />
-      <EditThemeModal 
-        show={showEditThemeModal} 
-        onClose={() => {
-          setShowEditThemeModal(false);
-          setSelectedTheme(null);
-        }} 
-        onSave={fetchThemes}
-        theme={selectedTheme}
-      />
-      <AddAddonModal show={showAddAddonModal} onClose={() => setShowAddAddonModal(false)} onSave={fetchAddons} />
-      <EditAddonModal 
-        show={showEditAddonModal} 
-        onClose={() => {
-          setShowEditAddonModal(false);
-          setSelectedAddon(null);
-        }}
-        onSave={fetchAddons} 
-        addon={selectedAddon}
-      />
+      {isAdmin && ( <AddPackageModal show={showAddPackageModal} onClose={() => setShowAddPackageModal(false)} onSave={fetchPackages} />)}
+      {isAdmin && (
+        <EditPackageModal
+          show={showEditPackageModal}
+          onClose={() => {
+            setShowEditPackageModal(false);
+            setSelectedPackage(null);
+          }}
+          onSave={fetchPackages}
+          pkg={selectedPackage}
+        />
+      )}
+      {isAdmin && (<AddThemeModal show={showAddThemeModal} onClose={() => setShowAddThemeModal(false)} onSave={fetchThemes} />)}
+      {isAdmin && (
+        <EditThemeModal 
+          show={showEditThemeModal} 
+          onClose={() => {
+            setShowEditThemeModal(false);
+            setSelectedTheme(null);
+          }} 
+          onSave={fetchThemes}
+          theme={selectedTheme}
+        />
+      )}
+      {isAdmin && (<AddAddonModal show={showAddAddonModal} onClose={() => setShowAddAddonModal(false)} onSave={fetchAddons} />)}
+      {isAdmin && (
+        <EditAddonModal 
+          show={showEditAddonModal} 
+          onClose={() => {
+            setShowEditAddonModal(false);
+            setSelectedAddon(null);
+          }}
+          onSave={fetchAddons} 
+          addon={selectedAddon}
+        />
+      )}
     </div>
   );
 }

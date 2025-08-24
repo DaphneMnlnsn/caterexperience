@@ -350,15 +350,22 @@ function BookingDetails() {
 
   const handleSaveRow = async (bookingInventoryId) => {
     try {
-      await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
-        quantity_assigned: editedRow.quantity_assigned,
-        remarks: editedRow.remarks,
-      });
-      await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
-        quantity_used: editedRow.quantity_used,
-        quantity_returned: editedRow.quantity_returned,
-        remarks: editedRow.remarks,
-      });
+      
+      if (!hasRole(['stylist'])) {
+        await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
+          quantity_assigned: editedRow.quantity_assigned,
+          remarks: editedRow.remarks,
+        });
+        await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
+          quantity_used: editedRow.quantity_used,
+          quantity_returned: editedRow.quantity_returned,
+          remarks: editedRow.remarks,
+        });
+      } else {
+        await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
+          quantity_returned: editedRow.quantity_returned,
+        });
+      }
 
       await fetchDetails();
 
@@ -370,6 +377,7 @@ function BookingDetails() {
       Swal.fire('Error', 'Failed to save inventory changes.', 'error');
     }
   };
+
 
   const handleDelete = async (bookingInventoryId) => {
     if (hasRole(['stylist'])) return;
@@ -759,10 +767,10 @@ function BookingDetails() {
                         </td>
 
                         <td>
-                          {isRowEditing && !isStylist ? (
+                          {isRowEditing ? (
                             <input
                               type="number"
-                              value={editedRow.quantity_returned ?? ''}
+                              value={editedRow.quantity_returned ?? row.quantity_returned ?? ''}
                               onChange={(e) =>
                                 setEditedRow({
                                   ...editedRow,
@@ -791,52 +799,57 @@ function BookingDetails() {
 
                         <td>
                           {booking.booking_status !== 'Finished' &&
-                            booking.booking_status !== 'Cancelled' &&
-                            (!isStylist ? (
-                              isRowEditing ? (
-                                <>
-                                  <button
-                                    className="save-btn-small"
-                                    onClick={() => handleSaveRow(row.booking_inventory_id)}
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    className="cancel-btn-small"
-                                    onClick={() => {
-                                      setEditingRowId(null);
-                                      setEditedRow({});
-                                    }}
-                                  >
-                                    Cancel
-                                  </button>
-                                </>
-                              ) : (
-                                <div className="action-buttons">
-                                  <FaPen
-                                    className="icon edit-icon"
-                                    onClick={() => {
-                                      setEditingRowId(row.booking_inventory_id);
-                                      setEditedRow({
-                                        quantity_assigned: row.quantity_assigned ?? '',
-                                        quantity_used: row.quantity_used ?? '',
-                                        quantity_returned: row.quantity_returned ?? '',
-                                        remarks: row.remarks ?? '',
-                                      });
-                                    }}
-                                  />
-                                  <FaTrash
-                                    className="icon delete-icon"
-                                    onClick={() =>
-                                      handleDelete(row.booking_inventory_id)
-                                    }
-                                  />
-                                </div>
-                              )
-                            ) : (
-                              // stylist: no action buttons (read-only)
-                              <span style={{ color: '#666', fontSize: '12px' }}>Read-only</span>
-                            ))}
+                            booking.booking_status !== 'Cancelled' && (
+                              <>
+                                {isRowEditing ? (
+                                  <>
+                                    <button
+                                      className="save-btn-small"
+                                      onClick={() => handleSaveRow(row.booking_inventory_id)}
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      className="cancel-btn-small"
+                                      onClick={() => {
+                                        setEditingRowId(null);
+                                        setEditedRow({});
+                                      }}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div className="action-buttons">
+                                    <FaPen
+                                      className="icon edit-icon"
+                                      onClick={() => {
+                                        if (isStylist) {
+                                          setEditingRowId(row.booking_inventory_id);
+                                          setEditedRow({
+                                            quantity_returned: row.quantity_returned ?? '',
+                                          });
+                                        } else {
+                                          setEditingRowId(row.booking_inventory_id);
+                                          setEditedRow({
+                                            quantity_assigned: row.quantity_assigned ?? '',
+                                            quantity_used: row.quantity_used ?? '',
+                                            quantity_returned: row.quantity_returned ?? '',
+                                            remarks: row.remarks ?? '',
+                                          });
+                                        }
+                                      }}
+                                    />
+                                    {!isStylist && (
+                                      <FaTrash
+                                        className="icon delete-icon"
+                                        onClick={() => handleDelete(row.booking_inventory_id)}
+                                      />
+                                    )}
+                                  </div>
+                                )}
+                              </>
+                            )}
                         </td>
                       </tr>
                     );

@@ -51,7 +51,7 @@ class BookingInventoryController extends Controller
 
             EventInventoryUsage::create([
                 'booking_inventory_id' => $bookingInventory->booking_inventory_id,
-                'quantity_used' => 0,
+                'quantity_used' => $validated['quantity_assigned'],
                 'quantity_returned' => 0,
                 'remarks' => null,
             ]);
@@ -91,20 +91,34 @@ class BookingInventoryController extends Controller
     
     public function updateUsage(Request $request, $bookingInventoryId)
     {
+        $user = $request->user();
+
         $validated = $request->validate([
             'quantity_used' => 'nullable|numeric|min:0',
             'quantity_returned' => 'nullable|numeric|min:0',
             'remarks' => 'nullable|string',
         ]);
 
-        $usage = EventInventoryUsage::updateOrCreate(
-            ['booking_inventory_id' => $bookingInventoryId],
-            [
-                'quantity_used' => $validated['quantity_used'] ?? 0,
-                'quantity_returned' => $validated['quantity_returned'] ?? 0,
-                'remarks' => $validated['remarks'] ?? null,
-            ]
-        );
+        if ($request->has('quantity_used') && strtolower($user->role) !== 'admin') {
+            return response()->json(['message' => 'Forbidden: only admin can update quantity used'], 403);
+        }
+
+        $usage = EventInventoryUsage::firstOrNew(['booking_inventory_id' => $bookingInventoryId]);
+
+        if ($request->has('quantity_used') && $request->input('quantity_used') !== '') {
+            $usage->quantity_used = $validated['quantity_used'];
+        }
+
+        if ($request->has('quantity_returned') && $request->input('quantity_returned') !== '') {
+            $usage->quantity_returned = $validated['quantity_returned'];
+        }
+
+        if ($request->has('remarks') && $request->input('remarks') !== '') {
+            $usage->remarks = $validated['remarks'];
+        }
+
+        $usage->booking_inventory_id = $bookingInventoryId;
+        $usage->save();
 
         AuditLogger::log('Updated', 'Module: Booking Details | Item ID: ' . $bookingInventoryId . ' | Used: ' . ($validated['quantity_used'] ?? 0) . ' | Returned: ' . ($validated['quantity_returned'] ?? 0));
 
