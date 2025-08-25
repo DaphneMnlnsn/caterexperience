@@ -27,6 +27,7 @@ function BookingDetails() {
   };
 
   const isStylist = hasRole('stylist');
+  const isCook = hasRole('cook');
 
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -165,7 +166,7 @@ function BookingDetails() {
   }, {});
 
   const handleEdit = () => {
-    if (hasRole(['stylist'])) return;
+    if (isStylist || isCook) return;
 
     setEditedData({
       ...booking,
@@ -216,7 +217,7 @@ function BookingDetails() {
   };
 
   const handleFinish = () => {
-    if (hasRole(['stylist'])) return;
+    if (isStylist || isCook) return;
     Swal.fire({
       title: 'Are you sure?',
       text: `This will mark the event as finished.`,
@@ -242,7 +243,7 @@ function BookingDetails() {
   };
 
   const handleResched = () => {
-    if (hasRole(['stylist'])) return;
+    if (isStylist || isCook) return;
     Swal.fire({
       title: 'Reschedule Event',
       html: `
@@ -323,7 +324,7 @@ function BookingDetails() {
   };
 
   const handleCancel = () => {
-    if (hasRole(['stylist'])) return;
+    if (isStylist || isCook) return;
     Swal.fire({
       title: 'Are you sure you want to cancel?',
       text: `This cannot be undone. It will also delete tasks for the staff.`,
@@ -351,7 +352,7 @@ function BookingDetails() {
   const handleSaveRow = async (bookingInventoryId) => {
     try {
       
-      if (!hasRole(['stylist'])) {
+      if (!isStylist) {
         await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
           quantity_assigned: editedRow.quantity_assigned,
           remarks: editedRow.remarks,
@@ -380,7 +381,7 @@ function BookingDetails() {
 
 
   const handleDelete = async (bookingInventoryId) => {
-    if (hasRole(['stylist'])) return;
+    if (isStylist || isCook) return;
     const confirm = await Swal.fire({
       title: 'Delete Item?',
       text: 'This will remove the inventory assignment.',
@@ -431,8 +432,8 @@ function BookingDetails() {
             <div className="action-buttons">
               {isEditing ? (
                 <>
-                  {!hasRole(['stylist']) && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
-                  {!hasRole(['stylist']) && (
+                  {!(isStylist || isCook) && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
+                  {!(isStylist || isCook) && (
                     <button
                       onClick={() => {
                         setIsEditing(false);
@@ -446,7 +447,7 @@ function BookingDetails() {
                 </>
               ) : (
                 <>
-                  {!hasRole(['stylist']) && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                  {!(isStylist || isCook) && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
                     <>
                       <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
                       {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
@@ -693,183 +694,191 @@ function BookingDetails() {
         <hr className="booking-section-divider" />
 
         {/* Venue Design Preview */}
-        <div className="section white-bg">
-          <h3>Venue Design</h3>
-          <VenuePreview bookingId={booking.booking_id} />
-        </div>
+        {!isCook && (
+          <>
+            <div className="section white-bg">
+              <h3>Venue Design</h3>
+              <VenuePreview bookingId={booking.booking_id} />
+            </div>
 
-        <hr className="booking-section-divider" />
+            <hr className="booking-section-divider" />
+          </>
+        )}
 
         {/* Inventory Summary */}
-        <div className="section white-bg">
-          <div className="section-title">
-            <h3>Inventory Summary</h3>
-            {!isStylist && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
-              <button className="booking-edit-btn" onClick={() => setShowAddItemModal(true)}>
-                + Add Inventory Item
-              </button>
-            )}
-          </div>
+        {!isCook && (
+          <>
+            <div className="section white-bg">
+              <div className="section-title">
+                <h3>Inventory Summary</h3>
+                {!isStylist && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                  <button className="booking-edit-btn" onClick={() => setShowAddItemModal(true)}>
+                    + Add Inventory Item
+                  </button>
+                )}
+              </div>
 
-          <div className="booking-table-wrapper">
-            <table className="booking-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Qty Assigned</th>
-                  <th>Qty Used</th>
-                  <th>Qty Returned</th>
-                  <th>Remarks</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody className='inventory'>
-                {inventorySummary?.length > 0 ? (
-                  inventorySummary.map((row) => {
-                    const isRowEditing = editingRowId !== null && editingRowId === row.booking_inventory_id;
+              <div className="booking-table-wrapper">
+                <table className="booking-table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Qty Assigned</th>
+                      <th>Qty Used</th>
+                      <th>Qty Returned</th>
+                      <th>Remarks</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody className='inventory'>
+                    {inventorySummary?.length > 0 ? (
+                      inventorySummary.map((row) => {
+                        const isRowEditing = editingRowId !== null && editingRowId === row.booking_inventory_id;
 
-                    return (
-                      <tr key={row.booking_inventory_id}>
-                        <td>{row.item_name}</td>
+                        return (
+                          <tr key={row.booking_inventory_id}>
+                            <td>{row.item_name}</td>
 
-                        <td>
-                          {isRowEditing && !isStylist ? (
-                            <input
-                              type="number"
-                              value={editedRow.quantity_assigned ?? ''}
-                              onChange={(e) =>
-                                setEditedRow({
-                                  ...editedRow,
-                                  quantity_assigned: e.target.value,
-                                })
-                              }
-                            />
-                          ) : (
-                            row.quantity_assigned
-                          )}
-                        </td>
+                            <td>
+                              {isRowEditing && !isStylist ? (
+                                <input
+                                  type="number"
+                                  value={editedRow.quantity_assigned ?? ''}
+                                  onChange={(e) =>
+                                    setEditedRow({
+                                      ...editedRow,
+                                      quantity_assigned: e.target.value,
+                                    })
+                                  }
+                                />
+                              ) : (
+                                row.quantity_assigned
+                              )}
+                            </td>
 
-                        <td>
-                          {isRowEditing && !isStylist ? (
-                            <input
-                              type="number"
-                              value={editedRow.quantity_used ?? ''}
-                              onChange={(e) =>
-                                setEditedRow({
-                                  ...editedRow,
-                                  quantity_used: e.target.value,
-                                })
-                              }
-                            />
-                          ) : (
-                            row.quantity_used ?? '—'
-                          )}
-                        </td>
+                            <td>
+                              {isRowEditing && !isStylist ? (
+                                <input
+                                  type="number"
+                                  value={editedRow.quantity_used ?? ''}
+                                  onChange={(e) =>
+                                    setEditedRow({
+                                      ...editedRow,
+                                      quantity_used: e.target.value,
+                                    })
+                                  }
+                                />
+                              ) : (
+                                row.quantity_used ?? '—'
+                              )}
+                            </td>
 
-                        <td>
-                          {isRowEditing ? (
-                            <input
-                              type="number"
-                              value={editedRow.quantity_returned ?? row.quantity_returned ?? ''}
-                              onChange={(e) =>
-                                setEditedRow({
-                                  ...editedRow,
-                                  quantity_returned: e.target.value,
-                                })
-                              }
-                            />
-                          ) : (
-                            row.quantity_returned ?? '—'
-                          )}
-                        </td>
+                            <td>
+                              {isRowEditing ? (
+                                <input
+                                  type="number"
+                                  value={editedRow.quantity_returned ?? row.quantity_returned ?? ''}
+                                  onChange={(e) =>
+                                    setEditedRow({
+                                      ...editedRow,
+                                      quantity_returned: e.target.value,
+                                    })
+                                  }
+                                />
+                              ) : (
+                                row.quantity_returned ?? '—'
+                              )}
+                            </td>
 
-                        <td>
-                          {isRowEditing && !isStylist ? (
-                            <input
-                              type="text"
-                              value={editedRow.remarks ?? ''}
-                              onChange={(e) =>
-                                setEditedRow({ ...editedRow, remarks: e.target.value })
-                              }
-                            />
-                          ) : (
-                            row.remarks ?? 'N/A'
-                          )}
-                        </td>
+                            <td>
+                              {isRowEditing && !isStylist ? (
+                                <input
+                                  type="text"
+                                  value={editedRow.remarks ?? ''}
+                                  onChange={(e) =>
+                                    setEditedRow({ ...editedRow, remarks: e.target.value })
+                                  }
+                                />
+                              ) : (
+                                row.remarks ?? 'N/A'
+                              )}
+                            </td>
 
-                        <td>
-                          {booking.booking_status !== 'Finished' &&
-                            booking.booking_status !== 'Cancelled' && (
-                              <>
-                                {isRowEditing ? (
+                            <td>
+                              {booking.booking_status !== 'Finished' &&
+                                booking.booking_status !== 'Cancelled' && (
                                   <>
-                                    <button
-                                      className="save-btn-small"
-                                      onClick={() => handleSaveRow(row.booking_inventory_id)}
-                                    >
-                                      Save
-                                    </button>
-                                    <button
-                                      className="cancel-btn-small"
-                                      onClick={() => {
-                                        setEditingRowId(null);
-                                        setEditedRow({});
-                                      }}
-                                    >
-                                      Cancel
-                                    </button>
-                                  </>
-                                ) : (
-                                  <div className="action-buttons">
-                                    <FaPen
-                                      className="icon edit-icon"
-                                      onClick={() => {
-                                        if (isStylist) {
-                                          setEditingRowId(row.booking_inventory_id);
-                                          setEditedRow({
-                                            quantity_returned: row.quantity_returned ?? '',
-                                          });
-                                        } else {
-                                          setEditingRowId(row.booking_inventory_id);
-                                          setEditedRow({
-                                            quantity_assigned: row.quantity_assigned ?? '',
-                                            quantity_used: row.quantity_used ?? '',
-                                            quantity_returned: row.quantity_returned ?? '',
-                                            remarks: row.remarks ?? '',
-                                          });
-                                        }
-                                      }}
-                                    />
-                                    {!isStylist && (
-                                      <FaTrash
-                                        className="icon delete-icon"
-                                        onClick={() => handleDelete(row.booking_inventory_id)}
-                                      />
+                                    {isRowEditing ? (
+                                      <>
+                                        <button
+                                          className="save-btn-small"
+                                          onClick={() => handleSaveRow(row.booking_inventory_id)}
+                                        >
+                                          Save
+                                        </button>
+                                        <button
+                                          className="cancel-btn-small"
+                                          onClick={() => {
+                                            setEditingRowId(null);
+                                            setEditedRow({});
+                                          }}
+                                        >
+                                          Cancel
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <div className="action-buttons">
+                                        <FaPen
+                                          className="icon edit-icon"
+                                          onClick={() => {
+                                            if (isStylist) {
+                                              setEditingRowId(row.booking_inventory_id);
+                                              setEditedRow({
+                                                quantity_returned: row.quantity_returned ?? '',
+                                              });
+                                            } else {
+                                              setEditingRowId(row.booking_inventory_id);
+                                              setEditedRow({
+                                                quantity_assigned: row.quantity_assigned ?? '',
+                                                quantity_used: row.quantity_used ?? '',
+                                                quantity_returned: row.quantity_returned ?? '',
+                                                remarks: row.remarks ?? '',
+                                              });
+                                            }
+                                          }}
+                                        />
+                                        {!isStylist && (
+                                          <FaTrash
+                                            className="icon delete-icon"
+                                            onClick={() => handleDelete(row.booking_inventory_id)}
+                                          />
+                                        )}
+                                      </div>
                                     )}
-                                  </div>
+                                  </>
                                 )}
-                              </>
-                            )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center' }}>
+                          No inventory records found.
                         </td>
                       </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center' }}>
-                      No inventory records found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        <hr className="booking-section-divider" />
+            <hr className="booking-section-divider" />
+          </>
+        )}
 
         {/* Payments Table */}
-        {!hasRole(['stylist']) && (
+        {!(isStylist || isCook) && (
           <div className="section white-bg">
             <div className="section-title">
               <h3>Payments</h3>
@@ -914,7 +923,7 @@ function BookingDetails() {
         )}
 
         {/* Booking actions */}
-        {!hasRole(['stylist']) && (
+        {!(isStylist || isCook) && (
           <div className="booking-delete-section">
             {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
               <>

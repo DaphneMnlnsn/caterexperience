@@ -88,6 +88,21 @@ class UserController extends Controller
 
         return response()->json(['message' => 'User updated successfully', 'user' => $user]);
     }
+
+    public function resetPass(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $defaultPassword = $user->last_name . ".123";
+
+        $user->update([
+            'password' => Hash::make($defaultPassword),
+        ]);
+
+        AuditLogger::log('Updated', "Module: User | Updated user: {$user->first_name} {$user->last_name}, ID: {$user->id}");
+
+        return response()->json(['message' => 'User updated successfully', 'user' => $user]);
+    }
     public function archive($id)
     {
         $user = User::findOrFail($id);

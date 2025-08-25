@@ -13,3 +13,7 @@ Route::middleware('role:admin')->group(function () {
         Route::delete('/{id}', [UserController::class, 'destroy']);
     });
 });
+
+Route::middleware('role:admin,stylist,cook,head waiter,client')->group(function () {
+    Route::put('users/reset/{id}', [UserController::class, 'resetPass']);
+});

@@ -16,6 +16,8 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedFood, setSelectedFood] = useState(null);
     const [halalFilter, setHalalFilter] = useState('');
+    const isAdmin = user && user.role?.toLowerCase() === 'admin';
+    const isCook = user && user.role?.toLowerCase() === 'cook';
 
     useEffect(() => {
         fetchFoods();
@@ -102,7 +104,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 <option value="halal">Halal</option>
                                 <option value="non-halal">Not Halal</option>
                             </select>
-                            <button className="add-btn" onClick={() => setShowModal(true)}>+ Add New Food</button>
+                            {isAdmin && (
+                                <button className="add-btn" onClick={() => setShowModal(true)}>+ Add New Food</button>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -116,15 +120,17 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                     {cat.items.map(item => (
                                         <div key={item.name} className="menu-card"
                                             onClick={() => {
-                                                setSelectedFood({
-                                                    food_name: item.name,
-                                                    food_description: item.description,
-                                                    food_type: cat.category,
-                                                    food_id: item.id,
-                                                    is_halal: item.is_halal,
-                                                    food_status: item.food_status
-                                                });
-                                                setShowEditModal(true);
+                                                if (isAdmin) {
+                                                    setSelectedFood({
+                                                        food_name: item.name,
+                                                        food_description: item.description,
+                                                        food_type: cat.category,
+                                                        food_id: item.id,
+                                                        is_halal: item.is_halal,
+                                                        food_status: item.food_status
+                                                    });
+                                                    setShowEditModal(true);
+                                                }
                                             }}>
                                             {item.food_status !== 'available' && <div className="archive-overlay">Unavailable</div>}
                                             <div className="menu-card-content">
@@ -141,17 +147,21 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     </div>
                 </section>
             </div>
-            <AddFoodModal
-            show={showModal}
-            onClose={() => setShowModal(false)}
-            onSave={fetchFoods}
-            />
-            <EditFoodModal
-            show={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onSave={fetchFoods}
-            food={selectedFood}
-            />
+            {isAdmin && (
+                <AddFoodModal
+                show={showModal}
+                onClose={() => setShowModal(false)}
+                onSave={fetchFoods}
+                />
+            )}
+            {isAdmin && (
+                <EditFoodModal
+                show={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSave={fetchFoods}
+                food={selectedFood}
+                />
+            )}
         </div>
     );
 }

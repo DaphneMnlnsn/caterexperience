@@ -43,6 +43,9 @@ function Login() {
                 }
                 else if (user.role === 'stylist') {
                     navigate('/stylist/dashboard');
+                }
+                else if (user.role === 'cook') {
+                    navigate('/cook/dashboard');
                 } else {
                     // Redirect to other roles
                 }

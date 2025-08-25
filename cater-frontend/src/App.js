@@ -19,6 +19,7 @@ import AddBooking from "./pages/admin/AddBooking";
 import Edit2DSetup from "./pages/Edit2DSetup";
 import View2DSetup from "./pages/View2DSetup";
 import StylistDashboard from "./pages/stylist/StylistDashboard";
+import CookDashboard from "./pages/cook/CookDashboard";
 import Bookings from "./pages/Bookings";
 
 export default function App(){
@@ -93,15 +94,6 @@ export default function App(){
         />
 
         <Route
-          path="/menu"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <Menu />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/admin/inventory"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
@@ -123,8 +115,17 @@ export default function App(){
         <Route
           path="/bookings/:id"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+            <ProtectedRoute allowedRoles={['admin', 'stylist', 'cook']}>
               <BookingDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/menu"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'cook']}>
+              <Menu />
             </ProtectedRoute>
           }
         />
@@ -171,6 +172,16 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['stylist']}>
               <StylistDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* COOK ONLY */}
+        <Route
+          path="/cook/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['cook']}>
+              <CookDashboard />
             </ProtectedRoute>
           }
         />
