@@ -83,6 +83,58 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function getCookStats(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $totalEvents = DB::table('event_booking')
+            ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
+            ->where('staff_assignment.user_id', $userId)
+            ->count();
+
+        $menuItemsCompleted = DB::table('menu_food')
+            ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
+            ->join('event_booking', 'event_booking.menu_id', '=', 'menu_food.menu_id')
+            ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
+            ->where('staff_assignment.user_id', $userId)
+            ->where('menu_food.status', 'completed')
+            ->count();
+
+        $menuItemsPending = DB::table('menu_food')
+            ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
+            ->join('event_booking', 'event_booking.menu_id', '=', 'menu_food.menu_id')
+            ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
+            ->where('staff_assignment.user_id', $userId)
+            ->where('menu_food.status', 'pending')
+            ->count();
+
+        $today = now()->toDateString();
+        $tomorrow = now()->addDay()->toDateString();
+
+        $foodsToPrepare = DB::table('menu_food')
+            ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
+            ->join('event_booking', 'event_booking.menu_id', '=', 'menu_food.menu_id')
+            ->join('food', 'menu_food.food_id', '=', 'food.food_id')
+            ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
+            ->where('staff_assignment.user_id', $userId)
+            ->whereIn('event_booking.event_date', [$today, $tomorrow])
+            ->select(
+                'event_booking.event_date',
+                'food.food_name as food_name',
+                'menu_food.status'
+            )
+            ->orderBy('event_booking.event_date')
+            ->get()
+            ->groupBy('event_date');
+
+        return response()->json([
+            'total_events'         => $totalEvents,
+            'menu_items_completed' => $menuItemsCompleted,
+            'menu_items_pending'   => $menuItemsPending,
+            'foods_to_prepare'     => $foodsToPrepare,
+        ]);
+    }
+
     public function getAuditLog()
     {
         $logs = DB::table('auditlog')

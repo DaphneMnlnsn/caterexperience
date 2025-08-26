@@ -1,0 +1,82 @@
+.menu-checklist-card {
+  padding: 1rem;
+}
+
+.mc-title {
+  font-size: 28px;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.mc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 26px;
+}
+
+.mc-table thead th {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1.5px solid #d6a740;
+  font-weight: 600;
+}
+
+.mc-table tbody td {
+  padding: 18px 12px;
+  vertical-align: middle;
+  color: #222;
+}
+
+.mc-empty {
+  text-align: center;
+  padding: 28px;
+  color: #666;
+}
+
+.mc-dish { width: 35%; }
+.mc-qty  { width: 20%; }
+.mc-cat  { width: 20%; }
+.mc-deadline { width: 20%; }
+.mc-check { width: 5%; text-align: center; }
+
+.mc-check .mc-checkbox {
+  display: inline-block;
+  position: relative;
+}
+.mc-check input[type="checkbox"] { display: none; }
+.mc-check .mc-checkmark {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #a33;
+  border-radius: 2px;
+}
+.mc-check input[type="checkbox"]:checked + .mc-checkmark {
+  background: #a33;
+}
+
+.mc-done .mc-dish,
+.mc-done .mc-qty,
+.mc-done .mc-cat,
+.mc-done .mc-deadline {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.mc-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.mc-save-btn {
+  background: #f6e96b;
+  border: none;
+  padding: 14px 36px;
+  border-radius: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mc-save-btn:disabled { opacity: 0.6; cursor: default; }
+
+.mc-error { color: #c00; margin-top: 12px; text-align: center; }

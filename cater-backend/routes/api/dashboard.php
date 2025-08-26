@@ -14,3 +14,7 @@ Route::middleware('role:admin')->group(function () {
 Route::middleware('role:stylist')->group(function () {
     Route::get('/dashboard/stylist/stats', [DashboardController::class, 'getStylistStats']);
 });
+
+Route::middleware('role:cook')->group(function () {
+    Route::get('/dashboard/cook/stats', [DashboardController::class, 'getCookStats']);
+});

@@ -11,6 +11,7 @@ import axiosClient from '../axiosClient';
 import AddPaymentModal from '../components/AddPaymentModal';
 import AddBookingItemModal from '../components/AddBookingItemModal';
 import Invoice from '../components/Invoice';
+import MenuChecklist from '../components/MenuChecklist';
 
 function BookingDetails() {
   const { id } = useParams();
@@ -699,6 +700,18 @@ function BookingDetails() {
             <div className="section white-bg">
               <h3>Venue Design</h3>
               <VenuePreview bookingId={booking.booking_id} />
+            </div>
+
+            <hr className="booking-section-divider" />
+          </>
+        )}
+
+        {/* Menu Checklist */}
+        {isCook && (
+          <>
+            <div className="section white-bg">
+              <h3>Menu Checklist</h3>
+              <MenuChecklist bookingId={booking.booking_id} />
             </div>
 
             <hr className="booking-section-divider" />
