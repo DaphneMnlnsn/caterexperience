@@ -14,17 +14,23 @@
   margin-bottom: 26px;
 }
 
+.mc-table th, .mc-table td {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid #ddd;
+}
+
 .mc-table thead th {
   text-align: left;
   padding: 14px 12px;
   border-bottom: 1.5px solid #d6a740;
-  font-weight: 600;
+  font-weight: bold;
+  z-index: 1;
+  font-size: 16px;
 }
 
 .mc-table tbody td {
-  padding: 18px 12px;
-  vertical-align: middle;
-  color: #222;
+  font-size: 14px;
 }
 
 .mc-empty {
@@ -48,11 +54,11 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 2px solid #a33;
+  border: 2px solid #d6a740;
   border-radius: 2px;
 }
 .mc-check input[type="checkbox"]:checked + .mc-checkmark {
-  background: #a33;
+  background: #d6a740;
 }
 
 .mc-done .mc-dish,

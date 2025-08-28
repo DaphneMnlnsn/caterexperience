@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './MenuChecklist.css';
 import axiosClient from '../axiosClient';
+import Swal from 'sweetalert2';
 
 function MenuChecklist({ bookingId = null, items: initialItems = null }) {
   const [items, setItems] = useState(initialItems || []);
@@ -46,13 +47,13 @@ function MenuChecklist({ bookingId = null, items: initialItems = null }) {
       const payload = items.map(i => ({
         id: i.id,
         status: i.status,
-        completed_at: i.status === 'completed' ? i.completed_at ?? new Date().toISOString() : null,
       }));
 
       await axiosClient.put('/menu-food/batch-update', { items: payload });
 
+      Swal.fire('Saved!', 'Checklist has been updated.', 'success');
+
     } catch (err) {
-      console.error('Failed saving menu checklist', err);
       setError('Failed to save changes. Try again.');
     } finally {
       setSaving(false);

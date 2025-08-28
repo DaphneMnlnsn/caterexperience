@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('menu_id');
             $table->unsignedBigInteger('food_id');
             $table->enum('status', ['pending', 'completed'])->default('pending');
-            $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
 
             $table->foreign('menu_id')->references('menu_id')->on('menu')->onDelete('cascade');

@@ -76,6 +76,11 @@ class EventBooking extends Model
         return $this->hasMany(EventAddon::class, 'booking_id');
     }
 
+    public function menuFoods()
+    {
+        return $this->hasMany(MenuFood::class, 'menu_id', 'menu_id')->with('food');
+    }
+    
     protected static function generateReadableCode($length = 6)
     {
         $pool = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
