@@ -3,7 +3,7 @@
 use App\Http\Controllers\VenueSetupController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('role:admin,stylist,head waiter')->group(function () {
+Route::middleware('role:admin,stylist')->group(function () {
     Route::prefix('setups')->group(function() {
         Route::post('/', [VenueSetupController::class, 'store']);
         Route::put('/{id}', [VenueSetupController::class, 'update']);

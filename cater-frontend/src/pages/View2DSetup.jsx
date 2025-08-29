@@ -40,7 +40,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   }
 
   if (!setupId) {
-    return <div>No setup found for this booking.</div>;
+    return <div>No setup found for this booking or Unauthorized.</div>;
   }
 
   return (

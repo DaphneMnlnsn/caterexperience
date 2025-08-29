@@ -34,7 +34,7 @@ class EventBookingController extends Controller
             )
             ->where('event_booking.event_date', '>=', now());
 
-        if ($user->role === 'stylist') {
+        if (strtolower($user->role) !== 'admin') {
             $query->whereHas('staffAssignments', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
@@ -107,16 +107,20 @@ class EventBookingController extends Controller
             return response()->json(['message' => 'Event booking not found'], 404);
         }
 
-        if (strtolower($user->role) === 'admin') {
-            $tasks = $booking->tasks()->with('assignee')->get();
-        } else {
-            $tasks = $booking->tasks()
-                ->where(function ($q) use ($user) {
-                    $q->where('assigned_to', $user->id);
-                })
-                ->with('assignee')
-                ->get();
+        if (strtolower($user->role) !== 'admin') {
+            $isAssigned = $booking->tasks()->where('assigned_to', $user->id)->exists();
+
+            if (!$isAssigned) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         }
+
+        $tasks = $booking->tasks()
+            ->when(strtolower($user->role) !== 'admin', function ($q) use ($user) {
+                $q->where('assigned_to', $user->id);
+            })
+            ->with('assignee')
+            ->get();
 
         $booking->setRelation('tasks', $tasks);
 

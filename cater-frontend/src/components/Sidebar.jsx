@@ -28,6 +28,7 @@ export default function Sidebar() {
         { section: "Main", to: "/admin/dashboard", label: "Dashboard", icon: <FaHome />, roles: ["admin"] },
         { section: "Main", to: "/stylist/dashboard", label: "Dashboard", icon: <FaHome />, roles: ["stylist"] },
         { section: "Main", to: "/cook/dashboard", label: "Dashboard", icon: <FaHome />, roles: ["cook"] },
+        { section: "Main", to: "/waiter/dashboard", label: "Dashboard", icon: <FaHome />, roles: ["head waiter"] },
         { section: "Main", to: "/bookings", label: "Event Bookings", icon: <FaCalendarAlt />, roles: ["admin"] },
         { section: "Main", to: "/assigned/bookings", label: "Event Bookings", icon: <FaCalendarAlt />, roles: ["stylist", "head waiter", "cook", "client"] },
         { section: "Main", to: "/admin/clients", label: "Clients", icon: <FaUser />, roles: ["admin"] },
@@ -35,12 +36,12 @@ export default function Sidebar() {
 
         { section: "Management", to: "/menu", label: "Menu", icon: <FaUtensils />, roles: ["admin", "cook"] },
         { section: "Management", to: "/package", label: "Packages", icon: <FaBox />, roles: ["admin", "stylist"] },
-        { section: "Management", to: "/setup", label: "Venue Setups", icon: <FaMapMarkedAlt />, roles: ["admin", "stylist"] },
+        { section: "Management", to: "/setup", label: "Venue Setups", icon: <FaMapMarkedAlt />, roles: ["admin", "stylist", "head waiter"] },
         { section: "Management", to: "/admin/inventory", label: "Inventory", icon: <FaWarehouse />, roles: ["admin"] },
         { section: "Management", to: "/admin/users", label: "Staff Management", icon: <FaUsersCog />, roles: ["admin"] },
 
         { section: "System", to: "/admin/audit", label: "Audit Log", icon: <FaClipboardList />, roles: ["admin"] },
-        { section: "System", label: "Log Out", icon: <FaSignOutAlt />, roles: ["admin", "stylist", "cook"], logout: true },
+        { section: "System", label: "Log Out", icon: <FaSignOutAlt />, roles: ["admin", "stylist", "cook", "head waiter"], logout: true },
     ];
 
     const groupedMenu = menuItems.reduce((acc, item) => {

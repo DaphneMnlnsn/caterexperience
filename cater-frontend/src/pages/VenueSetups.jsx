@@ -13,6 +13,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const [searchTerm, setSearchTerm] = useState('');
   const [setups, setSetups] = useState([]);
   const [selectedSetup, setSelectedSetup] = useState(null);
+  const [filter, setFilter] = useState('pending');
 
   useEffect(() => {
     fetchSetups();
@@ -24,10 +25,20 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
       .catch(err => Swal.fire('Error', 'Could not load venue setups.', 'error'));
   };
 
-  const filteredSetups = setups.filter(setup =>
-    setup.layout_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    setup.layout_type?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSetups = setups
+    .filter(setup => {
+      if (filter === 'pending') {
+        return setup.booking?.booking_status?.toLowerCase() === 'pending';
+      }
+      if (filter === 'finished') {
+        return setup.booking?.booking_status?.toLowerCase() === 'finished';
+      }
+      return true;
+    })
+    .filter(setup =>
+      setup.layout_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      setup.layout_type?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const handleSubmit = (setup) => {
     Swal.fire({
@@ -69,6 +80,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             <div className="page-header-actions">
           <h3>Venue Setups</h3>
             <div className='spacer'></div>
+            <select value={filter} onChange={(e) => setFilter(e.target.value)} className='filter-input'>
+              <option value="pending">Pending Bookings</option>
+              <option value="finished">Finished Bookings</option>
+              <option value="all">All</option>
+            </select>
             <div className="search-box">
               <input
                 type="text"

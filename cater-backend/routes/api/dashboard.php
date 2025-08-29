@@ -18,3 +18,7 @@ Route::middleware('role:stylist')->group(function () {
 Route::middleware('role:cook')->group(function () {
     Route::get('/dashboard/cook/stats', [DashboardController::class, 'getCookStats']);
 });
+
+Route::middleware('role:head waiter')->group(function () {
+    Route::get('/dashboard/waiter/stats', [DashboardController::class, 'getWaiterStats']);
+});

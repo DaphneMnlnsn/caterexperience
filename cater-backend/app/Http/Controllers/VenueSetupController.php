@@ -21,6 +21,10 @@ class VenueSetupController extends Controller
             $query->whereHas('booking.staffAssignments', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
+
+            if (strtolower($user->role) === 'head waiter') {
+                $query->whereIn('status', ['accepted', 'submitted']);
+            }
         }
 
         $setups = $query->get();
@@ -28,15 +32,55 @@ class VenueSetupController extends Controller
         return response()->json(['setups' => $setups]);
     }
 
-    public function indexSelected($bookingId)
+    public function indexSelected(Request $request, $bookingId)
     {
-        $setup = VenueSetup::where('booking_id', $bookingId)->first();
+        $user = $request->user();
+
+        $query = VenueSetup::with(['booking.customer', 'booking.theme'])
+            ->where('booking_id', $bookingId);
+
+        if (strtolower($user->role) !== 'admin') {
+            $query->whereHas('booking.staffAssignments', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+
+            if (strtolower($user->role) === 'waiter') {
+                $query->whereIn('status', ['accepted', 'submitted']);
+            }
+        }
+
+        $setup = $query->first();
+
+        if (!$setup) {
+            return response()->json(['message' => 'Unauthorized or not found'], 403);
+        }
+
         return response()->json($setup);
     }
 
-    public function indexSetup($setupId)
+    public function indexSetup(Request $request, $setupId)
     {
-        $setup = VenueSetup::with(['placements.object'])->where('setup_id', $setupId)->firstOrFail();
+        $user = $request->user();
+
+        $query = VenueSetup::with(['placements.object', 'booking.staffAssignments'])
+            ->where('setup_id', $setupId);
+
+        if (strtolower($user->role) !== 'admin') {
+            $query->whereHas('booking.staffAssignments', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+
+            if (strtolower($user->role) === 'waiter') {
+                $query->whereIn('status', ['accepted', 'submitted']);
+            }
+        }
+
+        $setup = $query->first();
+
+        if (!$setup) {
+            return response()->json(['message' => 'Unauthorized or not found'], 403);
+        }
+
         return response()->json($setup);
     }
     

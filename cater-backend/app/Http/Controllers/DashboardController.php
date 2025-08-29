@@ -135,6 +135,11 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function getWaiterStats(Request $request)
+    {
+
+    }
+
     public function getAuditLog()
     {
         $logs = DB::table('auditlog')

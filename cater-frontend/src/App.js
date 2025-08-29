@@ -21,6 +21,7 @@ import View2DSetup from "./pages/View2DSetup";
 import StylistDashboard from "./pages/stylist/StylistDashboard";
 import CookDashboard from "./pages/cook/CookDashboard";
 import Bookings from "./pages/Bookings";
+import WaiterDashboard from "./pages/head waiter/WaiterDashboard";
 
 export default function App(){
   return(
@@ -115,7 +116,7 @@ export default function App(){
         <Route
           path="/bookings/:id"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'stylist', 'cook']}>
+            <ProtectedRoute allowedRoles={['admin', 'stylist', 'cook', 'head waiter', 'client']}>
               <BookingDetails />
             </ProtectedRoute>
           }
@@ -142,7 +143,7 @@ export default function App(){
         <Route
           path="/setup"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+            <ProtectedRoute allowedRoles={['admin', 'stylist', 'head waiter']}>
               <AdminVenue />
             </ProtectedRoute>
           }
@@ -160,7 +161,7 @@ export default function App(){
         <Route
           path="/view/:id"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+            <ProtectedRoute allowedRoles={['admin', 'stylist', 'head waiter']}>
               <View2DSetup />
             </ProtectedRoute>
           }
@@ -182,6 +183,16 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['cook']}>
               <CookDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* WAITER ONLY */}
+        <Route
+          path="/waiter/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['head waiter']}>
+              <WaiterDashboard />
             </ProtectedRoute>
           }
         />

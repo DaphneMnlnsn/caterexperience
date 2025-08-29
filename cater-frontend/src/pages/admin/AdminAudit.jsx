@@ -190,8 +190,10 @@ function AdminAudit() {
             >
               <option value="">All Actions</option>
               <option value="Login">Login</option>
+              <option value="Logout">Logout</option>
               <option value="Viewed">Viewed</option>
               <option value="Created">Created</option>
+              <option value="Updated">Updated</option>
             </select>
 
             <input

@@ -27,8 +27,10 @@ function BookingDetails() {
     return String(roles).toLowerCase() === current;
   };
 
+  const isAdmin = hasRole('admin');
   const isStylist = hasRole('stylist');
   const isCook = hasRole('cook');
+  const isWaiter = hasRole('head waiter');
 
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -167,7 +169,7 @@ function BookingDetails() {
   }, {});
 
   const handleEdit = () => {
-    if (isStylist || isCook) return;
+    if (!isAdmin) return;
 
     setEditedData({
       ...booking,
@@ -218,7 +220,7 @@ function BookingDetails() {
   };
 
   const handleFinish = () => {
-    if (isStylist || isCook) return;
+    if (!isAdmin) return;
     Swal.fire({
       title: 'Are you sure?',
       text: `This will mark the event as finished.`,
@@ -244,7 +246,7 @@ function BookingDetails() {
   };
 
   const handleResched = () => {
-    if (isStylist || isCook) return;
+    if (!isAdmin) return;
     Swal.fire({
       title: 'Reschedule Event',
       html: `
@@ -325,7 +327,7 @@ function BookingDetails() {
   };
 
   const handleCancel = () => {
-    if (isStylist || isCook) return;
+    if (!isAdmin) return;
     Swal.fire({
       title: 'Are you sure you want to cancel?',
       text: `This cannot be undone. It will also delete tasks for the staff.`,
@@ -353,7 +355,7 @@ function BookingDetails() {
   const handleSaveRow = async (bookingInventoryId) => {
     try {
       
-      if (!isStylist) {
+      if (isAdmin) {
         await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
           quantity_assigned: editedRow.quantity_assigned,
           remarks: editedRow.remarks,
@@ -380,9 +382,8 @@ function BookingDetails() {
     }
   };
 
-
   const handleDelete = async (bookingInventoryId) => {
-    if (isStylist || isCook) return;
+    if (!isAdmin) return;
     const confirm = await Swal.fire({
       title: 'Delete Item?',
       text: 'This will remove the inventory assignment.',
@@ -433,8 +434,8 @@ function BookingDetails() {
             <div className="action-buttons">
               {isEditing ? (
                 <>
-                  {!(isStylist || isCook) && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
-                  {!(isStylist || isCook) && (
+                  {isAdmin && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
+                  {isAdmin && (
                     <button
                       onClick={() => {
                         setIsEditing(false);
@@ -448,7 +449,7 @@ function BookingDetails() {
                 </>
               ) : (
                 <>
-                  {!(isStylist || isCook) && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                  {isAdmin && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
                     <>
                       <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
                       {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
@@ -699,7 +700,7 @@ function BookingDetails() {
           <>
             <div className="section white-bg">
               <h3>Venue Design</h3>
-              <VenuePreview bookingId={booking.booking_id} />
+              <VenuePreview bookingId={booking.booking_id} isWaiter={isWaiter}/>
             </div>
 
             <hr className="booking-section-divider" />
@@ -724,7 +725,7 @@ function BookingDetails() {
             <div className="section white-bg">
               <div className="section-title">
                 <h3>Inventory Summary</h3>
-                {!isStylist && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                {isAdmin && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
                   <button className="booking-edit-btn" onClick={() => setShowAddItemModal(true)}>
                     + Add Inventory Item
                   </button>
@@ -748,12 +749,12 @@ function BookingDetails() {
                       inventorySummary.map((row) => {
                         const isRowEditing = editingRowId !== null && editingRowId === row.booking_inventory_id;
 
-                        return (
+                        return ( 
                           <tr key={row.booking_inventory_id}>
                             <td>{row.item_name}</td>
 
                             <td>
-                              {isRowEditing && !isStylist ? (
+                              {isRowEditing && isAdmin ? (
                                 <input
                                   type="number"
                                   value={editedRow.quantity_assigned ?? ''}
@@ -770,7 +771,7 @@ function BookingDetails() {
                             </td>
 
                             <td>
-                              {isRowEditing && !isStylist ? (
+                              {isRowEditing && isAdmin ? (
                                 <input
                                   type="number"
                                   value={editedRow.quantity_used ?? ''}
@@ -804,7 +805,7 @@ function BookingDetails() {
                             </td>
 
                             <td>
-                              {isRowEditing && !isStylist ? (
+                              {isRowEditing && isAdmin ? (
                                 <input
                                   type="text"
                                   value={editedRow.remarks ?? ''}
@@ -844,7 +845,7 @@ function BookingDetails() {
                                         <FaPen
                                           className="icon edit-icon"
                                           onClick={() => {
-                                            if (isStylist) {
+                                            if (isStylist || isWaiter) {
                                               setEditingRowId(row.booking_inventory_id);
                                               setEditedRow({
                                                 quantity_returned: row.quantity_returned ?? '',
@@ -891,7 +892,7 @@ function BookingDetails() {
         )}
 
         {/* Payments Table */}
-        {!(isStylist || isCook) && (
+        {isAdmin && (
           <div className="section white-bg">
             <div className="section-title">
               <h3>Payments</h3>
@@ -936,7 +937,7 @@ function BookingDetails() {
         )}
 
         {/* Booking actions */}
-        {!(isStylist || isCook) && (
+        {isAdmin && (
           <div className="booking-delete-section">
             {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
               <>
@@ -969,7 +970,7 @@ function BookingDetails() {
         staffOptions={availableStaff}
       />
 
-      {!hasRole(['stylist']) && (
+      {isAdmin && (
         <>
           <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
           <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />

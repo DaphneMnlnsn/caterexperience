@@ -46,8 +46,11 @@ function Login() {
                 }
                 else if (user.role === 'cook') {
                     navigate('/cook/dashboard');
+                } 
+                else if (user.role === 'head waiter') {
+                    navigate('/waiter/dashboard');
                 } else {
-                    // Redirect to other roles
+                    navigate('/client/dashboard');
                 }
             }
         } catch (error) {
