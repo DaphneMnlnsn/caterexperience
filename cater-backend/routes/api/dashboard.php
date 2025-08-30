@@ -22,3 +22,7 @@ Route::middleware('role:cook')->group(function () {
 Route::middleware('role:head waiter')->group(function () {
     Route::get('/dashboard/waiter/stats', [DashboardController::class, 'getWaiterStats']);
 });
+
+Route::middleware('role:client')->group(function () {
+    Route::get('/dashboard/client/stats', [DashboardController::class, 'getClientStats']);
+});

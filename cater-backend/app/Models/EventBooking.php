@@ -80,6 +80,11 @@ class EventBooking extends Model
     {
         return $this->hasMany(MenuFood::class, 'menu_id', 'menu_id')->with('food');
     }
+
+    public function bookingInventory()
+    {
+        return $this->hasMany(BookingInventory::class, 'booking_id', 'booking_id'); 
+    }
     
     protected static function generateReadableCode($length = 6)
     {

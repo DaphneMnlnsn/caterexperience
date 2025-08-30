@@ -22,6 +22,7 @@ import StylistDashboard from "./pages/stylist/StylistDashboard";
 import CookDashboard from "./pages/cook/CookDashboard";
 import Bookings from "./pages/Bookings";
 import WaiterDashboard from "./pages/head waiter/WaiterDashboard";
+import ClientDashboard from "./pages/client/ClientDashboard";
 
 export default function App(){
   return(
@@ -125,7 +126,7 @@ export default function App(){
         <Route
           path="/menu"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'cook']}>
+            <ProtectedRoute allowedRoles={['admin', 'cook', 'client']}>
               <Menu />
             </ProtectedRoute>
           }
@@ -134,7 +135,7 @@ export default function App(){
         <Route
           path="/package"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'stylist']}>
+            <ProtectedRoute allowedRoles={['admin', 'stylist', 'client']}>
               <Packages />
             </ProtectedRoute>
           }
@@ -193,6 +194,16 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['head waiter']}>
               <WaiterDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* CLIENT ONLY */}
+        <Route
+          path="/client/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['client']}>
+              <ClientDashboard />
             </ProtectedRoute>
           }
         />

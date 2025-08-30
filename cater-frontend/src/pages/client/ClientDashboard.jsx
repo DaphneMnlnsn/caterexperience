@@ -6,7 +6,7 @@ import { FaBell } from 'react-icons/fa';
 import axios from 'axios';
 import axiosClient from '../../axiosClient';
 
-function CookDashboard() {
+function ClientDashboard() {
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
@@ -88,4 +88,4 @@ function CookDashboard() {
   );
 }
 
-export default CookDashboard;
+export default ClientDashboard;

@@ -120,3 +120,15 @@ body {
   color: #555;
   margin-left: 10px;
 }
+
+.setup-checklist ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.setup-checklist li {
+  margin-top: -0.6rem;
+  padding: 2px 0;
+  line-height: 1.3;
+}

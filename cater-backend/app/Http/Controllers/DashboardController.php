@@ -7,6 +7,7 @@ use App\Models\EventBooking;
 use App\Models\Payment;
 use App\Models\Task;
 use App\Models\AuditLog;
+use App\Models\EventInventoryUsage;
 use App\Models\VenueSetup;
 use Illuminate\Support\Facades\DB;
 
@@ -135,9 +136,141 @@ class DashboardController extends Controller
         ]);
     }
 
+    /*public function getWaiterStats(Request $request)
+    {
+        $userId = $request->user()->id;
+        $today = now()->toDateString();
+
+        $totalEvents = EventBooking::whereHas('tasks', function ($query) use ($userId) {
+                $query->where('assigned_to', $userId);
+            })
+            ->count();
+
+        $upcomingEvent = EventBooking::whereDate('event_date', '>=', $today)
+            ->whereHas('tasks', function ($query) use ($userId) {
+                $query->where('assigned_to', $userId);
+            })
+            ->with(['bookingInventory.item', 'bookingInventory.usage'])
+            ->orderBy('event_date', 'asc')
+            ->orderBy('event_start_time', 'asc')
+            ->first();
+
+        $setupChecklist = collect();
+        $callTime = "N/A";
+        $inventoryItems = "N/A";
+
+        if ($upcomingEvent) {
+            $startDateTime = \Carbon\Carbon::parse($upcomingEvent->event_date . ' ' . $upcomingEvent->event_start_time);
+            $callTime = $startDateTime->copy()->subHours(2)->format('Y-m-d H:i:s');
+
+            $setupChecklist->push([
+                'event_name'      => $upcomingEvent->event_name ?? 'N/A',
+                'event_date'    => $upcomingEvent->event_date,
+                'event_start'   => $upcomingEvent->event_start_time,
+                'call_time'     => $callTime,
+                'inventory'     => $upcomingEvent->bookingInventory->map(function ($inv) {
+                    return [
+                        'item_name'        => $inv->item->item_name ?? null,
+                        'quantity_assigned'=> $inv->quantity_assigned,
+                        'quantity_returned'=> optional($inv->usage)->quantity_returned ?? 0,
+                    ];
+                }),
+            ]);
+
+            $inventoryItems = $upcomingEvent->bookingInventory
+                ->filter(function ($inv) {
+                    return optional($inv->usage)->quantity_returned == 0;
+                })
+                ->map(function ($inv) {
+                    return [
+                        'item_name'         => $inv->item->item_name ?? null,
+                        'quantity_assigned' => $inv->quantity_assigned,
+                    ];
+                });
+        }
+
+        $finishedEvents = EventBooking::where('booking_status', 'finished')
+            ->whereHas('tasks', function ($query) use ($userId) {
+                $query->where('assigned_to', $userId);
+            })
+            ->count();
+
+        return response()->json([
+            'total_events'   => $totalEvents,
+            'call_time'         => $callTime,
+            'inventory_updates' => $inventoryItems,
+            'finished_events'   => $finishedEvents,
+            'setup_checklist'   => $setupChecklist,
+        ]);
+    }*/
+
     public function getWaiterStats(Request $request)
     {
+        $userId = $request->user()->id;
+        $today = now()->toDateString();
 
+        $totalEvents = EventBooking::whereHas('tasks', function ($query) use ($userId) {
+                $query->where('assigned_to', $userId);
+            })
+            ->count();
+
+        $upcomingEvent = EventBooking::whereDate('event_date', $today)
+            ->whereHas('tasks', function ($query) use ($userId) {
+                $query->where('assigned_to', $userId);
+            })
+            ->with(['bookingInventory.item', 'bookingInventory.usage'])
+            ->orderBy('event_date', 'asc')
+            ->orderBy('event_start_time', 'asc')
+            ->first();
+
+        $setupChecklist = collect();
+        $callTime = "N/A";
+        $inventoryItems = "N/A";
+
+        if ($upcomingEvent) {
+            $startDateTime = \Carbon\Carbon::parse($upcomingEvent->event_date . ' ' . $upcomingEvent->event_start_time);
+            $callTime = $startDateTime->copy()->subHours(2)->format('Y-m-d H:i:s');
+
+            $setupChecklist->push([
+                'event_name'      => $upcomingEvent->event_name ?? 'N/A',
+                'event_date'    => $upcomingEvent->event_date,
+                'event_start'   => $upcomingEvent->event_start_time,
+                'call_time'     => $callTime,
+                'inventory'     => $upcomingEvent->bookingInventory->map(function ($inv) {
+                    return [
+                        'item_name'        => $inv->item->item_name ?? null,
+                        'quantity_assigned'=> $inv->quantity_assigned,
+                        'quantity_returned'=> optional($inv->usage)->quantity_returned ?? 0,
+                    ];
+                }),
+                'waiters'     => $upcomingEvent->waiter_count
+            ]);
+
+            $inventoryItems = $upcomingEvent->bookingInventory
+                ->filter(function ($inv) {
+                    return optional($inv->usage)->quantity_returned == 0;
+                })
+                ->map(function ($inv) {
+                    return [
+                        'item_name'         => $inv->item->item_name ?? null,
+                        'quantity_assigned' => $inv->quantity_assigned,
+                    ];
+                });
+        }
+
+        $finishedEvents = EventBooking::where('booking_status', 'finished')
+            ->whereHas('tasks', function ($query) use ($userId) {
+                $query->where('assigned_to', $userId);
+            })
+            ->count();
+
+        return response()->json([
+            'total_events'   => $totalEvents,
+            'call_time'         => $callTime,
+            'inventory_updates' => $inventoryItems,
+            'finished_events'   => $finishedEvents,
+            'setup_checklist'   => $setupChecklist,
+        ]);
     }
 
     public function getAuditLog()

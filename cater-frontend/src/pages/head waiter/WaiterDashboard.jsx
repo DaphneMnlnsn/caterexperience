@@ -12,20 +12,33 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
   const [stats, setStats] = useState({
     total_events: 0,
-    setup_plans_due: 0,
-    setup_plans_submitted: 0,
-    todo_tasks: 0,
+    call_time: "N/A",
+    inventory_updates: [],
+    finished_events: 0,
+    setup_checklist: []
   });
 
-  const [deadlines, setDeadlines] = useState([]);
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "N/A";
+    const d = new Date(timeStr);
+    if (isNaN(d)) return "N/A";
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
 
   useEffect(() => {
     axiosClient.get('/dashboard/waiter/stats')
       .then(res => {
         setStats(res.data);
-        setDeadlines(res.data.deadlines || []);
       })
-      .catch(err => console.error('Error fetching stats', err));
+      .catch(err => console.error('Error fetching waiter stats', err));
   }, []);
 
   return (
@@ -48,9 +61,12 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
           <p>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           <div className="stats">
             <div className="stat-box">Total Events <span>{stats.total_events}</span></div>
-            <div className="stat-box">Setup Plans Due <span>{stats.setup_plans_due}</span></div>
-            <div className="stat-box">Setup Plans Submitted <span>{stats.setup_plans_submitted}</span></div>
-            <div className="stat-box">To-Do Tasks <span>{stats.todo_tasks}</span></div>
+            <div className="stat-box">Inventory Items to Update <span>
+              {stats.inventory_updates && typeof stats.inventory_updates === "object"
+                ? Object.keys(stats.inventory_updates).length : 0}
+              </span></div>
+            <div className="stat-box">Call Time <span>{formatTime(stats.call_time)}</span></div>
+            <div className="stat-box">Finished Events <span>{stats.finished_events}</span></div>
           </div>
         </section>
 
@@ -60,18 +76,33 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
           </div>
 
           <aside className="audit-log">
-            <h3>Setup Deadlines</h3>
+            <h3>Setup Checklist</h3>
             <ul>
-                {deadlines.length > 0 ? (
-                deadlines.map((deadline, index) => (
-                    <li key={index}>
-                    <strong>{deadline.layout_name}</strong> 
-                    <span> – due {new Date(deadline.due_date).toLocaleDateString()}</span>
-                    </li>
+              {stats.setup_checklist.length > 0 ? (
+                stats.setup_checklist.map((event, idx) => (
+                  <li key={idx}>
+                    <strong>Event Name: {event.event_name}</strong><br />
+                    Date: {formatDate(event.event_date)} <br />
+                    Start: {
+                      event.event_start ? new Date(`1970-01-01T${event.event_start}`).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit', hour12: true }) : 'N/A'
+                    } <br />                    
+                    Call Time: {formatTime(event.call_time)} <br />
+                    <strong>To Set Up:</strong>
+                    <ul className='setup-checklist'>
+                      {event.inventory.map((inv, invIdx) => (
+                        <li key={invIdx}>
+                          - {inv.quantity_assigned} {inv.item_name}
+                        </li>
+                      ))}
+                      <li>
+                        - {event.waiters} waiters
+                      </li>
+                    </ul>
+                  </li>
                 ))
-                ) : (
-                <li>No upcoming deadlines</li>
-                )}
+              ) : (
+                <li>No assigned events today.</li>
+              )}
             </ul>
           </aside>
         </section>
