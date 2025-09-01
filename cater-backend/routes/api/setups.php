@@ -18,3 +18,9 @@ Route::middleware('role:admin,stylist,head waiter,client')->group(function () {
         Route::get('/setup/{id}', [VenueSetupController::class, 'indexSetup']);
     });
 });
+
+Route::middleware('role:client')->group(function () {
+    Route::prefix('setups')->group(function() {
+        Route::put('/approve/{id}', [VenueSetupController::class, 'approve']);
+    });
+});

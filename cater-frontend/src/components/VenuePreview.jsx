@@ -3,7 +3,7 @@ import './VenuePreview.css';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../axiosClient';
 
-function VenuePreview({ bookingId, isWaiter }) {
+function VenuePreview({ bookingId, isWaiter, isClient }) {
   const navigate = useNavigate();
   const [objects, setObjects] = useState(null);
 
@@ -33,7 +33,7 @@ function VenuePreview({ bookingId, isWaiter }) {
       ) : (
         <div className="preview-placeholder">[Preview here]</div>
       )}
-      {isWaiter ? (
+      {isWaiter || isClient ? (
         <button
           className="booking-edit-btn"
           onClick={() => navigate(`/view/${bookingId}`)}

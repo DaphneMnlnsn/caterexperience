@@ -11,14 +11,13 @@ class AuditLog extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id',
         'action',
         'timestamp',
         'details',
     ];
 
-    public function user()
+    public function auditable()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->morphTo();
     }
 }

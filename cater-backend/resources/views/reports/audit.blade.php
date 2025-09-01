@@ -1,168 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Audit Logs Report</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 13px;
-            margin: 30px;
-        }
+    <head>
+        <meta charset="UTF-8">
+        <title>Audit Logs Report</title>
+        <style>
+            body { font-family: Arial, sans-serif; font-size: 13px; margin: 30px; }
+            .header { text-align: center; }
+            .header h2 { margin: 0; font-size: 20px; }
+            .sub-header { text-align: center; margin-top: 5px; font-size: 14px; color: #444; }
+            .filters { margin-top: 18px; margin-bottom: 8px; font-size: 12px; }
+            .filters p { margin: 2px 0; color: #333; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed; word-wrap: break-word; }
+            thead { background-color: #f5f7fa; }
+            th, td { border: 1px solid #d0d6dc; padding: 8px; text-align: left; vertical-align: top; font-size: 12px; }
+            th { font-weight: 600; }
+            .muted { color: #666; font-size: 11px; }
+            .footer { margin-top: 28px; font-size: 12px; text-align: right; color: #333; }
+            @media (max-width: 520px) {
+                body { margin: 12px; font-size: 11px; }
+                th, td { padding: 6px; font-size: 11px; }
+            }
+        </style>
+    </head>
+    <body>
 
-        .header {
-            text-align: center;
-        }
+        <div class="header">
+            <h2>Ollinati Catering</h2>
+            <div class="sub-header">Audit Logs Report</div>
+        </div>
 
-        .header h2 {
-            margin: 0;
-            font-size: 20px;
-        }
+        <div class="filters">
+            @if($startDate || $endDate)
+                <p><strong>Date Range:</strong>
+                    @if($startDate) {{ \Carbon\Carbon::parse($startDate)->setTimezone('Asia/Manila')->toFormattedDateString() }} @else — @endif
+                    &nbsp;–&nbsp;
+                    @if($endDate) {{ \Carbon\Carbon::parse($endDate)->setTimezone('Asia/Manila')->toFormattedDateString() }} @else — @endif
+                </p>
+            @endif
 
-        .sub-header {
-            text-align: center;
-            margin-top: 5px;
-            font-size: 14px;
-            color: #444;
-        }
+            @if(!empty($search))
+                <p><strong>Search:</strong> {{ $search }}</p>
+            @endif
 
-        .filters {
-            margin-top: 18px;
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
+            @if(!empty($action))
+                <p><strong>Action Filter:</strong> {{ $action }}</p>
+            @endif
 
-        .filters p {
-            margin: 2px 0;
-            color: #333;
-        }
+            <p class="muted">Records: {{ $totalLogs ?? ($logs->count() ?? 0) }}</p>
+        </div>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-            table-layout: fixed;
-            word-wrap: break-word;
-        }
-
-        thead {
-            background-color: #f5f7fa;
-        }
-
-        th, td {
-            border: 1px solid #d0d6dc;
-            padding: 8px;
-            text-align: left;
-            vertical-align: top;
-            font-size: 12px;
-        }
-
-        th {
-            font-weight: 600;
-        }
-
-        .muted {
-            color: #666;
-            font-size: 11px;
-        }
-
-        .footer {
-            margin-top: 28px;
-            font-size: 12px;
-            text-align: right;
-            color: #333;
-        }
-
-        @media (max-width: 520px) {
-            body { margin: 12px; font-size: 11px; }
-            th, td { padding: 6px; font-size: 11px; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <h2>Ollinati Catering</h2>
-        <div class="sub-header">Audit Logs Report</div>
-    </div>
-
-    <div class="filters">
-        @if($startDate || $endDate)
-            <p><strong>Date Range:</strong>
-                @if($startDate) {{ \Carbon\Carbon::parse($startDate)->toFormattedDateString() }} @else — @endif
-                &nbsp;–&nbsp;
-                @if($endDate) {{ \Carbon\Carbon::parse($endDate)->toFormattedDateString() }} @else — @endif
-            </p>
-        @endif
-
-        @if(!empty($search))
-            <p><strong>Search:</strong> {{ $search }}</p>
-        @endif
-
-        @if(!empty($action))
-            <p><strong>Action Filter:</strong> {{ $action }}</p>
-        @endif
-
-        <p class="muted">Records: {{ $totalLogs ?? ($logs->count() ?? 0) }}</p>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 6%;">#</th>
-                <th style="width: 26%;">User</th>
-                <th style="width: 12%;">Role</th>
-                <th style="width: 12%;">Action</th>
-                <th style="width: 30%;">Details</th>
-                <th style="width: 14%;">Timestamp</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            @forelse($logs as $index => $log)
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>
-                        @if($log->user)
-                            {{ $log->user->first_name }}
-                            @if( isset($log->user->middle_name) && $log->user->middle_name )
-                                {{ ' ' . $log->user->middle_name }}
-                            @endif
-                            {{ ' ' . $log->user->last_name }}
-                        @else
-                            Guest
-                        @endif
-                    </td>
-                    <td>{{ $log->user->role ?? '—' }}</td>
-                    <td>{{ $log->action }}</td>
-                    <td style="white-space: pre-wrap;">{{ $log->details }}</td>
-                    <td>
-                        @if(!empty($log->timestamp))
-                            {{ \Carbon\Carbon::parse($log->timestamp)->format('Y-m-d H:i:s') }}
-                        @else
-                            —
-                        @endif
-                    </td>
+                    <th style="width: 6%;">#</th>
+                    <th style="width: 26%;">User</th>
+                    <th style="width: 12%;">Role</th>
+                    <th style="width: 12%;">Action</th>
+                    <th style="width: 30%;">Details</th>
+                    <th style="width: 14%;">Timestamp</th>
                 </tr>
-            @empty
+            </thead>
+            <tbody>
+                @forelse($logs as $index => $log)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $log->user_name ?? 'Guest' }}</td>
+                        <td>{{ $log->role ?? '—' }}</td>
+                        <td>{{ $log->action }}</td>
+                        <td style="white-space: pre-wrap;">{{ $log->details }}</td>
+                        <td>{{ $log->timestamp ?? '—' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" style="text-align: center;">No audit records found for the selected filters.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+            <tfoot>
                 <tr>
-                    <td colspan="6" style="text-align: center;">No audit records found for the selected filters.</td>
+                    <td colspan="5" style="text-align: right; font-weight: 600;">Total records:</td>
+                    <td style="text-align: right; font-weight: 600;">{{ $totalLogs ?? ($logs->count() ?? 0) }}</td>
                 </tr>
-            @endforelse
-        </tbody>
+            </tfoot>
+        </table>
 
-        <tfoot>
-            <tr>
-                <td colspan="5" style="text-align: right; font-weight: 600;">Total records:</td>
-                <td style="text-align: right; font-weight: 600;">{{ $totalLogs ?? ($logs->count() ?? 0) }}</td>
-            </tr>
-        </tfoot>
-    </table>
+        <div class="footer">
+            <p><strong>Report Generated By:</strong> {{ $generatedBy ?? 'N/A' }}</p>
+            <p><strong>Report Generated On:</strong> {{ \Carbon\Carbon::now('Asia/Manila')->toDayDateTimeString() }}</p>
+        </div>
 
-    <div class="footer">
-        <p><strong>Report Generated By:</strong> {{ $generatedBy ?? 'N/A' }}</p>
-        <p><strong>Report Generated On:</strong> {{ now()->toDayDateTimeString() }}</p>
-    </div>
-
-</body>
+    </body>
 </html>

@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class Customer extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens, Notifiable;
     
     protected $table = 'customers';
     protected $primaryKey = 'customer_id';
@@ -32,5 +33,20 @@ class Customer extends Authenticatable
     public function bookings()
     {
         return $this->hasMany(EventBooking::class, 'customer_id');
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->customer_password;
+    }
+
+    public function getRoleAttribute()
+    {
+        return 'client';
+    }
+
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'auditable');
     }
 }

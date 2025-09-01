@@ -8,6 +8,7 @@ use App\Models\VenueObjectPlacement;
 use App\Models\VenueSetup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class VenueSetupController extends Controller
 {
@@ -34,19 +35,29 @@ class VenueSetupController extends Controller
 
     public function indexSelected(Request $request, $bookingId)
     {
-        $user = $request->user();
+        $accessToken = $request->bearerToken();
+        $token = PersonalAccessToken::findToken($accessToken);
+        $auth = $token?->tokenable;
 
         $query = VenueSetup::with(['booking.customer', 'booking.theme'])
             ->where('booking_id', $bookingId);
 
-        if (strtolower($user->role) !== 'admin') {
-            $query->whereHas('booking.staffAssignments', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            });
+        if ($auth instanceof \App\Models\User) {
+            if (strtolower($auth->role) !== 'admin') {
+                $query->whereHas('booking.staffAssignments', function ($q) use ($auth) {
+                    $q->where('user_id', $auth->id);
+                });
 
-            if (strtolower($user->role) === 'waiter') {
-                $query->whereIn('status', ['accepted', 'submitted']);
+                if (strtolower($auth->role) === 'waiter') {
+                    $query->whereIn('status', ['accepted', 'submitted']);
+                }
             }
+        } elseif ($auth instanceof \App\Models\Customer) {
+            $query->whereHas('booking', function ($q) use ($auth) {
+                $q->where('customer_id', $auth->customer_id);
+            });
+        } else {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
         $setup = $query->first();
@@ -60,19 +71,29 @@ class VenueSetupController extends Controller
 
     public function indexSetup(Request $request, $setupId)
     {
-        $user = $request->user();
+        $accessToken = $request->bearerToken();
+        $token = PersonalAccessToken::findToken($accessToken);
+        $auth = $token?->tokenable;
 
         $query = VenueSetup::with(['placements.object', 'booking.staffAssignments'])
             ->where('setup_id', $setupId);
 
-        if (strtolower($user->role) !== 'admin') {
-            $query->whereHas('booking.staffAssignments', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            });
+        if ($auth instanceof \App\Models\User) {
+            if (strtolower($auth->role) !== 'admin') {
+                $query->whereHas('booking.staffAssignments', function ($q) use ($auth) {
+                    $q->where('user_id', $auth->id);
+                });
 
-            if (strtolower($user->role) === 'waiter') {
-                $query->whereIn('status', ['accepted', 'submitted']);
+                if (strtolower($auth->role) === 'waiter') {
+                    $query->whereIn('status', ['accepted', 'submitted']);
+                }
             }
+        } elseif ($auth instanceof \App\Models\Customer) {
+            $query->whereHas('booking', function ($q) use ($auth) {
+                $q->where('customer_id', $auth->customer_id);
+            });
+        } else {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
         $setup = $query->first();
@@ -233,5 +254,21 @@ class VenueSetupController extends Controller
         AuditLogger::log('Updated', "Module: Venue Setup | Submitted Setup {$setup->layout_name}");
 
         return response()->json(['message' => 'Setup submitted to client']);
+    }
+
+    public function approve(Request $request, $id)
+    {
+        $setup = VenueSetup::find($id);
+
+        if (!$setup) {
+            return response()->json(['message' => 'Setup not found'], 404);
+        }
+
+        $setup->status = 'approved';
+        $setup->save();
+
+        AuditLogger::log('Updated', "Module: Venue Setup | Approved Setup {$setup->layout_name}");
+
+        return response()->json(['message' => 'Setup approved']);
     }
 }

@@ -162,7 +162,7 @@ export default function App(){
         <Route
           path="/view/:id"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'stylist', 'head waiter']}>
+            <ProtectedRoute allowedRoles={['admin', 'stylist', 'head waiter', 'client']}>
               <View2DSetup />
             </ProtectedRoute>
           }

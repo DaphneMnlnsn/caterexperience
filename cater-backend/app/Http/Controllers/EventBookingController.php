@@ -20,6 +20,7 @@ use App\Models\EventAddon;
 use App\Models\EventInventoryUsage;
 use App\Models\Food;
 use App\Models\VenueSetup;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class EventBookingController extends Controller
 {
@@ -65,16 +66,31 @@ class EventBookingController extends Controller
     }
     public function indexAssigned(Request $request)
     {
-        $userId = $request->user()->id;
+        $accessToken = $request->bearerToken();
+        $token = PersonalAccessToken::findToken($accessToken);
+        $user = $token?->tokenable;
 
-        $bookings = EventBooking::with('customer')
-            ->whereHas('staffAssignments', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
-            })
-            ->orderBy('booking_id', 'asc')
-            ->paginate(10);
+        if ($user instanceof \App\Models\User) {
+            $bookings = EventBooking::with('customer')
+                ->whereHas('staffAssignments', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->orderBy('booking_id', 'asc')
+                ->paginate(10);
 
-        AuditLogger::log('Viewed', 'Module: Event Booking | Viewed assigned bookings');
+            AuditLogger::log('Viewed', "Module: Event Booking | Staff ID {$user->id} viewed assigned bookings");
+
+        } elseif ($user instanceof \App\Models\Customer) {
+            $bookings = EventBooking::with('customer')
+                ->where('customer_id', $user->customer_id)
+                ->orderBy('booking_id', 'asc')
+                ->paginate(10);
+
+            AuditLogger::log('Viewed', "Module: Event Booking | Customer ID {$user->customer_id} viewed their bookings");
+
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
 
         return response()->json([
             'bookings' => $bookings->items(),
@@ -89,7 +105,9 @@ class EventBookingController extends Controller
 
     public function indexSelected(Request $request, $id)
     {
-        $user = $request->user();
+        $accessToken = $request->bearerToken();
+        $token = \Laravel\Sanctum\PersonalAccessToken::findToken($accessToken);
+        $user = $token?->tokenable;
 
         $booking = EventBooking::with([
             'customer',
@@ -107,16 +125,25 @@ class EventBookingController extends Controller
             return response()->json(['message' => 'Event booking not found'], 404);
         }
 
-        if (strtolower($user->role) !== 'admin') {
+        if ($user instanceof \App\Models\User && strtolower($user->role) === 'admin') {
+        }
+        elseif ($user instanceof \App\Models\User) {
             $isAssigned = $booking->tasks()->where('assigned_to', $user->id)->exists();
-
             if (!$isAssigned) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
         }
+        elseif ($user instanceof \App\Models\Customer) {
+            if ($booking->customer_id !== $user->customer_id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        }
+        else {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         $tasks = $booking->tasks()
-            ->when(strtolower($user->role) !== 'admin', function ($q) use ($user) {
+            ->when($user instanceof \App\Models\User && strtolower($user->role) !== 'admin', function ($q) use ($user) {
                 $q->where('assigned_to', $user->id);
             })
             ->with('assignee')
@@ -130,6 +157,7 @@ class EventBookingController extends Controller
 
         return response()->json(['booking' => $booking]);
     }
+
 
     protected function generateAutoTasks($booking, $assignedUserIds, $creatorId)
     {

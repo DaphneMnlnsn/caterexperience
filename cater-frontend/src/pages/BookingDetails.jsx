@@ -31,6 +31,7 @@ function BookingDetails() {
   const isStylist = hasRole('stylist');
   const isCook = hasRole('cook');
   const isWaiter = hasRole('head waiter');
+  const isClient = hasRole('client');
 
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -674,33 +675,36 @@ function BookingDetails() {
         <hr className="booking-section-divider" />
 
         {/* Task Board */}
-        <div className="section white-bg task-section">
-          <div className='section-title'>
-            <h3>Task Board</h3>
-            <>
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+        {!isClient && (
+          <>
+            <div className="section white-bg task-section">
+              <div className='section-title'>
+                <h3>Task Board</h3>
                 <>
-                  <button className="booking-edit-btn" onClick={() => setShowTaskModal(true)}>+ Add New Task</button>
+                  {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+                    <>
+                      <button className="booking-edit-btn" onClick={() => setShowTaskModal(true)}>+ Add New Task</button>
+                    </>
+                  )}
                 </>
-              )}
-            </>
-          </div>
-          <TaskBoard 
-            tasks={tasks}
-            setTasks={setTasks}
-            assignedStaffs={booking.staffs}
-            staffOptions={availableStaff}
-          />
-        </div>
-
-        <hr className="booking-section-divider" />
+              </div>
+              <TaskBoard 
+                tasks={tasks}
+                setTasks={setTasks}
+                assignedStaffs={booking.staffs}
+                staffOptions={availableStaff}
+              />
+            </div>
+            <hr className="booking-section-divider" />
+          </>
+        )}
 
         {/* Venue Design Preview */}
         {!isCook && (
           <>
             <div className="section white-bg">
               <h3>Venue Design</h3>
-              <VenuePreview bookingId={booking.booking_id} isWaiter={isWaiter}/>
+              <VenuePreview bookingId={booking.booking_id} isWaiter={isWaiter} isClient={isClient}/>
             </div>
 
             <hr className="booking-section-divider" />
@@ -720,7 +724,7 @@ function BookingDetails() {
         )}
 
         {/* Inventory Summary */}
-        {!isCook && (
+        {!(isCook || isClient) && (
           <>
             <div className="section white-bg">
               <div className="section-title">
@@ -892,11 +896,11 @@ function BookingDetails() {
         )}
 
         {/* Payments Table */}
-        {isAdmin && (
+        {(isAdmin || isClient) && (
           <div className="section white-bg">
             <div className="section-title">
               <h3>Payments</h3>
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
                 <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
               )}
             </div>

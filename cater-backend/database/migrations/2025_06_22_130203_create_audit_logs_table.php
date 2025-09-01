@@ -13,12 +13,10 @@ return new class extends Migration
     {
         Schema::create('auditlog', function (Blueprint $table) {
             $table->id('auditlog_id');
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->morphs('auditable');
             $table->string('action');
             $table->timestamp('timestamp');
             $table->string('details')->nullable();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 

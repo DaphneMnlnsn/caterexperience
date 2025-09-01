@@ -6,6 +6,7 @@ use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
 use App\Models\AuditLog;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -15,25 +16,57 @@ class AuditLogController extends Controller
     {
         AuditLogger::log('Viewed', 'Module: Audit Log | Viewed audit logs');
 
-        $query = AuditLog::with('user');
+        $query = AuditLog::with('auditable');
 
         if ($request->filled('user')) {
             $term = $request->input('user');
 
-            $query->whereHas('user', function($q) use ($term) {
-                if (Schema::hasColumn('users', 'middle_name')) {
-                    $q->whereRaw(
-                        "CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?",
-                        ["%{$term}%"]
-                    );
-                } else {
-                    $q->where('first_name', 'like', "%{$term}%")
-                    ->orWhere('last_name', 'like', "%{$term}%")
-                    ->orWhereRaw(
-                        "CONCAT(first_name, ' ', last_name) LIKE ?",
-                        ["%{$term}%"]
-                    );
-                }
+            $query->where(function ($q) use ($term) {
+
+                $q->orWhere(function ($q1) use ($term) {
+                    $q1->where('auditable_type', 'App\Models\User')
+                    ->whereExists(function ($sub) use ($term) {
+                        $sub->select(DB::raw(1))
+                            ->from('users')
+                            ->whereColumn('auditlog.auditable_id', 'users.id')
+                            ->where(function ($sq) use ($term) {
+                                if (Schema::hasColumn('users', 'middle_name')) {
+                                    $sq->whereRaw(
+                                        "CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                } else {
+                                    $sq->whereRaw(
+                                        "CONCAT(first_name, ' ', last_name) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                }
+                            });
+                    });
+                });
+
+                $q->orWhere(function ($q2) use ($term) {
+                    $q2->where('auditable_type', 'App\Models\Customer')
+                    ->whereExists(function ($sub) use ($term) {
+                        $sub->select(DB::raw(1))
+                            ->from('customers')
+                            ->whereColumn('auditlog.auditable_id', 'customers.customer_id')
+                            ->where(function ($sq) use ($term) {
+                                if (Schema::hasColumn('customers', 'customer_middlename')) {
+                                    $sq->whereRaw(
+                                        "CONCAT(customer_firstname, ' ', COALESCE(customer_middlename, ''), ' ', customer_lastname) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                } else {
+                                    $sq->whereRaw(
+                                        "CONCAT(customer_firstname, ' ', customer_lastname) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                }
+                            });
+                    });
+                });
+
             });
         }
 
@@ -41,15 +74,43 @@ class AuditLogController extends Controller
             $query->where('action', $request->input('action'));
         }
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('timestamp', [$request->input('start_date'), $request->input('end_date')]);
-        } elseif ($request->filled('start_date')) {
-            $query->where('timestamp', '>=', $request->input('start_date'));
-        } elseif ($request->filled('end_date')) {
-            $query->where('timestamp', '<=', $request->input('end_date'));
+        if ($request->filled('start_date')) {
+            $startUtc = Carbon::parse($request->input('start_date') . ' 00:00:00', 'Asia/Manila')->setTimezone('UTC');
+            $query->where('timestamp', '>=', $startUtc);
         }
 
-        $logs = $query->orderBy('timestamp', 'desc')->paginate(10);
+        if ($request->filled('end_date')) {
+            $endUtc = Carbon::parse($request->input('end_date') . ' 23:59:59', 'Asia/Manila')->setTimezone('UTC');
+            $query->where('timestamp', '<=', $endUtc);
+        }
+
+        $logs = $query->orderBy('auditlog_id', 'desc')->paginate(10);
+
+        $logs->getCollection()->transform(function ($log) {
+            $auditable = $log->auditable;
+
+            if ($auditable) {
+                if ($log->auditable_type === 'App\Models\User') {
+                    $log->user_name = trim(($auditable->first_name ?? '') . ' ' . ($auditable->middle_name ? $auditable->middle_name . ' ' : '') . ($auditable->last_name ?? '')) ?: 'Guest';
+                    $log->role = $auditable->role ?? '-';
+                } elseif ($log->auditable_type === 'App\Models\Customer') {
+                    $log->user_name = trim(($auditable->customer_firstname ?? '') . ' ' . ($auditable->customer_middlename ? $auditable->customer_middlename . ' ' : '') . ($auditable->customer_lastname ?? '')) ?: 'N/A';
+                    $log->role = 'client';
+                } else {
+                    $log->user_name = $auditable->name ?? 'N/A';
+                    $log->role = $auditable->role ?? '-';
+                }
+            } else {
+                $log->user_name = 'Guest';
+                $log->role = '-';
+            }
+
+            $log->timestamp = Carbon::parse($log->timestamp)
+                ->setTimezone('Asia/Manila')
+                ->format('Y-m-d H:i:s');
+
+            return $log;
+        });
 
         return response()->json([
             'logs' => $logs->items(),
@@ -61,18 +122,21 @@ class AuditLogController extends Controller
             ],
         ]);
     }
+
     public function generateReport(Request $request)
     {
         $generatedBy = $request->input('generated_by', 'Unknown');
 
-        $query = AuditLog::with('user');
+        $query = AuditLog::with('auditable');
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('timestamp', [$request->start_date, $request->end_date]);
-        } elseif ($request->filled('start_date')) {
-            $query->where('timestamp', '>=', $request->start_date);
-        } elseif ($request->filled('end_date')) {
-            $query->where('timestamp', '<=', $request->end_date);
+        if ($request->filled('start_date')) {
+            $startUtc = Carbon::parse($request->start_date . ' 00:00:00', 'Asia/Manila')->setTimezone('UTC');
+            $query->where('timestamp', '>=', $startUtc);
+        }
+
+        if ($request->filled('end_date')) {
+            $endUtc = Carbon::parse($request->end_date . ' 23:59:59', 'Asia/Manila')->setTimezone('UTC');
+            $query->where('timestamp', '<=', $endUtc);
         }
 
         if ($request->filled('action')) {
@@ -82,21 +146,79 @@ class AuditLogController extends Controller
         if ($request->filled('user')) {
             $term = $request->input('user');
 
-            $query->whereHas('user', function ($q) use ($term) {
-                if (Schema::hasColumn('users', 'middle_name')) {
-                    $q->whereRaw(
-                        "CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?",
-                        ["%{$term}%"]
-                    );
-                } else {
-                    $q->where('first_name', 'like', "%{$term}%")
-                    ->orWhere('last_name', 'like', "%{$term}%")
-                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$term}%"]);
-                }
+            $query->where(function ($q) use ($term) {
+
+                $q->orWhere(function ($q1) use ($term) {
+                    $q1->where('auditable_type', 'App\Models\User')
+                    ->whereExists(function ($sub) use ($term) {
+                        $sub->select(DB::raw(1))
+                            ->from('users')
+                            ->whereColumn('auditlog.auditable_id', 'users.id')
+                            ->where(function ($sq) use ($term) {
+                                if (Schema::hasColumn('users', 'middle_name')) {
+                                    $sq->whereRaw(
+                                        "CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                } else {
+                                    $sq->whereRaw(
+                                        "CONCAT(first_name, ' ', last_name) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                }
+                            });
+                    });
+                });
+
+                $q->orWhere(function ($q2) use ($term) {
+                    $q2->where('auditable_type', 'App\Models\Customer')
+                    ->whereExists(function ($sub) use ($term) {
+                        $sub->select(DB::raw(1))
+                            ->from('customers')
+                            ->whereColumn('auditlog.auditable_id', 'customers.customer_id')
+                            ->where(function ($sq) use ($term) {
+                                if (Schema::hasColumn('customers', 'customer_middlename')) {
+                                    $sq->whereRaw(
+                                        "CONCAT(customer_firstname, ' ', COALESCE(customer_middlename, ''), ' ', customer_lastname) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                } else {
+                                    $sq->whereRaw(
+                                        "CONCAT(customer_firstname, ' ', customer_lastname) LIKE ?",
+                                        ["%{$term}%"]
+                                    );
+                                }
+                            });
+                    });
+                });
+
             });
         }
 
-        $logs = $query->orderBy('timestamp', 'asc')->get();
+        $logs = $query->orderBy('timestamp', 'asc')->limit(500)->get();
+
+        $logs->transform(function ($log) {
+            $auditable = $log->auditable;
+
+            if ($auditable) {
+                if ($log->auditable_type === 'App\Models\User') {
+                    $log->user_name = trim(($auditable->first_name ?? '') . ' ' . ($auditable->middle_name ? $auditable->middle_name . ' ' : '') . ($auditable->last_name ?? '')) ?: 'Guest';
+                    $log->role = $auditable->role ?? '-';
+                } elseif ($log->auditable_type === 'App\Models\Customer') {
+                    $log->user_name = trim(($auditable->customer_firstname ?? '') . ' ' . ($auditable->customer_middlename ? $auditable->customer_middlename . ' ' : '') . ($auditable->customer_lastname ?? '')) ?: 'N/A';
+                    $log->role = 'client';
+                } else {
+                    $log->user_name = 'Guest';
+                    $log->role = '-';
+                }
+            }
+
+            $log->timestamp = Carbon::parse($log->timestamp)
+                ->setTimezone('Asia/Manila')
+                ->format('Y-m-d H:i:s');
+
+            return $log;
+        });
 
         $totalLogs = $logs->count();
 
@@ -114,4 +236,5 @@ class AuditLogController extends Controller
 
         return $pdf->stream('audit-report.pdf');
     }
+
 }

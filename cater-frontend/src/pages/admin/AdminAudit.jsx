@@ -240,15 +240,29 @@ function AdminAudit() {
                 ) : auditData.length === 0 ? (
                   <tr><td colSpan={5}>No logs found.</td></tr>
                 ) : (
-                  auditData.map((log, index) => (
-                    <tr key={index}>
-                      <td>{log.user ? `${log.user.first_name} ${log.user.middle_name ? log.user.middle_name + " " : ""}${log.user.last_name}` : 'Guest'}</td>
-                      <td>{log.user?.role}</td>
-                      <td>{log.action}</td>
-                      <td>{log.details}</td>
-                      <td>{log.timestamp}</td>
-                    </tr>
-                  ))
+                  auditData.map((log, index) => {
+                    const auditable = log.auditable;
+                    let userName = 'Guest';
+                    let role = '-';
+
+                    if (auditable && log.auditable_type === 'App\\Models\\User') {
+                      userName = `${auditable.first_name} ${auditable.middle_name ? auditable.middle_name + " " : ""}${auditable.last_name}`;
+                      role = auditable.role || '-';
+                    } else if (auditable && log.auditable_type === 'App\\Models\\Customer') {
+                      userName = `${auditable.customer_firstname} ${auditable.customer_middlename ? auditable.customer_middlename + " " : ""}${auditable.customer_lastname}` || 'N/A';
+                      role = 'client';
+                    }
+
+                    return (
+                      <tr key={index}>
+                        <td>{userName}</td>
+                        <td>{role}</td>
+                        <td>{log.action}</td>
+                        <td>{log.details}</td>
+                        <td>{log.timestamp}</td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

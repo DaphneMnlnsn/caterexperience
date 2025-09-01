@@ -8,15 +8,18 @@ use Carbon\Carbon;
 
 class AuditLogger
 {
-    public static function log($action, $details = null, $user = null)
+    public static function log($action, $details = null, $actor = null)
     {
-        $userId = is_object($user) ? $user->id : ($user ?? Auth::id());
+        $actor = $actor ?? Auth::user();
 
-        AuditLog::create([
-            'user_id' => $userId,
-            'action' => $action,
-            'timestamp' => Carbon::now(),
-            'details' => $details,
+        if (!$actor) {
+            return;
+        }
+
+        $actor->auditLogs()->create([
+            'action'     => $action,
+            'timestamp'  => Carbon::now(),
+            'details'    => $details,
         ]);
     }
 }

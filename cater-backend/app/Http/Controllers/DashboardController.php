@@ -275,27 +275,35 @@ class DashboardController extends Controller
 
     public function getAuditLog()
     {
-        $logs = DB::table('auditlog')
-        ->leftJoin('users', 'auditlog.user_id', '=', 'users.id')
-        ->select(
-            'auditlog.auditlog_id',
-            'auditlog.action',
-            'auditlog.details',
-            'auditlog.timestamp',
-            'users.first_name',
-            'users.last_name'
-        )
-        ->orderByDesc('auditlog.timestamp')
-        ->take(10)
-        ->get();
+        $logs = \App\Models\AuditLog::with('auditable')
+            ->orderByDesc('auditlog_id')
+            ->take(10)
+            ->get()
+            ->transform(function ($log) {
+                $auditable = $log->auditable;
 
-        $logs->transform(function ($log) {
-            $log->user_name = $log->first_name && $log->last_name
-                ? "{$log->first_name} {$log->last_name}"
-                : 'Guest';
-            return $log;
-        });
+                if ($auditable) {
+                    if ($log->auditable_type === 'App\Models\User') {
+                        $log->user_name = trim(($auditable->first_name ?? '') . ' ' . ($auditable->middle_name ? $auditable->middle_name . ' ' : '') . ($auditable->last_name ?? '')) ?: 'Guest';
+                        $log->role = $auditable->role ?? '-';
+                    }
+                    elseif ($log->auditable_type === 'App\Models\Customer') {
+                        $log->user_name = trim(($auditable->first_name ?? '') . ' ' . ($auditable->middle_name ? $auditable->middle_name . ' ' : '') . ($auditable->last_name ?? '')) ?: 'N/A';
+                        $log->role = 'client';
+                    }
+                    else {
+                        $log->user_name = $auditable->name ?? 'N/A';
+                        $log->role = $auditable->role ?? '-';
+                    }
+                } else {
+                    $log->user_name = 'Guest';
+                    $log->role = '-';
+                }
+
+                return $log;
+            });
 
         return response()->json($logs);
     }
+
 }
