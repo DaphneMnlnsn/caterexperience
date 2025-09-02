@@ -1,31 +1,35 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../admin/AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
-import DashboardCalendar from '../../components/DashboardCalendar';
-import { FaBell } from 'react-icons/fa';
-import axios from 'axios';
+import { FaBell, FaClock, FaUser, FaMoneyBill } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 
 function ClientDashboard() {
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+  const navigate = useNavigate();
 
+  const [event, setEvent] = useState(null);
+  const [payments, setPayments] = useState([]);
   const [stats, setStats] = useState({
-    total_events: 0,
-    menu_items_completed: 0,
-    menu_items_pending: 0,
-    foods_to_prepare: {},
+    days_left: 0,
+    remaining_balance: 0,
+    contact: '',
   });
 
-  const [toPrepare, setToPrepare] = useState([]);
-
   useEffect(() => {
-    axiosClient.get('/dashboard/cook/stats')
+    axiosClient.get('/dashboard/client/stats')
       .then(res => {
-        setStats(res.data);
-        setToPrepare(res.data.foods_to_prepare);
+        setEvent(res.data.event);
+        setPayments(res.data.payments);
+        setStats({
+          days_left: res.data.days_left,
+          remaining_balance: res.data.remaining_balance,
+          contact: res.data.contact,
+        });
       })
-      .catch(err => console.error('Error fetching stats', err));
+      .catch(err => console.error('Error fetching client dashboard', err));
   }, []);
 
   return (
@@ -46,39 +50,49 @@ function ClientDashboard() {
         <section className="welcome-section">
           <h3>Welcome, {user ? user.first_name : 'User'}!</h3>
           <p>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+
           <div className="stats">
-            <div className="stat-box">Total Events <span>{stats.total_events}</span></div>
-            <div className="stat-box">Menu Items to Prepare <span>{stats.foods_to_prepare.length}</span></div>
-            <div className="stat-box">Menu Items Completed <span>{stats.menu_items_completed}</span></div>
-            <div className="stat-box">Menu Items Pending <span>{stats.menu_items_pending}</span></div>
+            <div className="stat-box">
+              Days Left before Event <span>{stats.days_left}</span>
+            </div>
+            <div className="stat-box">
+              Remaining Balance to Pay <span>{stats.remaining_balance.toFixed(2)}</span>
+            </div>
+            <div className="stat-box">
+              Contact/Bantay <span>{stats.contact}</span>
+            </div>
           </div>
         </section>
 
+
         <section className="page-bottom">
-          <div className="calendar-section">
-            <DashboardCalendar />
-          </div>
+          <section className="event-section">
+            <h3>Your Upcoming Event</h3>
+            {event && (
+              <div className="event-card">
+                <h4>{event.title}</h4>
+                <p><strong>Venue:</strong> {event.venue}</p>
+                <p><strong>Date and Time:</strong> {event.datetime}</p>
+                <p><strong>Package:</strong> {event.package}</p>
+                <p><strong>Theme:</strong> {event.theme}</p>
+                <p><strong>Additional Notes:</strong> {event.notes ? event.notes : 'N/A'}</p>
+                <button className="btn-details" onClick={() => navigate(`/bookings/${event.bookingId}`)}>View More Details</button>
+              </div>
+            )}
+          </section>
 
           <aside className="audit-log">
-            <h3>To Prepare</h3>
+            <h3>Payments Made</h3>
             <ul>
-              {toPrepare.length > 0 ? (
-                toPrepare.map(([date, foods]) => (
-                  <li key={date}>
-                    <div>
-                      <h4>{date}</h4>
-                      <ul>
-                        {foods.map((food, index) => (
-                          <li key={index}>
-                            {food.food_name} <span>({food.status})</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+              {payments.length > 0 ? (
+                payments.map((p, index) => (
+                  <li key={index}>
+                    <p>{p.date} <br /> You paid Php {p.amount} via {p.method}</p>
+                    <hr />
                   </li>
                 ))
               ) : (
-                <li>No items to prepare for today/tomorrow</li>
+                <li>No payments recorded</li>
               )}
             </ul>
           </aside>

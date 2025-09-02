@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\AuditLog;
 use App\Models\EventInventoryUsage;
 use App\Models\VenueSetup;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -270,6 +271,90 @@ class DashboardController extends Controller
             'inventory_updates' => $inventoryItems,
             'finished_events'   => $finishedEvents,
             'setup_checklist'   => $setupChecklist,
+        ]);
+    }
+
+    public function getClientStats(Request $request)
+    {
+        $userId = $request->user()->customer_id;
+
+        $event = EventBooking::with(['package', 'theme', 'payments'])
+            ->where('customer_id', $userId)
+            ->whereDate('event_date', '>=', now())
+            ->orderBy('event_date', 'asc')
+            ->first();
+
+        if (!$event) {
+            return response()->json([
+                'days_left' => 0,
+                'remaining_balance' => 0,
+                'contact' => null,
+                'event' => null,
+                'payments' => [],
+            ]);
+        }
+
+        $eventDate = Carbon::parse($event->event_date);
+
+        $eventDate = Carbon::parse($event->event_date);
+
+        if (now()->greaterThan($eventDate)) {
+            $timeLeft = "Event already started/ended";
+        } else {
+            $daysLeft = now()->floatDiffInDays($eventDate);
+
+            if ($daysLeft >= 1) {
+                $timeLeft = number_format($daysLeft, 2) . " day" . ($daysLeft >= 2 ? "s" : "");
+            } else {
+                $hoursLeft = now()->floatDiffInHours($eventDate);
+
+                if ($hoursLeft >= 1) {
+                    $timeLeft = number_format($hoursLeft, 2) . " hour" . ($hoursLeft >= 2 ? "s" : "");
+                } else {
+                    $minutesLeft = now()->floatDiffInMinutes($eventDate);
+                    $timeLeft = number_format($minutesLeft, 2) . " minute" . ($minutesLeft >= 2 ? "s" : "");
+                }
+            }
+        }
+
+        $totalPaid = $event->payments->sum('amount_paid');
+        $remainingBalance = $event->event_total_price - $totalPaid;
+
+        $contactName = $event->watcher;
+
+        $start = Carbon::parse($event->event_date . ' ' . $event->event_start_time);
+        $end   = $event->event_end_time 
+            ? Carbon::parse($event->event_date . ' ' . $event->event_end_time) 
+            : null;
+
+        $datetime = $end
+            ? $start->format('F j, Y - g:iA') . ' – ' . $end->format('g:iA')
+            : $start->format('F j, Y - g:iA');
+
+        $eventDetails = [
+            'bookingId' => $event->booking_id,
+            'title'    => $event->event_name,
+            'venue'    => $event->event_location,
+            'datetime' => $datetime,
+            'package'  => $event->package ? $event->package->package_name : null,
+            'theme'    => $event->theme ? $event->theme->theme_name : null,
+            'notes'    => $event->special_request ? $event->special_request : null,
+        ];
+
+        $payments = $event->payments->sortByDesc('payment_date')->map(function ($p) {
+            return [
+                'date'   => date('F j', strtotime($p->payment_date)),
+                'amount' => number_format($p->amount_paid, 2),
+                'method' => ucfirst($p->payment_method),
+            ];
+        })->values();
+
+        return response()->json([
+            'days_left'         => $timeLeft,
+            'remaining_balance' => $remainingBalance,
+            'contact'           => $contactName,
+            'event'             => $eventDetails,
+            'payments'          => $payments,
         ]);
     }
 

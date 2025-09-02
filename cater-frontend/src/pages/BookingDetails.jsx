@@ -12,6 +12,7 @@ import AddPaymentModal from '../components/AddPaymentModal';
 import AddBookingItemModal from '../components/AddBookingItemModal';
 import Invoice from '../components/Invoice';
 import MenuChecklist from '../components/MenuChecklist';
+import RequestChangesModal from '../components/RequestChangesModal';
 
 function BookingDetails() {
   const { id } = useParams();
@@ -35,7 +36,7 @@ function BookingDetails() {
 
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  const [showEditItemModal, setShowEditItemModal] = useState(false);
+  const [showRequestChangesModal, setShowRequestChangesModal] = useState(false);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [booking, setBooking] = useState(null);
@@ -433,6 +434,9 @@ function BookingDetails() {
           <div className="section-title">
             <h3>Event Details</h3>
             <div className="action-buttons">
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+                <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
+              )}
               {isEditing ? (
                 <>
                   {isAdmin && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
@@ -607,7 +611,12 @@ function BookingDetails() {
 
         {/* Menu & Packages */}
         <div className="section white-bg">
-          <h3>Menu & Packages</h3>
+          <div className="section-header">
+            <h3>Menu & Packages</h3>
+            {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+              <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
+            )}
+          </div>
           <div className="menu-package-container">
             <div className="menu-left">
               <p>
@@ -703,7 +712,12 @@ function BookingDetails() {
         {!isCook && (
           <>
             <div className="section white-bg">
-              <h3>Venue Design</h3>
+              <div className="section-header">
+                <h3>Venue Design</h3>
+                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+                  <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
+                )}
+              </div>
               <VenuePreview bookingId={booking.booking_id} isWaiter={isWaiter} isClient={isClient}/>
             </div>
 
@@ -900,6 +914,9 @@ function BookingDetails() {
           <div className="section white-bg">
             <div className="section-title">
               <h3>Payments</h3>
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+                <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
+              )}
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
                 <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
               )}
@@ -979,6 +996,11 @@ function BookingDetails() {
           <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
           <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />
           <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
+        </>
+      )}
+      {isClient && (
+        <>
+          <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} />
         </>
       )}
     </div>

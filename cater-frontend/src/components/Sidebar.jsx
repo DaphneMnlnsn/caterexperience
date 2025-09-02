@@ -62,7 +62,7 @@ export default function Sidebar() {
                 {role === "admin" ? (
                     Object.keys(groupedMenu).map(section => (
                         <React.Fragment key={section}>
-                        <li className="section-header">{section}</li>
+                        <li className="section-header-sidebar">{section}</li>
                         {groupedMenu[section].map(item => (
                             <li 
                             key={item.label} 
@@ -82,7 +82,7 @@ export default function Sidebar() {
                     ))
                     ) : (
                     <>
-                        <li className="section-header">Main</li>
+                        <li className="section-header-sidebar">Main</li>
                         {filteredMenu.map(item => (
                         <li 
                             key={item.label} 

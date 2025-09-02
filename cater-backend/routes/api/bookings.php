@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingChangeRequestController;
 use App\Http\Controllers\BookingInventoryController;
 use App\Http\Controllers\EventBookingController;
 use App\Http\Controllers\MenuFoodController;
@@ -18,6 +19,7 @@ Route::middleware('role:admin')->group(function () {
     });
     Route::put('/assigned-inventory/{id}', [BookingInventoryController::class, 'update']);
     Route::delete('/assigned-inventory/{id}', [BookingInventoryController::class, 'destroy']);
+    Route::put('/requests/{id}/status', [BookingChangeRequestController::class, 'updateStatus']);
 });
 
 Route::middleware('role:admin,stylist,head waiter')->group(function () {
@@ -45,4 +47,11 @@ Route::middleware('role:cook')->group(function () {
         Route::get('/{booking}/menu-items', [MenuFoodController::class, 'index']);
     });
     Route::put('/menu-food/batch-update', [MenuFoodController::class, 'batchUpdate']);
+});
+
+Route::middleware('role:admin,client')->group(function () {
+    Route::prefix('bookings')->group(function () {
+        Route::post('/{bookingId}/requests', [BookingChangeRequestController::class, 'store']);
+        Route::get('/{bookingId}/requests', [BookingChangeRequestController::class, 'index']);
+    });
 });
