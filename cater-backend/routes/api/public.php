@@ -25,3 +25,5 @@ Route::get('/foods', [FoodController::class, 'index']);
 Route::post('/customers', [CustomerController::class, 'register']);
 Route::get('/payments/report', [PaymentController::class, 'generateReport']);
 Route::get('/audit/report', [AuditLogController::class, 'generateReport']);
+Route::get('/bookings/code/{code}', [EventBookingController::class, 'findByCode']);
+Route::get('/bookings/public/{id}', [EventBookingController::class, 'indexSelectedPublic']);

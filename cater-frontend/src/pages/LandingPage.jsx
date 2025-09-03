@@ -1,10 +1,38 @@
-import React from 'react';
+import React, {useState} from 'react';
+import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import LandingNavbar from '../components/LandingNavbar';
 import './LandingPage.css';
+import { FaFacebook, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import axiosClient from '../axiosClient';
 
 function LandingPage() {
   const navigate = useNavigate();
+  const [eventCode, setEventCode] = useState('');
+
+  const handleView = async () => {
+    if (!eventCode.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Event Number',
+        text: 'Please enter your event number before proceeding.',
+      });
+      return;
+    }
+
+    try {
+      const res = await axiosClient.get(`/bookings/code/${eventCode}`);
+      if (res.data.booking) {
+        navigate(`/public/booking/${res.data.booking.booking_id}`);
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Event Not Found',
+        text: 'We could not find any booking with that event number. Please check and try again.',
+      });
+    }
+  };
 
   return (
     <div className="app">
@@ -20,8 +48,10 @@ function LandingPage() {
                   type="text" 
                   placeholder="Enter Event Number" 
                   className="event-input"
+                  value={eventCode}
+                  onChange={(e) => setEventCode(e.target.value)}
                 />
-                <button className="view-btn">View</button>
+                <button className="view-btn" onClick={() => handleView()}>View</button>
               </div>
             </div>
           </div>
@@ -98,19 +128,19 @@ function LandingPage() {
               <div className="contact-info">
                 <div className="contact-item">
                   <span className="contact-icon">
-                    <img src="/src/assets/Facebook.png" alt="Facebook" style={{width: '1.5rem', height: '1.5rem'}} />
+                    <FaFacebook />
                   </span>
                   <span>Ron Pavilion - Home of Ollinati Catering</span>
                 </div>
                 <div className="contact-item">
                   <span className="contact-icon">
-                    <img src="/src/assets/Phone.png" alt="Phone" style={{width: '1.5rem', height: '1.5rem'}} />
+                    <FaPhone />
                   </span>
                   <span>093328239434</span>
                 </div>
                 <div className="contact-item">
                   <span className="contact-icon">
-                    <img src="/src/assets/Location.png" alt="Location" style={{width: '1.5rem', height: '1.5rem'}} />
+                    <FaMapMarkerAlt />
                   </span>
                   <span>Bunsuran 1st 3014 Pandi, Philippines</span>
                 </div>
@@ -121,7 +151,7 @@ function LandingPage() {
             </div>
           </div>
           <div className="copyright">
-            Copyright © 2025. All Rights Reserved | CatXperience
+            Copyright © 2025. All Rights Reserved | CaterXperience
           </div>
         </footer>
       </main>

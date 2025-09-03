@@ -158,6 +158,46 @@ class EventBookingController extends Controller
         return response()->json(['booking' => $booking]);
     }
 
+    public function findByCode(Request $request, $code)
+    {
+        $booking = EventBooking::with([
+            'customer',
+            'menu.foods',
+            'package',
+            'packagePrice',
+            'theme',
+            'staffAssignments.user',
+            'payments',
+            'eventAddons.addon',
+            'eventAddons.addonPrice'
+        ])->where('event_code', $code)->first();
+
+        if (!$booking) {
+            return response()->json(['message' => 'Event booking not found'], 404);
+        }
+        return response()->json(['booking' => $booking]);
+    }
+
+    public function indexSelectedPublic(Request $request, $id)
+    {
+        $booking = EventBooking::with([
+            'customer',
+            'menu.foods',
+            'package',
+            'packagePrice',
+            'theme',
+            'staffAssignments.user',
+            'payments',
+            'eventAddons.addon',
+            'eventAddons.addonPrice'
+        ])->find($id);
+
+        if (!$booking) {
+            return response()->json(['message' => 'Event booking not found'], 404);
+        }
+
+        return response()->json(['booking' => $booking]);
+    }
 
     protected function generateAutoTasks($booking, $assignedUserIds, $creatorId)
     {

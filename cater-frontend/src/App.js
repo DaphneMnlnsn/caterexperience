@@ -13,6 +13,7 @@ import AdminInventory from './pages/admin/AdminInventory';
 import AdminAudit from './pages/admin/AdminAudit';
 import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
+import PublicDetails from './pages/PublicDetails';
 import LandingMenu from './pages/LandingMenu';
 import LandingPackages from './pages/LandingPackages';
 import Unauthorized from './pages/Unauthorized';
@@ -35,6 +36,7 @@ export default function App(){
         <Route path="/" element={<LandingPage />} />
         <Route path="/landing/menu" element={<LandingMenu />} />
         <Route path="/landing/packages" element={<LandingPackages />} />
+        <Route path="/public/booking/:id" element={<PublicDetails />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ADMIN ONLY */}
