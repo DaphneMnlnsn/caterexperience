@@ -16,3 +16,50 @@
   resize: none;
   font-family: 'Lora', serif;
 }
+
+.request-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.request-item {
+  border-bottom: 1px solid #ddd;
+  padding: 8px 0;
+}
+
+.request-item p {
+  margin: 2px 0;
+}
+
+.status {
+  font-weight: bold;
+  text-transform: capitalize;
+}
+.status.pending { color: orange; }
+.status.approved { color: green; }
+.status.rejected { color: red; }
+
+.request-action-buttons {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+}
+
+.approve-btn, .reject-btn {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.approve-btn {
+  background: #d4f7d4;
+  color: green;
+}
+
+.reject-btn {
+  background: #f7d4d4;
+  color: red;
+}

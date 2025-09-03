@@ -24,7 +24,7 @@ class VenueSetupController extends Controller
             });
 
             if (strtolower($user->role) === 'head waiter') {
-                $query->whereIn('status', ['accepted', 'submitted']);
+                $query->whereIn('status', ['approved', 'submitted']);
             }
         }
 
@@ -49,7 +49,7 @@ class VenueSetupController extends Controller
                 });
 
                 if (strtolower($auth->role) === 'waiter') {
-                    $query->whereIn('status', ['accepted', 'submitted']);
+                    $query->whereIn('status', ['approved', 'submitted']);
                 }
             }
         } elseif ($auth instanceof \App\Models\Customer) {
@@ -85,7 +85,7 @@ class VenueSetupController extends Controller
                 });
 
                 if (strtolower($auth->role) === 'waiter') {
-                    $query->whereIn('status', ['accepted', 'submitted']);
+                    $query->whereIn('status', ['approved', 'submitted']);
                 }
             }
         } elseif ($auth instanceof \App\Models\Customer) {

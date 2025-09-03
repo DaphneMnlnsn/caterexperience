@@ -10,8 +10,20 @@ function View2DSetup() {
   const { id } = useParams();
   const navigate = useNavigate();
   const storedUser = localStorage.getItem('user');
-const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+  const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const canvasRef = useRef(null);
+
+  const hasRole = (roles) => {
+    if (!user?.role) return false;
+    const current = String(user.role).toLowerCase();
+    if (Array.isArray(roles)) {
+      return roles.some(r => String(r).toLowerCase() === current);
+    }
+    return String(roles).toLowerCase() === current;
+  };
+
+  const isClient = hasRole('client');
+  const isWaiter = hasRole('head waiter');
 
   const [setupId, setSetupId] = useState(null);
   const [venue, setVenue] = useState(null);
@@ -66,7 +78,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         </header>
 
         <div className="canvas-container">
-          <VenueCanvas ref={canvasRef} setupId={setupId} />
+          <VenueCanvas ref={canvasRef} setupId={setupId} isClient={isClient} isWaiter={isWaiter} />
         </div>
       </div>
     </div>

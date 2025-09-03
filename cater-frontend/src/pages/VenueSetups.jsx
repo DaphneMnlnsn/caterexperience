@@ -136,7 +136,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                           </div>
                         </div>
                         <div className="venue-actions">
-                        {setup.status != 'accepted' && setup.status != 'submitted' ? (
+                        {setup.status != 'approved' && setup.status != 'submitted' ? (
                           <>
                             <button className="edit-2d-btn" onClick={() => navigate(`/edit/${setup.booking_id}`)}>
                                 Edit 2D Design

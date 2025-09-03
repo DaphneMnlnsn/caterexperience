@@ -57,7 +57,7 @@ const getAnyProp = (props, name, fallback = undefined) => {
 };
 
 function VenueCanvas(props, ref) {
-  const { setupId, templateId, venueRealWidthMeters = null, venueRealAreaMeters = null } = props;
+  const { setupId, templateId, isClient, isWaiter, venueRealWidthMeters = null, venueRealAreaMeters = null } = props;
   const stageRef = useRef();
   const trRef = useRef();
   const groupRefs = useRef({});
@@ -973,6 +973,27 @@ function VenueCanvas(props, ref) {
     }
   };
 
+  const handleApproveSetup = () => {
+    Swal.fire({
+      title: 'Approve this venue setup?',
+      text: 'Once approved, it will be finalized.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, approve',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.put(`/setups/approve/${setupId}`)
+          .then(() => {
+            Swal.fire('Approved!', 'The venue setup has been approved.', 'success');
+          })
+          .catch((err) => {
+            console.error(err.response?.data || err.message);
+            Swal.fire('Error', 'Could not approve the setup.', 'error');
+          });
+      }
+    });
+  };
+
   return (
     <div
       onDrop={handleDrop}
@@ -995,39 +1016,59 @@ function VenueCanvas(props, ref) {
       </div>
 
       <div style={{ position: "absolute", top: 100, left: 10, display: "flex", flexDirection: "column", gap: "10px", zIndex: 1000 }}>
-        <button onClick={handleResetLayout} style={{ background: "#ff4e4eff", color: "#fff", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Reset Layout</button>
-        <button
-          onClick={handleSavePredefinedLayout}
+        {(!isWaiter && !isClient) && (
+          <>
+            <button onClick={handleResetLayout} style={{ background: "#ff4e4eff", color: "#fff", padding: "8px 12px", borderRadius: "8px", border: "none", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.3)", fontFamily: 'Lora, serif', fontWeight: 800 }}>Reset Layout</button>
+            <button
+              onClick={handleSavePredefinedLayout}
+              style={{
+                background: "#f9ebb4ff",
+                color: "#000",
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "none",
+                cursor: savingTemplate ? "not-allowed" : "pointer",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                fontFamily: 'Lora, serif',
+                fontWeight: 800,
+                opacity: savingTemplate ? 0.7 : 1
+              }}
+              disabled={savingTemplate}
+            >
+              {savingTemplate ? 'Saving...' : 'Save as Predefined'}
+            </button>
+            <button onClick={() => exportFullPNG()} 
+            style={{
+                background: "#f7ea7a",
+                color: "#000",
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "none",
+                cursor: savingTemplate ? "not-allowed" : "pointer",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                fontFamily: 'Lora, serif',
+                fontWeight: 800,
+                opacity: savingTemplate ? 0.7 : 1
+              }}>
+              Export PNG (full)</button>
+          </>
+        )}
+        {isClient && (
+          <button onClick={() => handleApproveSetup()} 
           style={{
-            background: "#f9ebb4ff",
-            color: "#000",
-            padding: "8px 12px",
-            borderRadius: "8px",
-            border: "none",
-            cursor: savingTemplate ? "not-allowed" : "pointer",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            fontFamily: 'Lora, serif',
-            fontWeight: 800,
-            opacity: savingTemplate ? 0.7 : 1
-          }}
-          disabled={savingTemplate}
-        >
-          {savingTemplate ? 'Saving...' : 'Save as Predefined'}
-        </button>
-        <button onClick={() => exportFullPNG()} 
-        style={{
-            background: "#f7ea7a",
-            color: "#000",
-            padding: "8px 12px",
-            borderRadius: "8px",
-            border: "none",
-            cursor: savingTemplate ? "not-allowed" : "pointer",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            fontFamily: 'Lora, serif',
-            fontWeight: 800,
-            opacity: savingTemplate ? 0.7 : 1
-          }}>
-          Export PNG (full)</button>
+              background: "#f7ea7a",
+              color: "#000",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: savingTemplate ? "not-allowed" : "pointer",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+              fontFamily: 'Lora, serif',
+              fontWeight: 800,
+              opacity: savingTemplate ? 0.7 : 1
+            }}>
+            Approve Setup</button>
+        )}
       </div>
 
       {editingLabel && (

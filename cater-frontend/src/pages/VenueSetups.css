@@ -73,7 +73,7 @@
   transition: all 0.2s;
 }
 
-.status-badge.accepted {
+.status-badge.approved {
   background-color: #d9f7be;
   border: 1px solid #95de64;
   color: #389e0d;

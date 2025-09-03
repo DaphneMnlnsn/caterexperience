@@ -10,13 +10,16 @@ class BookingChangeRequestController extends Controller
 {
     public function store(Request $request, $bookingId)
     {
+
+        $userId = $request->user()->customer_id;
+
         $validated = $request->validate([
             'request' => 'required|string|max:5000',
         ]);
 
         $changeRequest = BookingChangeRequest::create([
             'booking_id' => $bookingId,
-            'customer_id' => Auth::guard('customer')->id(),
+            'customer_id' => $userId,
             'request_text' => $validated['request'],
         ]);
 

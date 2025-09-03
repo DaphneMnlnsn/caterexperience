@@ -10,11 +10,11 @@ function LandingNavbar() {
     <nav className="navbar landing-nav">
       <img src={logo} alt="Ollinati Catering" className="logo-landing" />
       <ul className="nav-links">
-        <li>Home</li>
-        <li>Menu</li>
-        <li>Packages</li>
+        <li onClick={() => navigate('/')}>Home</li>
+        <li onClick={() => navigate('/landing/menu')}>Menu</li>
+        <li onClick={() => navigate('/landing/packages')}>Packages</li>
       </ul>
-      <button className="login-button" onClick={() => navigate('/')}>Login</button>
+      <button className="login-button" onClick={() => navigate('/login')}>Login</button>
     </nav>
   );
 }

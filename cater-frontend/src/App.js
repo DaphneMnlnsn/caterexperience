@@ -12,6 +12,9 @@ import AdminVenue from './pages/VenueSetups';
 import AdminInventory from './pages/admin/AdminInventory';
 import AdminAudit from './pages/admin/AdminAudit';
 import Login from './pages/Login';
+import LandingPage from './pages/LandingPage';
+import LandingMenu from './pages/LandingMenu';
+import LandingPackages from './pages/LandingPackages';
 import Unauthorized from './pages/Unauthorized';
 import ClientDetails from "./pages/admin/ClientDetails";
 import BookingDetails from "./pages/BookingDetails";
@@ -28,7 +31,10 @@ export default function App(){
   return(
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing/menu" element={<LandingMenu />} />
+        <Route path="/landing/packages" element={<LandingPackages />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ADMIN ONLY */}

@@ -356,7 +356,6 @@ function BookingDetails() {
 
   const handleSaveRow = async (bookingInventoryId) => {
     try {
-      
       if (isAdmin) {
         await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
           quantity_assigned: editedRow.quantity_assigned,
@@ -436,6 +435,9 @@ function BookingDetails() {
             <div className="action-buttons">
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
+              )}
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
+                <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>See Requested Changes</button>
               )}
               {isEditing ? (
                 <>
@@ -998,9 +1000,10 @@ function BookingDetails() {
           <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
         </>
       )}
-      {isClient && (
+
+      {(isClient || isAdmin) && (
         <>
-          <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} />
+          <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
         </>
       )}
     </div>

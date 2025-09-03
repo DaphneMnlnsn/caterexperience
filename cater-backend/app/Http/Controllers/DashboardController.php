@@ -373,7 +373,7 @@ class DashboardController extends Controller
                         $log->role = $auditable->role ?? '-';
                     }
                     elseif ($log->auditable_type === 'App\Models\Customer') {
-                        $log->user_name = trim(($auditable->first_name ?? '') . ' ' . ($auditable->middle_name ? $auditable->middle_name . ' ' : '') . ($auditable->last_name ?? '')) ?: 'N/A';
+                        $log->user_name = trim(($auditable->customer_firstname ?? '') . ' ' . ($auditable->customer_middlename ? $auditable->customer_middlename . ' ' : '') . ($auditable->customer_lastname ?? '')) ?: 'N/A';
                         $log->role = 'client';
                     }
                     else {
