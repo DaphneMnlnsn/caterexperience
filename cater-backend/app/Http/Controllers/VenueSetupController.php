@@ -6,6 +6,7 @@ use App\Helpers\AuditLogger;
 use App\Models\TemplateSetup;
 use App\Models\VenueObjectPlacement;
 use App\Models\VenueSetup;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -252,6 +253,7 @@ class VenueSetupController extends Controller
         $setup->save();
 
         AuditLogger::log('Updated', "Module: Venue Setup | Submitted Setup {$setup->layout_name}");
+        //NotificationService::send("client.".$clientId, "setup_submitted", "Venue setup has been submitted", $booking->id);
 
         return response()->json(['message' => 'Setup submitted to client']);
     }
@@ -268,6 +270,9 @@ class VenueSetupController extends Controller
         $setup->save();
 
         AuditLogger::log('Updated', "Module: Venue Setup | Approved Setup {$setup->layout_name}");
+        // NotificationService::send("staff.".$stylistId, "setup_approved", "Client approved the setup", $booking->id);
+        // NotificationService::send("staff.".$headWaiterId, "setup_approved", "Client approved the setup", $booking->id);
+        // NotificationService::send("admin", "setup_approved", "Client approved the setup", $booking->id);
 
         return response()->json(['message' => 'Setup approved']);
     }

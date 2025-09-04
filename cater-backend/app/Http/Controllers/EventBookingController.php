@@ -20,6 +20,7 @@ use App\Models\EventAddon;
 use App\Models\EventInventoryUsage;
 use App\Models\Food;
 use App\Models\VenueSetup;
+use App\Services\NotificationService;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class EventBookingController extends Controller
@@ -42,6 +43,9 @@ class EventBookingController extends Controller
         }
 
         $events = $query->get();
+
+        // NotificationService::send("admin", "booking_near", "Booking {$booking->id} is happening soon", $booking->id);
+        // NotificationService::send("admin", "event_finished", "Booking {$booking->id} must be marked finished", $booking->id);
 
         return response()->json($events);
     }
@@ -361,6 +365,7 @@ class EventBookingController extends Controller
                     'booking_id' => $booking->booking_id,
                     'user_id' => $userId
                 ]);
+                // NotificationService::send("staff.".$userId, "task_assigned", "You have been assigned a task on a booking", $booking->id);
             }
 
             $this->generateAutoTasks($booking, $validated['assigned_user_ids'], $validated['created_by']);
@@ -410,6 +415,7 @@ class EventBookingController extends Controller
             DB::commit();
 
             AuditLogger::log('Created', 'Module: Event Booking | Created booking: ' . $validated['event_name']);
+            // NotificationService::send("admin", "booking_created", "A new booking was created", $booking->id);
 
             return response()->json(['message' => 'Booking and tasks successfully created.', 'booking' => $booking]);
 
@@ -500,6 +506,10 @@ class EventBookingController extends Controller
         }
 
         AuditLogger::log('Updated', 'Module: Booking Details | Updated booking ID: ' . $id);
+        /*NotificationService::send("client.".$clientId, "booking_updated", "Booking details have changed", $booking->id);
+        foreach ($staffIds as $sid) {
+            NotificationService::send("staff.".$sid, "booking_updated", "Booking details have changed", $booking->id);
+        }*/
 
         return response()->json(['message' => 'Booking updated']);
     }
@@ -531,6 +541,10 @@ class EventBookingController extends Controller
             DB::commit();
 
             AuditLogger::log('Cancelled', 'Module: Event Booking | Cancelled booking ID: ' . $id);
+            // NotificationService::send("client.".$clientId, "booking_cancelled", "Booking has been cancelled", $booking->id);
+            // foreach ($staffIds as $sid) {
+            //     NotificationService::send("staff.".$sid, "booking_cancelled", "A booking has been cancelled", $booking->id);
+            // }
 
             return response()->json(['message' => 'Booking cancelled successfully.']);
         } catch (\Exception $e) {
@@ -576,6 +590,10 @@ class EventBookingController extends Controller
             DB::commit();
 
             AuditLogger::log('Updated', 'Module: Event Booking | Rescheduled booking ID: ' . $id);
+            // NotificationService::send("client.".$clientId, "booking_updated", "Booking has been rescheduled", $booking->id);
+            // foreach ($staffIds as $sid) {
+            //     NotificationService::send("staff.".$sid, "booking_updated", "A booking has been rescheduled", $booking->id);
+            // }
 
             return response()->json(['message' => 'Booking successfully rescheduled.']);
         } catch (\Exception $e) {

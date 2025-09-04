@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Events\BookingDeadlineNear;
 
 class AuthController extends Controller
 {
+    public function testBroadcast()
+    {
+        event(new BookingDeadlineNear(10));
+        return 'Event fired!';
+    }
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');

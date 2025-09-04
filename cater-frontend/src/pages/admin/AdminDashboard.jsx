@@ -5,6 +5,7 @@ import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
 import axios from 'axios';
 import axiosClient from '../../axiosClient';
+import echo from "../../pusher";
 
 function AdminDashboard() {
   const storedUser = localStorage.getItem('user');
@@ -18,6 +19,13 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   });
 
   const [auditLog, setAuditLog] = useState([]);
+
+  useEffect(() => {
+    echo.channel("bookings")
+        .listen(".deadline.near", (data) => {
+            console.log("📢 Booking deadline near:", data.bookingId);
+        });
+  }, []);
 
   useEffect(() => {
     axiosClient.get('/dashboard/stats')
