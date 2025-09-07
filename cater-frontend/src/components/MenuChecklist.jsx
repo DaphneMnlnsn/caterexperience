@@ -3,7 +3,7 @@ import './MenuChecklist.css';
 import axiosClient from '../axiosClient';
 import Swal from 'sweetalert2';
 
-function MenuChecklist({ bookingId = null, items: initialItems = null }) {
+function MenuChecklist({ bookingId = null, items: initialItems = null, isCook }) {
   const [items, setItems] = useState(initialItems || []);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -103,7 +103,7 @@ function MenuChecklist({ bookingId = null, items: initialItems = null }) {
                       <input
                         type="checkbox"
                         checked={it.status === 'completed'}
-                        onChange={() => toggleComplete(idx)}
+                        onChange={() => {if(isCook){toggleComplete(idx)}}}
                       />
                       <span className="mc-checkmark" />
                     </label>
@@ -116,13 +116,15 @@ function MenuChecklist({ bookingId = null, items: initialItems = null }) {
       )}
 
       <div className="mc-actions">
-        <button
-          className="user-save-btn"
-          onClick={handleSave}
-          disabled={saving || loading || items.length === 0}
-        >
-          {saving ? 'Saving…' : 'Save Changes'}
-        </button>
+        {isCook && (
+          <button
+            className="user-save-btn"
+            onClick={handleSave}
+            disabled={saving || loading || items.length === 0}
+          >
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        )}
       </div>
 
       {error && <div className="mc-error">{error}</div>}

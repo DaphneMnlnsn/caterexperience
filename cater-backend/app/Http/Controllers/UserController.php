@@ -54,6 +54,7 @@ class UserController extends Controller
             'gender' => $validated['gender'],
             'role' => $validated['role'],
             'password' => Hash::make($validated['last_name'] . ".123"),
+            'require_pass_change' => true,
         ]);
 
         AuditLogger::log('Created', "Module: User | Created user: {$user->first_name} {$user->last_name}, ID: {$user->id}");
@@ -97,6 +98,7 @@ class UserController extends Controller
 
         $user->update([
             'password' => Hash::make($defaultPassword),
+            'require_pass_change' => true,
         ]);
 
         AuditLogger::log('Updated', "Module: User | Updated user: {$user->first_name} {$user->last_name}, ID: {$user->id}");

@@ -11,5 +11,6 @@ Route::middleware('role:admin')->group(function () {
         Route::put('/{id}/archive', [CustomerController::class, 'archive']);
         Route::put('/{id}/restore', [CustomerController::class, 'restore']);
         Route::delete('/{id}', [CustomerController::class, 'destroy']);
+        Route::put('/{id}/reset', [CustomerController::class, 'resetPass']);
     });
 });

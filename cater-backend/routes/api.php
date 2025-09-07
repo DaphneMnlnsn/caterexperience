@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 require __DIR__.'/api/public.php';
+require __DIR__.'/api/pass.php';
 
 Route::middleware('auth:sanctum')->group(function () {
     require __DIR__.'/api/audit.php';

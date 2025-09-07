@@ -22,6 +22,8 @@ return new class extends Migration
 
             $table->string('address')->nullable()->after('archived');
             $table->string('gender')->nullable()->after('address');
+            $table->boolean('require_pass_change')->default(false)->after('gender');
+
         });
     }
 

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('customer_phone');
             $table->string('customer_address');
             $table->boolean('archived')->default(false);
+            $table->boolean('require_pass_change')->default(false);
         });
     }
 

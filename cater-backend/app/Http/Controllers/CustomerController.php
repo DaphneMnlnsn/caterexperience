@@ -57,6 +57,7 @@ class CustomerController extends Controller
             'customer_password' => Hash::make($validated['customer_lastname'] . ".123"),
             'customer_phone' => $validated['customer_phone'],
             'customer_address' => $validated['customer_address'],
+            'require_pass_change' => true,
         ]);
 
         AuditLogger::log('Created', 'Module: Customer | Registered customer: ' . $validated['customer_firstname'] . ' ' . $validated['customer_lastname']);
@@ -120,5 +121,20 @@ class CustomerController extends Controller
         $customer->delete();
 
         return response()->json(['message' => 'Customer deleted successfully'], 200);
+    }
+    public function resetPass(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $defaultPassword = $customer->customer_lastname . ".123";
+
+        $customer->update([
+            'customer_password' => Hash::make($defaultPassword),
+            'require_pass_change' => true,
+        ]);
+
+        AuditLogger::log('Updated', "Module: Customer | Updated customer: {$customer->customer_firstname} {$customer->customer_lastname}, ID: {$customer->customer_id}");
+
+        return response()->json(['message' => 'Customer updated successfully', 'customer' => $customer]);
     }
 }

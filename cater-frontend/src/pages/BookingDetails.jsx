@@ -728,11 +728,11 @@ function BookingDetails() {
         )}
 
         {/* Menu Checklist */}
-        {isCook && (
+        {(isCook || isWaiter || isAdmin) && (
           <>
             <div className="section white-bg">
               <h3>Menu Checklist</h3>
-              <MenuChecklist bookingId={booking.booking_id} />
+              <MenuChecklist bookingId={booking.booking_id} isCook={isCook} />
             </div>
 
             <hr className="booking-section-divider" />
@@ -881,7 +881,7 @@ function BookingDetails() {
                                             }
                                           }}
                                         />
-                                        {!isStylist && (
+                                        {isAdmin && (
                                           <FaTrash
                                             className="icon delete-icon"
                                             onClick={() => handleDelete(row.booking_inventory_id)}

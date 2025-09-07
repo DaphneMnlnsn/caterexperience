@@ -24,6 +24,7 @@ class Customer extends Authenticatable
         'customer_phone',
         'customer_address',
         'archived',
+        'require_pass_change',
     ];
 
     protected $hidden = [

@@ -42,10 +42,11 @@ Route::middleware('role:stylist,head waiter,cook,client')->group(function () {
     });
 });
 
+Route::middleware('role:cook,admin,head waiter')->group(function () {
+    Route::get('/bookings/{booking}/menu-items', [MenuFoodController::class, 'index']);
+});
+
 Route::middleware('role:cook')->group(function () {
-    Route::prefix('bookings')->group(function () {
-        Route::get('/{booking}/menu-items', [MenuFoodController::class, 'index']);
-    });
     Route::put('/menu-food/batch-update', [MenuFoodController::class, 'batchUpdate']);
 });
 

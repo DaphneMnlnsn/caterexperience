@@ -38,6 +38,11 @@ function Login() {
                 localStorage.setItem('user', btoa(JSON.stringify(user)));
                 localStorage.setItem('role', user.role);
 
+                if (user.require_pass_change) {
+                    navigate('/password/change');
+                    return;
+                }
+
                 if (user.role === 'admin') {
                     navigate('/admin/dashboard');
                 }
@@ -89,7 +94,7 @@ function Login() {
                     </div>
                     {error && <p style={{ color: 'red' }}>{error}</p>}
                     <div className="forgot">
-                        <a href="#">Forgot password?</a>
+                        <a href="/password/reset">Forgot password?</a>
                     </div>
                     <button type="submit" className="login-submit">Login Now</button>
                 </form>

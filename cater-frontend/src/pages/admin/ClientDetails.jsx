@@ -79,6 +79,30 @@ function ClientDetails() {
     });
   };
 
+  const handleResetPass = () => {
+    Swal.fire({
+      title: 'Reset Client Password?',
+      text: `This will reset ${client.customer_firstname} ${client.customer_lastname}'s password. Please make sure to inform them of the change.`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#2ecc71',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Yes, reset it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.put(`/customers/${id}/reset`)
+          .then(() => {
+            Swal.fire('Reset!', 'Client password has been reset.', 'success');
+            navigate('/admin/clients');
+          })
+          .catch(err => {
+            console.error('Reset error:', err.response?.data || err.message);
+            Swal.fire('Error', 'Could not reset client password.', 'error');
+          });
+      }
+    });
+  };
+
   const handleSaveChanges = (e) => {
     e.preventDefault();
 
@@ -204,7 +228,7 @@ function ClientDetails() {
           <h3>Client Account Credentials</h3>
           <div className="credentials-row">
             <p><strong>Email Address:</strong> {client.customer_email}</p>
-            <button className="reset-btn">Reset Password</button>
+            <button className="reset-btn" onClick={() => handleResetPass()}>Reset Password</button>
           </div>
         </section>
 

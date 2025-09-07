@@ -1,21 +1,9 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import './AddUserModal.css';
 import Swal from 'sweetalert2';
 import axiosClient from '../axiosClient';
 
 function EditUserModal({ show, onClose, onSave, user }) {
-
-  const fetchWithAuth = (url, options = {}) => {
-    const token = localStorage.getItem('token');
-    return fetch(url, {
-      ...options,
-      headers: {
-        ...(options.headers || {}),
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }
-    });
-  };
 
   const [formData, setFormData] = React.useState({
     first_name: '',
@@ -27,7 +15,7 @@ function EditUserModal({ show, onClose, onSave, user }) {
     role: '',
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       setFormData({
         first_name: user.first_name || '',
@@ -40,6 +28,30 @@ function EditUserModal({ show, onClose, onSave, user }) {
       });
     }
   }, [user]);
+
+  const handleResetPass = () => {
+    Swal.fire({
+      title: 'Reset User Password?',
+      text: `This will reset ${user.first_name} ${user.last_name}'s password. Please make sure to inform them of the change.`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#2ecc71',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Yes, reset it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.put(`/users/${user.id}/reset`)
+          .then(() => {
+            Swal.fire('Reset!', 'User password has been reset.', 'success');
+            onClose();
+          })
+          .catch(err => {
+            console.error('Reset error:', err.response?.data || err.message);
+            Swal.fire('Error', 'Could not reset user password.', 'error');
+          });
+      }
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -102,6 +114,7 @@ function EditUserModal({ show, onClose, onSave, user }) {
           </select>
 
           <div className="modal-buttons">
+            <button type="button" className="user-save-btn" onClick={() => handleResetPass()}>Reset Pass</button>
             <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
             <button type="submit" className="user-save-btn">Save</button>
           </div>

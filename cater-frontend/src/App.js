@@ -12,6 +12,8 @@ import AdminVenue from './pages/VenueSetups';
 import AdminInventory from './pages/admin/AdminInventory';
 import AdminAudit from './pages/admin/AdminAudit';
 import Login from './pages/Login';
+import PasswordReset from './pages/PasswordReset';
+import PasswordChange from "./pages/PasswordChange";
 import LandingPage from './pages/LandingPage';
 import PublicDetails from './pages/PublicDetails';
 import LandingMenu from './pages/LandingMenu';
@@ -33,6 +35,8 @@ export default function App(){
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/password/reset" element={<PasswordReset />} />
+        <Route path="/password/change" element={<PasswordChange />} />
         <Route path="/" element={<LandingPage />} />
         <Route path="/landing/menu" element={<LandingMenu />} />
         <Route path="/landing/packages" element={<LandingPackages />} />
