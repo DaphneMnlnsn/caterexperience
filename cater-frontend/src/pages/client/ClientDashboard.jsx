@@ -4,6 +4,7 @@ import '../admin/AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
 import { FaBell, FaClock, FaUser, FaMoneyBill } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function ClientDashboard() {
   const storedUser = localStorage.getItem('user');
@@ -43,7 +44,7 @@ function ClientDashboard() {
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

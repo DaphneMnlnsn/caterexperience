@@ -13,6 +13,7 @@ import AddBookingItemModal from '../components/AddBookingItemModal';
 import Invoice from '../components/Invoice';
 import MenuChecklist from '../components/MenuChecklist';
 import RequestChangesModal from '../components/RequestChangesModal';
+import NotificationsDropdown from '../components/NotificationsDropdown';
 
 function BookingDetails() {
   const { id } = useParams();
@@ -424,7 +425,7 @@ function BookingDetails() {
           <div></div>
           <div className="topbar-right">
             <span className="user-name">{user?.first_name} {user?.last_name}</span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

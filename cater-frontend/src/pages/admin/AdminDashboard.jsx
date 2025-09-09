@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { ToastContainer } from "react-toastify";
 import './AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
 import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
-import axios from 'axios';
 import axiosClient from '../../axiosClient';
-import echo from "../../pusher";
+import NotificationsDropdown from '../../components/NotificationsDropdown';
+import NotificationProvider from '../../components/NotificationProvider';
 
 function AdminDashboard() {
   const storedUser = localStorage.getItem('user');
@@ -19,13 +20,6 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   });
 
   const [auditLog, setAuditLog] = useState([]);
-
-  useEffect(() => {
-    echo.channel("bookings")
-        .listen(".deadline.near", (data) => {
-            console.log("📢 Booking deadline near:", data.bookingId);
-        });
-  }, []);
 
   useEffect(() => {
     axiosClient.get('/dashboard/stats')
@@ -42,15 +36,18 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
       <Sidebar />
 
       <div className="main-content">
+        <ToastContainer />
+        <NotificationProvider userId={user.id} role={user.role}>
         <header className="topbar">
           <div className="topbar-left"></div>
           <div className="topbar-right">
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
+        </NotificationProvider>
 
         <section className="welcome-section">
           <h3>Welcome, {user ? user.first_name : 'User'}!</h3>

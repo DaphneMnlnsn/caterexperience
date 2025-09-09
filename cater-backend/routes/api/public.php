@@ -27,4 +27,3 @@ Route::get('/payments/report', [PaymentController::class, 'generateReport']);
 Route::get('/audit/report', [AuditLogController::class, 'generateReport']);
 Route::get('/bookings/code/{code}', [EventBookingController::class, 'findByCode']);
 Route::get('/bookings/public/{id}', [EventBookingController::class, 'indexSelectedPublic']);
-Route::get('/test-broadcast', [AuthController::class, 'testBroadcast']);

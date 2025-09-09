@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './ClientDetails.css';
 import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function ClientDetails() {
 
@@ -132,7 +133,7 @@ function ClientDetails() {
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

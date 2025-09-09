@@ -21,4 +21,5 @@ Route::middleware('auth:sanctum')->group(function () {
     require __DIR__.'/api/setups.php';
     require __DIR__.'/api/objects.php';
     require __DIR__.'/api/templates.php';
+    require __DIR__.'/api/notifications.php';
 });

@@ -6,6 +6,7 @@ import { FaBell, FaPen, FaTrash, FaReceipt } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Invoice from '../../components/Invoice';
 import dayjs from 'dayjs';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function AdminPayments() {
     const [paymentData, setPaymentData] = useState([]);
@@ -98,7 +99,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <span className="user-name">
                         {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
                     </span>                    
-                    <FaBell className="notif-icon" />
+                    <NotificationsDropdown />
                 </div>
                 </header>
 

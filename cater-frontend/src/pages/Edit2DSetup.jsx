@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
+import NotificationsDropdown from '../components/NotificationsDropdown';
 import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
 import VenueCanvas from '../components/VenueCanvas';
@@ -130,7 +131,7 @@ function Edit2DSetup() {
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

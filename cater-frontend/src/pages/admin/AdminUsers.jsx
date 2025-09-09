@@ -6,6 +6,7 @@ import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell, FaFilter, FaPen, FaArchive, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function AdminUsers() {
     const [staffData, setStaffData] = React.useState([]);
@@ -113,7 +114,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <span className="user-name">
                         {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
                     </span>                    
-                    <FaBell className="notif-icon" />
+                    <NotificationsDropdown />
                 </div>
                 </header>
 

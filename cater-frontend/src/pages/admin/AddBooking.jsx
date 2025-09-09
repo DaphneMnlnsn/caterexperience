@@ -6,6 +6,7 @@ import Sidebar from '../../components/Sidebar';
 import AddUserModal from '../../components/AddUserModal';
 import axiosClient from '../../axiosClient';
 import { FaBell } from 'react-icons/fa';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function AddBooking() {
     const token = localStorage.getItem('token');
@@ -428,7 +429,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                 <span className="user-name">
                 {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
                 </span>
-                <FaBell className="notif-icon" />
+                <NotificationsDropdown />
             </div>
             </header>
 

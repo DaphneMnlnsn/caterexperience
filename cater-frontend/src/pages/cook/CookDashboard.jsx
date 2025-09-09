@@ -5,6 +5,7 @@ import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
 import axios from 'axios';
 import axiosClient from '../../axiosClient';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function CookDashboard() {
   const storedUser = localStorage.getItem('user');
@@ -39,7 +40,7 @@ function CookDashboard() {
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

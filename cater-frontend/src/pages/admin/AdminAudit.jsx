@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import dayjs from 'dayjs';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function AdminAudit() {
   const [auditData, setAuditData] = useState([]);
@@ -152,7 +153,7 @@ function AdminAudit() {
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

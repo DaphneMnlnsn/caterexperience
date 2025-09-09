@@ -9,6 +9,7 @@ import EditAddonModal from '../components/EditAddonModal';
 import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell } from 'react-icons/fa';
+import NotificationsDropdown from '../components/NotificationsDropdown';
 import axiosClient from '../axiosClient';
 
 function Packages() {
@@ -77,7 +78,7 @@ function Packages() {
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

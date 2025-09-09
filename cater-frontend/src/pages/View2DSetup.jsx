@@ -5,6 +5,7 @@ import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
 import VenueCanvas from '../components/VenueCanvas';
 import axiosClient from '../axiosClient';
+import NotificationsDropdown from '../components/NotificationsDropdown';
 
 function View2DSetup() {
   const { id } = useParams();
@@ -73,7 +74,7 @@ function View2DSetup() {
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 

@@ -6,6 +6,7 @@ import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell, FaArchive, FaPen, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
+import NotificationsDropdown from '../../components/NotificationsDropdown';
 
 function AdminInventory() {
     const [inventoryData, setInventoryData] = React.useState([]);
@@ -94,7 +95,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <span className="user-name">
                         {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
                     </span>                    
-                    <FaBell className="notif-icon" />
+                    <NotificationsDropdown />
                 </div>
                 </header>
 

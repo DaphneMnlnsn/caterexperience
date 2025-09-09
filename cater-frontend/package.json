@@ -26,6 +26,7 @@
     "react-konva": "^19.0.7",
     "react-router-dom": "^7.6.2",
     "react-scripts": "5.0.1",
+    "react-toastify": "^11.0.5",
     "sweetalert2": "^11.22.0",
     "use-image": "^1.1.4",
     "web-vitals": "^2.1.4"

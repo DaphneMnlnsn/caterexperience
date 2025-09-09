@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import { FaBell, FaInfoCircle } from 'react-icons/fa';
+import NotificationsDropdown from '../components/NotificationsDropdown';
 import axiosClient from '../axiosClient';
 import { Link } from 'react-router-dom';
 import './Bookings.css';
@@ -122,7 +123,7 @@ function Bookings() {
                         <span className="user-name">
                             {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
                         </span>
-                        <FaBell className="notif-icon" />
+                        <NotificationsDropdown />
                     </div>
                 </header>
 

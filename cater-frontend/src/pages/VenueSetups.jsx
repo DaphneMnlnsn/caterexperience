@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { FaBell } from 'react-icons/fa';
 import axiosClient from '../axiosClient';
 import { useNavigate } from 'react-router-dom';
+import NotificationsDropdown from '../components/NotificationsDropdown';
 
 function VenueSetups() {
   const storedUser = localStorage.getItem('user');
@@ -72,7 +73,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             <span className="user-name">
               {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
             </span>
-            <FaBell className="notif-icon" />
+            <NotificationsDropdown />
           </div>
         </header>
 
