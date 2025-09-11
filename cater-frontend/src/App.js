@@ -27,6 +27,7 @@ import View2DSetup from "./pages/View2DSetup";
 import StylistDashboard from "./pages/stylist/StylistDashboard";
 import CookDashboard from "./pages/cook/CookDashboard";
 import Bookings from "./pages/Bookings";
+import Notifications from "./pages/Notifications";
 import WaiterDashboard from "./pages/head waiter/WaiterDashboard";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import axiosClient from "./axiosClient";
@@ -232,6 +233,16 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['stylist','head waiter', 'cook', 'client']}>
               <Bookings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ALL ROLES */}
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute allowedRoles={['admin','stylist','head waiter', 'cook', 'client']}>
+              <Notifications />
             </ProtectedRoute>
           }
         />

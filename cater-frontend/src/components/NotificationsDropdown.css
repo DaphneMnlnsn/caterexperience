@@ -6,8 +6,15 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   width: 20.5%;
   max-height: 320px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   font-family: sans-serif;
+  overflow: hidden;
+}
+
+.notifications-dropdown-list {
+  overflow-y: auto;
+  flex: 1;
 }
 
 .notifications-dropdown-header {
@@ -25,21 +32,6 @@
   transition: background 0.2s;
 }
 
-.notifications-dropdown-header button {
-  margin-left: 10%;
-  font-size: 0.75rem;
-  background: #fff176;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.notifications-dropdown-header button:hover {
-  background: #ffe066;
-}
-
 .notifications-dropdown-item:hover {
   background: #f3f4f6;
 }
@@ -53,6 +45,21 @@
   text-align: center;
   color: #9ca3af;
   font-size: 0.9rem;
+}
+
+.notifications-dropdown-header button {
+  margin-left: 10%;
+  font-size: 0.75rem;
+  background: #fff176;
+  padding: 0.25rem 0.25rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notifications-dropdown-header button:hover {
+  background: #ffe066;
 }
 
 .notif-wrapper {
@@ -75,6 +82,24 @@
   align-items: center;
   justify-content: center;
   z-index: 10;
+}
+
+.notifications-dropdown-see-all {
+  border-top: 1px solid #e2e2e2;
+  flex-shrink: 0;
+  background: #fff;
+  text-align: center;
+}
+
+.notifications-dropdown-see-all button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0.75rem 0;
+  font-family: 'Lora', serif;
+  width: 100%;
+  text-align: center;
 }
 
 .custom-toast {
