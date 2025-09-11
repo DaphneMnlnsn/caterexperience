@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -29,8 +29,14 @@ import CookDashboard from "./pages/cook/CookDashboard";
 import Bookings from "./pages/Bookings";
 import WaiterDashboard from "./pages/head waiter/WaiterDashboard";
 import ClientDashboard from "./pages/client/ClientDashboard";
+import axiosClient from "./axiosClient";
 
 export default function App(){
+  useEffect(() => {
+    axiosClient.get('http://localhost:8000/sanctum/csrf-cookie')
+      .catch(err => console.error('CSRF error', err));
+  }, []);
+
   return(
     <Router>
       <Routes>

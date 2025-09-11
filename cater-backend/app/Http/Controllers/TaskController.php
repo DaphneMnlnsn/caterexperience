@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\AuditLogger;
+use App\Models\EventBooking;
 use App\Models\Task;
+use App\Models\User;
+use App\Notifications\TaskStatusUpdatedNotification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -23,6 +27,11 @@ class TaskController extends Controller
 
         $task = Task::create($validated);
 
+        $userId  = $validated['assigned_to'];
+        $booking = EventBooking::find($validated['booking_id']);
+
+        NotificationService::sendTaskAssigned($userId, $booking);
+        
         AuditLogger::log('Created', "Module: Booking Details | Created task ID: {$task->task_id} for Booking ID: {$task->booking_id}");
 
         return response()->json([
@@ -42,6 +51,12 @@ class TaskController extends Controller
         $task->save();
 
         AuditLogger::log('Updated', "Module: Booking Details | Updated status of task ID: {$task->task_id} to '{$task->status}'");
+
+        $admins = User::where('role', 'admin')->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new TaskStatusUpdatedNotification($task));
+        }
 
         return response()->json(['message' => 'Task status updated']);
     }

@@ -231,6 +231,13 @@ class VenueSetupController extends Controller
 
             AuditLogger::log('Updated', "Module: Venue Setup | Updated setup: {$setup->layout_name}");
 
+            if ($request->user()->role !== 'admin') {
+                $booking = $setup->booking;
+                if ($booking) {
+                    NotificationService::sendVenueUpdated($booking);
+                }
+            }
+
             return response()->json([
                 'message' => 'Venue setup updated successfully.',
                 'setup'   => $setup->load('placements.object'),
@@ -252,8 +259,10 @@ class VenueSetupController extends Controller
         $setup->status = 'submitted';
         $setup->save();
 
+        $booking = $setup->booking;
+        NotificationService::sendVenueSetupSubmitted($booking);
+
         AuditLogger::log('Updated', "Module: Venue Setup | Submitted Setup {$setup->layout_name}");
-        //NotificationService::send("client.".$clientId, "setup_submitted", "Venue setup has been submitted", $booking->id);
 
         return response()->json(['message' => 'Setup submitted to client']);
     }
@@ -269,10 +278,11 @@ class VenueSetupController extends Controller
         $setup->status = 'approved';
         $setup->save();
 
+        $booking = $setup->booking;
+
+        NotificationService::sendVenueSetupApproved($booking);
+
         AuditLogger::log('Updated', "Module: Venue Setup | Approved Setup {$setup->layout_name}");
-        // NotificationService::send("staff.".$stylistId, "setup_approved", "Client approved the setup", $booking->id);
-        // NotificationService::send("staff.".$headWaiterId, "setup_approved", "Client approved the setup", $booking->id);
-        // NotificationService::send("admin", "setup_approved", "Client approved the setup", $booking->id);
 
         return response()->json(['message' => 'Setup approved']);
     }

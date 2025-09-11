@@ -3,11 +3,10 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class EventFinishedNotification extends Notification implements ShouldQueue
+class EventFinishedNotification extends Notification
 {
     use Queueable;
 

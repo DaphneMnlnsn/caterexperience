@@ -5,6 +5,7 @@ import Sidebar from '../../components/Sidebar';
 import { FaBell, FaClock, FaUser, FaMoneyBill } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function ClientDashboard() {
   const storedUser = localStorage.getItem('user');
@@ -38,15 +39,7 @@ function ClientDashboard() {
       <Sidebar />
 
       <div className="main-content">
-        <header className="topbar">
-          <div className="topbar-left"></div>
-          <div className="topbar-right">
-            <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>
-            <NotificationsDropdown />
-          </div>
-        </header>
+        <Header user={user} />
 
         <section className="welcome-section">
           <h3>Welcome, {user ? user.first_name : 'User'}!</h3>
@@ -60,7 +53,7 @@ function ClientDashboard() {
               Remaining Balance to Pay <span>{stats.remaining_balance.toFixed(2)}</span>
             </div>
             <div className="stat-box">
-              Contact/Bantay <span>{stats.contact}</span>
+              Contact/Bantay <span>{stats.contact ? stats.contact : 'N/A'}</span>
             </div>
           </div>
         </section>
@@ -69,7 +62,7 @@ function ClientDashboard() {
         <section className="page-bottom">
           <section className="event-section">
             <h3>Your Upcoming Event</h3>
-            {event && (
+            {event ? (
               <div className="event-card">
                 <h4>{event.title}</h4>
                 <p><strong>Venue:</strong> {event.venue}</p>
@@ -79,6 +72,8 @@ function ClientDashboard() {
                 <p><strong>Additional Notes:</strong> {event.notes ? event.notes : 'N/A'}</p>
                 <button className="btn-details" onClick={() => navigate(`/bookings/${event.bookingId}`)}>View More Details</button>
               </div>
+            ) : (
+              <p>No upcoming events.</p>
             )}
           </section>
 

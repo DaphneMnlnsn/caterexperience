@@ -44,9 +44,6 @@ class EventBookingController extends Controller
 
         $events = $query->get();
 
-        // NotificationService::send("admin", "booking_near", "Booking {$booking->id} is happening soon", $booking->id);
-        // NotificationService::send("admin", "event_finished", "Booking {$booking->id} must be marked finished", $booking->id);
-
         return response()->json($events);
     }
 
@@ -129,15 +126,15 @@ class EventBookingController extends Controller
             return response()->json(['message' => 'Event booking not found'], 404);
         }
 
-        if ($user instanceof \App\Models\User && strtolower($user->role) === 'admin') {
+        if ($user instanceof User && strtolower($user->role) === 'admin') {
         }
-        elseif ($user instanceof \App\Models\User) {
+        elseif ($user instanceof User) {
             $isAssigned = $booking->tasks()->where('assigned_to', $user->id)->exists();
             if (!$isAssigned) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
         }
-        elseif ($user instanceof \App\Models\Customer) {
+        elseif ($user instanceof Customer) {
             if ($booking->customer_id !== $user->customer_id) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
@@ -147,7 +144,7 @@ class EventBookingController extends Controller
         }
 
         $tasks = $booking->tasks()
-            ->when($user instanceof \App\Models\User && strtolower($user->role) !== 'admin', function ($q) use ($user) {
+            ->when($user instanceof User && strtolower($user->role) !== 'admin', function ($q) use ($user) {
                 $q->where('assigned_to', $user->id);
             })
             ->with('assignee')
@@ -365,7 +362,6 @@ class EventBookingController extends Controller
                     'booking_id' => $booking->booking_id,
                     'user_id' => $userId
                 ]);
-                // NotificationService::send("staff.".$userId, "task_assigned", "You have been assigned a task on a booking", $booking->id);
             }
 
             $this->generateAutoTasks($booking, $validated['assigned_user_ids'], $validated['created_by']);
@@ -415,7 +411,10 @@ class EventBookingController extends Controller
             DB::commit();
 
             AuditLogger::log('Created', 'Module: Event Booking | Created booking: ' . $validated['event_name']);
-            // NotificationService::send("admin", "booking_created", "A new booking was created", $booking->id);
+
+            foreach ($validated['assigned_user_ids'] as $userId) {
+                NotificationService::sendTaskAssigned($userId, $booking);
+            }
 
             return response()->json(['message' => 'Booking and tasks successfully created.', 'booking' => $booking]);
 
@@ -464,55 +463,69 @@ class EventBookingController extends Controller
     public function updateBooking(Request $request, $id)
     {
         $validated = $request->validate([
-            'event_name' => 'required|string',
-            'event_location' => 'required|string',
-            'event_type' => 'nullable|string',
-            'celebrant_name' => 'nullable|string',
-            'age' => 'nullable|integer',
-            'watcher' => 'nullable|string',
+            'event_name'      => 'required|string',
+            'event_location'  => 'required|string',
+            'event_type'      => 'nullable|string',
+            'celebrant_name'  => 'nullable|string',
+            'age'             => 'nullable|integer',
+            'watcher'         => 'nullable|string',
             'special_request' => 'nullable|string',
-            'food_names' => 'required|array',
-            'food_names.*' => 'string'
+            'food_names'      => 'required|array',
+            'food_names.*'    => 'string'
         ]);
 
-        $booking = EventBooking::with('menu.foods')->findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $booking = EventBooking::with(['menu.foods', 'client', 'staffAssignments'])
+                ->findOrFail($id);
 
-        $booking->update([
-            'event_name' => $validated['event_name'],
-            'event_location' => $validated['event_location'],
-            'event_type' => $validated['event_type'],
-            'celebrant_name' => $validated['celebrant_name'],
-            'age' => $validated['age'],
-            'watcher' => $validated['watcher'],
-            'special_request' => $validated['special_request'],
-        ]);
+            $booking->update([
+                'event_name'      => $validated['event_name'],
+                'event_location'  => $validated['event_location'],
+                'event_type'      => $validated['event_type'],
+                'celebrant_name'  => $validated['celebrant_name'],
+                'age'             => $validated['age'],
+                'watcher'         => $validated['watcher'],
+                'special_request' => $validated['special_request'],
+            ]);
 
-        $allFoods = Food::whereIn('food_name', $validated['food_names'])->pluck('food_id')->toArray();
-        $booking->menu->foods()->sync($allFoods);
+            $allFoods = Food::whereIn('food_name', $validated['food_names'])
+                ->pluck('food_id')
+                ->toArray();
+            $booking->menu->foods()->sync($allFoods);
 
-        EventAddon::where('booking_id', $booking->booking_id)->delete();
-
-        if ($request->has('event_addons')) {
-            foreach ($request->event_addons as $addon) {
-                EventAddon::create([
-                    'booking_id'   => $booking->booking_id,
-                    'addon_id'     => $addon['addon_id'],
-                    'quantity'     => $addon['quantity'],
-                    'price_each'   => $addon['price_each'],
-                    'total_price'  => $addon['total_price'],
-                    'remarks'      => $addon['remarks'] ?? null,
-                ]);
+            EventAddon::where('booking_id', $booking->booking_id)->delete();
+            if ($request->has('event_addons')) {
+                foreach ($request->event_addons as $addon) {
+                    EventAddon::create([
+                        'booking_id'   => $booking->booking_id,
+                        'addon_id'     => $addon['addon_id'],
+                        'quantity'     => $addon['quantity'],
+                        'price_each'   => $addon['price_each'],
+                        'total_price'  => $addon['total_price'],
+                        'remarks'      => $addon['remarks'] ?? null,
+                    ]);
+                }
             }
+
+            AuditLogger::log('Updated', 'Module: Booking Details | Updated booking ID: ' . $id);
+
+            DB::commit();
+
+            NotificationService::sendBookingUpdated($booking->customer_id, $booking, true);
+
+            foreach ($booking->staffAssignments as $assignment) {
+                NotificationService::sendBookingUpdated($assignment->user_id, $booking);
+            }
+
+            return response()->json(['message' => 'Booking updated']);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        AuditLogger::log('Updated', 'Module: Booking Details | Updated booking ID: ' . $id);
-        /*NotificationService::send("client.".$clientId, "booking_updated", "Booking details have changed", $booking->id);
-        foreach ($staffIds as $sid) {
-            NotificationService::send("staff.".$sid, "booking_updated", "Booking details have changed", $booking->id);
-        }*/
-
-        return response()->json(['message' => 'Booking updated']);
     }
+
     public function cancelBooking(Request $request, $id)
     {
         $booking = EventBooking::with('tasks')->find($id);
@@ -541,10 +554,12 @@ class EventBookingController extends Controller
             DB::commit();
 
             AuditLogger::log('Cancelled', 'Module: Event Booking | Cancelled booking ID: ' . $id);
-            // NotificationService::send("client.".$clientId, "booking_cancelled", "Booking has been cancelled", $booking->id);
-            // foreach ($staffIds as $sid) {
-            //     NotificationService::send("staff.".$sid, "booking_cancelled", "A booking has been cancelled", $booking->id);
-            // }
+            
+            NotificationService::sendBookingCancelled($booking->customer_id, $booking, true);
+
+            foreach ($booking->staffAssignments as $assignment) {
+                NotificationService::sendBookingCancelled($assignment->user_id, $booking);
+            }
 
             return response()->json(['message' => 'Booking cancelled successfully.']);
         } catch (\Exception $e) {
@@ -590,10 +605,12 @@ class EventBookingController extends Controller
             DB::commit();
 
             AuditLogger::log('Updated', 'Module: Event Booking | Rescheduled booking ID: ' . $id);
-            // NotificationService::send("client.".$clientId, "booking_updated", "Booking has been rescheduled", $booking->id);
-            // foreach ($staffIds as $sid) {
-            //     NotificationService::send("staff.".$sid, "booking_updated", "A booking has been rescheduled", $booking->id);
-            // }
+            
+            NotificationService::sendBookingUpdated($booking->customer_id, $booking, true);
+
+            foreach ($booking->staffAssignments as $assignment) {
+                NotificationService::sendBookingUpdated($assignment->user_id, $booking);
+            }
 
             return response()->json(['message' => 'Booking successfully rescheduled.']);
         } catch (\Exception $e) {

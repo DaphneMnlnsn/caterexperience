@@ -5,8 +5,7 @@ import Sidebar from '../../components/Sidebar';
 import DashboardCalendar from '../../components/DashboardCalendar';
 import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
-import NotificationProvider from '../../components/NotificationProvider';
+import Header from '../../components/Header';
 
 function AdminDashboard() {
   const storedUser = localStorage.getItem('user');
@@ -36,18 +35,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
       <Sidebar />
 
       <div className="main-content">
-        <ToastContainer />
-        <NotificationProvider userId={user.id} role={user.role}>
-        <header className="topbar">
-          <div className="topbar-left"></div>
-          <div className="topbar-right">
-            <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>
-            <NotificationsDropdown />
-          </div>
-        </header>
-        </NotificationProvider>
+        <Header user={user} />
 
         <section className="welcome-section">
           <h3>Welcome, {user ? user.first_name : 'User'}!</h3>

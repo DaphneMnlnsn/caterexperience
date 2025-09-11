@@ -13,7 +13,7 @@ import AddBookingItemModal from '../components/AddBookingItemModal';
 import Invoice from '../components/Invoice';
 import MenuChecklist from '../components/MenuChecklist';
 import RequestChangesModal from '../components/RequestChangesModal';
-import NotificationsDropdown from '../components/NotificationsDropdown';
+import Header from '../components/Header';
 
 function BookingDetails() {
   const { id } = useParams();
@@ -421,13 +421,7 @@ function BookingDetails() {
     <div className="page-container">
       <Sidebar />
       <div className="main-content scrollable">
-        <header className="topbar">
-          <div></div>
-          <div className="topbar-right">
-            <span className="user-name">{user?.first_name} {user?.last_name}</span>
-            <NotificationsDropdown />
-          </div>
-        </header>
+        <Header user={user} />
 
         {/* Event Details */}
         <div className="section white-bg">

@@ -5,7 +5,7 @@ import Sidebar from '../../components/Sidebar';
 import BookingCalendar from '../../components/BookingCalendar';
 import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function AdminBookings() {
   const storedUser = localStorage.getItem('user');
@@ -74,15 +74,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
       <Sidebar />
 
       <div className="main-content">
-        <header className="topbar">
-          <div className="topbar-left"></div>
-          <div className="topbar-right">
-            <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>
-            <NotificationsDropdown />
-          </div>
-        </header>
+        <Header user={user} />
 
         <section className="bookings-bottom">
           <div className="calendar-section">

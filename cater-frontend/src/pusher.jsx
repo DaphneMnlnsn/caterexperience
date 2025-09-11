@@ -13,10 +13,11 @@ window.Echo = new Echo({
   forceTLS: true,
   authEndpoint: "http://localhost:8000/broadcasting/auth",
   auth: {
-      headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      withCredentials: true,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "X-Requested-With": "XMLHttpRequest",
+    },
+    withCredentials: true,
   },
 });
 

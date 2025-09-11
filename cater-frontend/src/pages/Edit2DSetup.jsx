@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
-import NotificationsDropdown from '../components/NotificationsDropdown';
+import Header from '../components/Header';
 import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
 import VenueCanvas from '../components/VenueCanvas';
@@ -125,15 +125,7 @@ function Edit2DSetup() {
       </aside>
 
       <div className="main-content edit-main-content">
-        <header className="topbar">
-          <div />
-          <div className="topbar-right">
-            <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>
-            <NotificationsDropdown />
-          </div>
-        </header>
+        <Header user={user} />
 
         <select
           value={venue}

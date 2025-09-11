@@ -3,10 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './AddBooking.css';
 import Swal from 'sweetalert2';
 import Sidebar from '../../components/Sidebar';
-import AddUserModal from '../../components/AddUserModal';
+import TermsAndConditions from '../../components/TermsAndConditions';
 import axiosClient from '../../axiosClient';
 import { FaBell } from 'react-icons/fa';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function AddBooking() {
     const token = localStorage.getItem('token');
@@ -32,7 +32,8 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [selectedAddons, setSelectedAddons] = useState([]);
 
     const [totalAmount, setTotalAmount] = useState(0);
-    const [balance, setBalance] = useState(0);
+    const [showTerms, setShowTerms] = useState(false);
+    const [agreed, setAgreed] = useState(false);
 
     const [bookingData, setBookingData] = useState([]);
     const [form, setForm] = useState({
@@ -329,6 +330,17 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         return true;
     };
 
+    const handlePreSubmit = (e) => {
+        e.preventDefault();
+        setShowTerms(true);
+    }
+
+    const handleConfirmTerms = () => {
+        if(!agreed) return;
+        setShowTerms(false);
+        handleSubmit();
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -423,15 +435,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             <Sidebar />
 
         <div className="main-content">
-            <header className="topbar">
-            <div className="topbar-left"></div>
-            <div className="topbar-right">
-                <span className="user-name">
-                {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-                </span>
-                <NotificationsDropdown />
-            </div>
-            </header>
+            <Header user={user} />
 
             <section className="bookings-bottom">
             <div className="booking-form-card">
@@ -982,7 +986,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                             id="downpayment"
                             name="downpayment"
                             type="number"
-                            placeholder="e.g. 1000"
+                            placeholder="e.g. 2000"
                             value={form.downpayment}
                             onChange={handleChange}
                         />
@@ -1101,28 +1105,22 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                 </div>
                 </div>
 
-                {/* Terms & Conditions */}
-                <div className="booking-form-row checkbox-row">
-                <input
-                    type="checkbox"
-                    name="agree"
-                    checked={form.agree}
-                    onChange={handleChange}
-                />
-                <span>
-                    As a client, I have read and agree to the Terms and Conditions within the contract.
-                </span>
-                </div>
-
                 {/* Buttons */}
                 <div className="button-row">
-                <button className="submit-btn" type="submit" onClick={handleSubmit}>Schedule Booking</button>
+                <button className="submit-btn" type="submit" onClick={handlePreSubmit}>Schedule Booking</button>
                 <button className="cancel-btn" type="button" onClick={() => navigate(-1)}>Cancel</button>
                 </div>
 
             </div>
             </section>
         </div>
+        <TermsAndConditions
+            show={showTerms}
+            agreed={agreed}
+            onClose={() => setShowTerms(false)}
+            onToggleAgree={(e) => setAgreed(e.target.checked)}
+            onConfirm={handleConfirmTerms}
+        />
         </div>
     );
 }

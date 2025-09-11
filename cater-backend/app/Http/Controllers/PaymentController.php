@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Payment;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\EventBooking;
+use App\Notifications\PaymentLoggedNotification;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
@@ -65,6 +66,13 @@ class PaymentController extends Controller
         ]);
 
         AuditLogger::log('Created', "Module: Payment | Created payment for Booking ID: {$payment->booking_id}, Payment ID: {$payment->payment_id}");
+
+        $booking = $payment->booking;
+        $customer = $booking->customer;
+
+        if ($customer) {
+            $customer->notify(new PaymentLoggedNotification($payment));
+        }
 
         return response()->json(['message' => 'Payment recorded successfully', 'payment' => $payment], 201);
     }

@@ -10,7 +10,9 @@ use App\Models\AuditLog;
 use App\Models\EventInventoryUsage;
 use App\Models\VenueSetup;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {

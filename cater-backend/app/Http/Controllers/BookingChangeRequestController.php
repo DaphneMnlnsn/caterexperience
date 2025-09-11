@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookingChangeRequest;
+use App\Notifications\BookingChangeRequestStatusNotification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,6 +24,11 @@ class BookingChangeRequestController extends Controller
             'customer_id' => $userId,
             'request_text' => $validated['request'],
         ]);
+
+        NotificationService::sendBookingChangeRequest(
+            $changeRequest->booking, 
+            $validated['request']
+        );
 
         return response()->json([
             'message' => 'Change request submitted successfully.',
@@ -48,9 +55,16 @@ class BookingChangeRequestController extends Controller
         $changeRequest = BookingChangeRequest::findOrFail($id);
         $changeRequest->update(['status' => $validated['status']]);
 
+        $customer = $changeRequest->customer;
+
+        if ($customer) {
+            $customer->notify(new BookingChangeRequestStatusNotification($changeRequest));
+        }
+
         return response()->json([
             'message' => 'Status updated successfully.',
             'data' => $changeRequest
         ]);
     }
+
 }

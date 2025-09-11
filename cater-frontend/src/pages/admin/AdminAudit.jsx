@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import dayjs from 'dayjs';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function AdminAudit() {
   const [auditData, setAuditData] = useState([]);
@@ -147,15 +147,7 @@ function AdminAudit() {
       <Sidebar />
 
       <div className="main-content">
-        <header className="topbar">
-          <div className="topbar-left"></div>
-          <div className="topbar-right">
-            <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>
-            <NotificationsDropdown />
-          </div>
-        </header>
+        <Header user={user} />
 
         <section className="page-header">
           <h3>Audit Log</h3>

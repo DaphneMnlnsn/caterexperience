@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\BookingInventory;
 use App\Models\EventInventoryUsage;
 use App\Models\Inventory;
+use App\Models\User;
+use App\Notifications\InventoryUsageUpdatedNotification;
 use Illuminate\Support\Facades\DB;
 
 class BookingInventoryController extends Controller
@@ -121,6 +123,11 @@ class BookingInventoryController extends Controller
         $usage->save();
 
         AuditLogger::log('Updated', 'Module: Booking Details | Item ID: ' . $bookingInventoryId . ' | Used: ' . ($validated['quantity_used'] ?? 0) . ' | Returned: ' . ($validated['quantity_returned'] ?? 0));
+
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new InventoryUsageUpdatedNotification($usage, 'returned'));
+        }
 
         return response()->json(['message' => 'Usage saved.', 'usage' => $usage]);
     }

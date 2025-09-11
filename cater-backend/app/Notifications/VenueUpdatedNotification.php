@@ -3,18 +3,18 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
 
-class BookingNearNotification extends Notification
+class VenueUpdatedNotification extends Notification
 {
     use Queueable;
 
-    public $booking;
+    protected $bookingId;
 
-    public function __construct($booking)
+    public function __construct($bookingId)
     {
-        $this->booking = $booking;
+        $this->bookingId = $bookingId;
     }
 
     public function via($notifiable)
@@ -25,10 +25,10 @@ class BookingNearNotification extends Notification
     public function toArray($notifiable)
     {
         return [
-            'action'     => 'booking_near',
-            'message'    => "Booking {$this->booking->event_name} is happening soon",
-            'booking_id' => $this->booking->booking_id,
-            'url'        => "/bookings/{$this->booking->booking_id}",
+            'action'       => 'venue_updated',
+            'message'    => "The venue setup for booking #{$this->bookingId} has been updated.",
+            'booking_id' => $this->bookingId,
+            'url' => "/bookings/{$this->bookingId}",
         ];
     }
 

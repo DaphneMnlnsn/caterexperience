@@ -6,7 +6,7 @@ import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
 import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
 import axiosClient from '../axiosClient';
-import NotificationsDropdown from '../components/NotificationsDropdown';
+import Header from '../components/Header';
 
 function Menu() {
     const storedUser = localStorage.getItem('user');
@@ -73,15 +73,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         <div className="page-container">
             <Sidebar />
             <div className="main-content">
-                <header className="topbar">
-                    <div className="topbar-left"></div>
-                    <div className="topbar-right">
-                        <span className="user-name">
-                            {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-                        </span>
-                        <NotificationsDropdown />
-                    </div>
-                </header>
+                <Header user={user} />
 
                 <section className="page-header">
                     <h3>Menu</h3>

@@ -59,7 +59,7 @@ function NotificationsDropdown() {
               )}
             </div>
 
-            {notifications.length > 0 ? (
+            {notifications && notifications.length > 0 ? (
               notifications.map((n, idx) => (
                 <div
                     key={idx}

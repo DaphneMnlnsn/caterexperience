@@ -6,11 +6,11 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class BookingNearNotification extends Notification
+class TaskAssignedNotification extends Notification
 {
     use Queueable;
 
-    public $booking;
+    protected $booking;
 
     public function __construct($booking)
     {
@@ -25,10 +25,10 @@ class BookingNearNotification extends Notification
     public function toArray($notifiable)
     {
         return [
-            'action'     => 'booking_near',
-            'message'    => "Booking {$this->booking->event_name} is happening soon",
+            'action'    => 'task_assigned',
             'booking_id' => $this->booking->booking_id,
-            'url'        => "/bookings/{$this->booking->booking_id}",
+            'message'    => "You have been assigned a task on a booking: {$this->booking->event_name}",
+            'url' => "/bookings/{$this->booking->booking_id}",
         ];
     }
 

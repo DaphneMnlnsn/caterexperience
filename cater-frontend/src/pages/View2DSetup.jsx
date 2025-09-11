@@ -5,7 +5,7 @@ import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
 import VenueCanvas from '../components/VenueCanvas';
 import axiosClient from '../axiosClient';
-import NotificationsDropdown from '../components/NotificationsDropdown';
+import Header from '../components/Header';
 
 function View2DSetup() {
   const { id } = useParams();
@@ -68,15 +68,7 @@ function View2DSetup() {
       </aside>
 
       <div className="main-content edit-main-content">
-        <header className="topbar">
-          <div />
-          <div className="topbar-right">
-            <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>
-            <NotificationsDropdown />
-          </div>
-        </header>
+        <Header user={user} />
 
         <div className="canvas-container">
           <VenueCanvas ref={canvasRef} setupId={setupId} isClient={isClient} isWaiter={isWaiter} />

@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { FaBell, FaArchive, FaPen, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function AdminInventory() {
     const [inventoryData, setInventoryData] = React.useState([]);
@@ -89,15 +90,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             <Sidebar />
 
             <div className="main-content">
-                <header className="topbar">
-                <div className="topbar-left"></div>
-                <div className="topbar-right">
-                    <span className="user-name">
-                        {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-                    </span>                    
-                    <NotificationsDropdown />
-                </div>
-                </header>
+                <Header user={user} />
 
                 <section className="page-header">
                     <h3>Inventory Tracking</h3>

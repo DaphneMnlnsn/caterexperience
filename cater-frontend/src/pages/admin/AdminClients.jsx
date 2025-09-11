@@ -4,7 +4,7 @@ import Sidebar from '../../components/Sidebar';
 import { Link } from 'react-router-dom';
 import { FaBell, FaInfoCircle } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function AdminClients() {
     
@@ -40,15 +40,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             <Sidebar />
 
             <div className="main-content">
-                <header className="topbar">
-                <div className="topbar-left"></div>
-                <div className="topbar-right">
-                    <span className="user-name">
-                        {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-                    </span>
-                    <NotificationsDropdown />
-                </div>
-                </header>
+                <Header user={user} />
 
                 <section className="client-header">
                     <h3>Client Management</h3>

@@ -6,6 +6,7 @@ import './ClientDetails.css';
 import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function ClientDetails() {
 
@@ -127,15 +128,7 @@ function ClientDetails() {
     <div className="page-container">
       <Sidebar />
       <div className="main-content scrollable">
-        <header className="topbar">
-          <div></div>
-          <div className="topbar-right">
-            <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-            </span>
-            <NotificationsDropdown />
-          </div>
-        </header>
+        <Header user={user} />
 
         <section className="client-section white-bg">
           <div className="section-title">

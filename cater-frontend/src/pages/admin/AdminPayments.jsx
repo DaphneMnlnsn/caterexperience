@@ -7,6 +7,7 @@ import axiosClient from '../../axiosClient';
 import Invoice from '../../components/Invoice';
 import dayjs from 'dayjs';
 import NotificationsDropdown from '../../components/NotificationsDropdown';
+import Header from '../../components/Header';
 
 function AdminPayments() {
     const [paymentData, setPaymentData] = useState([]);
@@ -93,15 +94,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             <Sidebar />
 
             <div className="main-content">
-                <header className="topbar">
-                <div className="topbar-left"></div>
-                <div className="topbar-right">
-                    <span className="user-name">
-                        {user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-                    </span>                    
-                    <NotificationsDropdown />
-                </div>
-                </header>
+                <Header user={user} />
 
                 <section className="page-header">
                     <h3>Payment Records</h3>
