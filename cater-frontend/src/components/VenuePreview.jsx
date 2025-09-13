@@ -6,6 +6,7 @@ import axiosClient from '../axiosClient';
 function VenuePreview({ bookingId, isWaiter, isClient }) {
   const navigate = useNavigate();
   const [objects, setObjects] = useState(null);
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     if (!bookingId) return;
@@ -13,6 +14,8 @@ function VenuePreview({ bookingId, isWaiter, isClient }) {
     axiosClient.get(`/setups/${bookingId}`)
       .then(res => {
         if (res.data) {
+          setStatus(res.data.setup?.status || res.data.status);
+
           try {
             const parsed = JSON.parse(res.data.objects);
             setObjects(parsed);
@@ -24,6 +27,8 @@ function VenuePreview({ bookingId, isWaiter, isClient }) {
       .catch(err => console.error('Failed to load venue setup:', err));
   }, [bookingId]);
 
+  const isVisible = status === 'submitted' || status === 'approved';
+
   return (
     <div className="venue-preview">
       {objects ? (
@@ -33,20 +38,23 @@ function VenuePreview({ bookingId, isWaiter, isClient }) {
       ) : (
         <div className="preview-placeholder">[Preview here]</div>
       )}
-      {isWaiter || isClient ? (
-        <button
-          className="booking-edit-btn"
-          onClick={() => navigate(`/view/${bookingId}`)}
-        >
-          View 2D Design
-        </button>
-      ) : (
-        <button
-          className="booking-edit-btn"
-          onClick={() => navigate(`/edit/${bookingId}`)}
-        >
-          Edit 2D Design
-        </button>
+
+      {isVisible && (
+        (isWaiter || isClient) ? (
+          <button
+            className="booking-edit-btn"
+            onClick={() => navigate(`/view/${bookingId}`)}
+          >
+            View 2D Design
+          </button>
+        ) : (
+          <button
+            className="booking-edit-btn"
+            onClick={() => navigate(`/edit/${bookingId}`)}
+          >
+            Edit 2D Design
+          </button>
+        )
       )}
     </div>
   );

@@ -428,7 +428,7 @@ function BookingDetails() {
           <div className="section-title">
             <h3>Event Details</h3>
             <div className="action-buttons">
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
               )}
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
@@ -610,7 +610,7 @@ function BookingDetails() {
         <div className="section white-bg">
           <div className="section-header">
             <h3>Menu & Packages</h3>
-            {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+            {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
               <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
             )}
           </div>
@@ -711,7 +711,7 @@ function BookingDetails() {
             <div className="section white-bg">
               <div className="section-header">
                 <h3>Venue Design</h3>
-                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
                   <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
                 )}
               </div>
@@ -911,7 +911,7 @@ function BookingDetails() {
           <div className="section white-bg">
             <div className="section-title">
               <h3>Payments</h3>
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && (
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
               )}
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
