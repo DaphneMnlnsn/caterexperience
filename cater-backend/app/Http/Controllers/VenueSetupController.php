@@ -40,7 +40,7 @@ class VenueSetupController extends Controller
         $token = PersonalAccessToken::findToken($accessToken);
         $auth = $token?->tokenable;
 
-        $query = VenueSetup::with(['booking.customer', 'booking.theme'])
+        $query = VenueSetup::with(['booking.customer', 'booking.theme', 'placements.object'])
             ->where('booking_id', $bookingId);
 
         if ($auth instanceof \App\Models\User) {

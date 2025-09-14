@@ -65,7 +65,8 @@ function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions }) {
                   <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
                     {(provided, snapshot) => (
                       <div
-                        className={`task-card ${status} ${snapshot.isDragging ? 'dragging' : ''}`}
+                        className={`task-card ${status} ${snapshot.isDragging ? 'dragging' : ''}
+                        ${status !== 'Done' && new Date(task.deadline) < new Date() ? 'overdue' : ''}`}
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
