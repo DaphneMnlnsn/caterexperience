@@ -36,9 +36,38 @@ function EditItemModal({ show, onClose, onSave, item }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const { item_name, item_type, item_quantity, item_price, item_unit } = formData;
-    if (item_name.trim() === '' || item_type.trim() === '' || item_quantity === '' || item_price === ''|| item_unit.trim() === '') {
-      Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
+    const { item_name, item_type, item_quantity, item_current_quantity, item_price, item_unit, item_description } = formData;
+    
+    if (!item_name.trim() || !item_type.trim() || !item_quantity || !item_price || !item_unit.trim()) {
+      Swal.fire('Incomplete', 'Please fill in all the required fields.', 'warning');
+      return;
+    }
+
+    if (item_name.length < 3) {
+      Swal.fire('Invalid', 'Item name must be at least 3 characters.', 'warning');
+      return;
+    }
+
+    if (isNaN(item_quantity) || Number(item_quantity) <= 0) {
+      Swal.fire('Invalid', 'Total quantity must be a positive number.', 'warning');
+      return;
+    }
+    if (isNaN(item_current_quantity) || Number(item_current_quantity) < 0) {
+      Swal.fire('Invalid', 'Current quantity cannot be negative.', 'warning');
+      return;
+    }
+    if (Number(item_current_quantity) > Number(item_quantity)) {
+      Swal.fire('Invalid', 'Current quantity cannot exceed total quantity.', 'warning');
+      return;
+    }
+
+    if (isNaN(item_price) || Number(item_price) <= 0) {
+      Swal.fire('Invalid', 'Price must be a valid positive number.', 'warning');
+      return;
+    }
+
+    if (item_description && item_description.length > 255) {
+      Swal.fire('Invalid', 'Description must be less than 255 characters.', 'warning');
       return;
     }
 

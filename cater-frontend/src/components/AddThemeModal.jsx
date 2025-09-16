@@ -36,8 +36,37 @@ function AddThemeModal({ show, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.theme_name.trim() || !formData.imageFile) {
-      Swal.fire('Incomplete', 'Please fill in all the fields and upload an image.', 'warning');
+    const { theme_name, description, imageFile } = formData;
+
+    if (!theme_name.trim()) {
+      Swal.fire('Incomplete', 'Theme name is required.', 'warning');
+      return;
+    }
+
+    if (theme_name.length < 3) {
+      Swal.fire('Invalid', 'Theme name must be at least 3 characters.', 'warning');
+      return;
+    }
+
+    if (description && description.length > 255) {
+      Swal.fire('Invalid', 'Description must be less than 255 characters.', 'warning');
+      return;
+    }
+
+    if (!imageFile) {
+      Swal.fire('Incomplete', 'Please upload an image.', 'warning');
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(imageFile.type)) {
+      Swal.fire('Invalid', 'Image must be JPG, PNG, or WEBP.', 'warning');
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; 
+    if (imageFile.size > maxSize) {
+      Swal.fire('Invalid', 'Image must be less than 5MB.', 'warning');
       return;
     }
 

@@ -39,18 +39,40 @@ function AddPackageModal({ show, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid =
-      formData.package_name.trim() !== '' &&
-      formData.package_type.trim() !== '' &&
-      formData.price_tiers.every(t =>
-        t.price_label.trim() !== '' &&
-        t.price_amount !== '' && !isNaN(Number(t.price_amount)) && Number(t.price_amount) > 0 &&
-        t.pax !== '' && !isNaN(Number(t.pax)) && Number(t.pax) > 0
-      );
-
-    if (!isFormValid) {
-      Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
+    if (formData.package_name.trim() === '' || formData.package_type.trim() === '') {
+      Swal.fire('Incomplete', 'Please fill in the required fields: Package Name and Package Type.', 'warning');
       return;
+    }
+
+    if (formData.package_name.length < 3) {
+      Swal.fire('Invalid', 'Package name must be at least 3 characters.', 'warning');
+      return;
+    }
+
+    if (formData.package_description && formData.package_description.length > 255) {
+      Swal.fire('Invalid', 'Description must be less than 255 characters.', 'warning');
+      return;
+    }
+
+    if (formData.package_price && (isNaN(Number(formData.package_price)) || Number(formData.package_price) <= 0)) {
+      Swal.fire('Invalid', 'Base Price must be a valid positive number.', 'warning');
+      return;
+    }
+
+    for (let i = 0; i < formData.price_tiers.length; i++) {
+      const tier = formData.price_tiers[i];
+      if (tier.price_label.trim() === '' || tier.price_label.length < 2) {
+        Swal.fire('Invalid', `Tier ${i + 1}: Label is required and must be at least 2 characters.`, 'warning');
+        return;
+      }
+      if (isNaN(Number(tier.price_amount)) || Number(tier.price_amount) <= 0) {
+        Swal.fire('Invalid', `Tier ${i + 1}: Price amount must be a valid positive number.`, 'warning');
+        return;
+      }
+      if (isNaN(Number(tier.pax)) || Number(tier.pax) <= 0) {
+        Swal.fire('Invalid', `Tier ${i + 1}: Pax must be a valid positive number.`, 'warning');
+        return;
+      }
     }
 
     Swal.fire({

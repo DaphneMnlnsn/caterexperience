@@ -15,9 +15,32 @@ function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOption
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid = formData.title && formData.priority && formData.due_date && formData.assigned_to;
-    if (!isFormValid) {
+    const { title, priority, due_date, assigned_to, description } = formData;
+
+    if (!title.trim() || !priority || !due_date || !assigned_to) {
       Swal.fire('Incomplete', 'Please fill in all required fields.', 'warning');
+      return;
+    }
+
+    if (title.length < 3) {
+      Swal.fire('Invalid', 'Task title must be at least 3 characters.', 'warning');
+      return;
+    }
+
+    if (description && description.length < 255) {
+      Swal.fire('Invalid', 'Task description must be less than 255 characters.', 'warning');
+      return;
+    }
+
+    const today = new Date();
+    const dueDate = new Date(due_date);
+    if (dueDate < today.setHours(0,0,0,0)) {
+      Swal.fire('Invalid', 'Due date cannot be in the past.', 'warning');
+      return;
+    }
+
+    if (!staffOptions.some(staff => staff.id.toString() === assigned_to.toString())) {
+      Swal.fire('Invalid', 'Please select a valid staff member.', 'warning');
       return;
     }
 

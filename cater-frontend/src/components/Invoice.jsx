@@ -106,6 +106,23 @@ function Invoice({ show, onClose, selectedPayment }) {
             </div>
           </div>
 
+          {paymentDetails.proof_image && (
+            <div className="proof-section">
+              <center>
+                <h4>Proof of Payment</h4>
+                <img
+                  src={`http://localhost:8000/storage/${paymentDetails.proof_image}`}
+                  alt="Proof of Payment"
+                  style={{
+                    maxWidth: '50%',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </center>
+            </div>
+          )}
+
           <div className="thank-you">
             ***** THANK YOU *****
           </div>

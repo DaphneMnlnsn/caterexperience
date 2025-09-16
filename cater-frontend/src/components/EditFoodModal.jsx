@@ -38,9 +38,20 @@ function EditFoodModal({ show, onClose, onSave, food }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const { food_name, food_type } = formData;
+    const { food_name, food_description, food_type } = formData;
+    
     if (food_name.trim() === '' || food_type.trim() === '') {
-      Swal.fire('Incomplete', 'Please fill in the required fields.', 'warning');
+      Swal.fire('Incomplete', 'Please fill in the required fields: Food Name and Food Type.', 'warning');
+      return;
+    }
+
+    if (food_name.length < 3) {
+      Swal.fire('Invalid', 'Food name must be at least 3 characters.', 'warning');
+      return;
+    }
+
+    if (food_description && food_description.length > 255) {
+      Swal.fire('Invalid', 'Description must be less than 255 characters.', 'warning');
       return;
     }
 

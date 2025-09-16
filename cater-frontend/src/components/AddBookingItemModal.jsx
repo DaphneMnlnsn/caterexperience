@@ -31,6 +31,22 @@ function AddBookingItemModal({ show, onClose, onSave, bookingId }) {
       return;
     }
 
+    const quantity = parseInt(formData.quantity_assigned, 10);
+    if (isNaN(quantity) || quantity <= 0) {
+      Swal.fire('Invalid Quantity', 'Please enter a valid quantity greater than 0.', 'warning');
+      return;
+    }
+
+    const selectedItem = inventoryOptions.find(i => i.item_id == formData.item_id);
+    if (selectedItem && quantity > selectedItem.item_current_quantity) {
+      Swal.fire(
+        'Not enough stock',
+        `Only ${selectedItem.item_current_quantity} available.`,
+        'warning'
+      );
+      return;
+    }
+
     Swal.fire({
       title: 'Add Item?',
       text: 'This item will be assigned to the booking.',
@@ -50,6 +66,7 @@ function AddBookingItemModal({ show, onClose, onSave, bookingId }) {
         axiosClient.post(`/bookings/${bookingId}/inventory`, payload)
           .then(res => {
             Swal.fire('Added!', 'Item assigned to booking.', 'success');
+            setFormData({ item_id: '', quantity_assigned: '', remarks: '' });
             onSave();
             onClose();
           })

@@ -342,7 +342,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) {
+            e.preventDefault();
+        }
 
         if (!validateForm()) return;
 
@@ -511,6 +513,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         onChange={handleChange}
                         disabled={customerPicked}
                     />
+                    {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) && form.email && (
+                        <span className="error-text">Please enter a valid email.</span>
+                    )}
                     </div>
                     <div className="booking-field-group">
                     <label htmlFor="contact" className="booking-field-label">Contact Number</label>
@@ -522,6 +527,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         onChange={handleChange}
                         disabled={customerPicked}
                     />
+                    {!/^\d{10,11}$/.test(form.contact) && form.contact && (
+                        <span className="error-text">Phone must be 10–11 digits.</span>
+                    )}
                     </div>
                     <div className="booking-field-group" style={{ gridColumn: '1/4' }}>
                     <label htmlFor="address" className="booking-field-label">Address</label>
@@ -681,6 +689,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 value={form.ageYear}
                                 onChange={handleChange}
                             />
+                            {form.ageYear && isNaN(form.ageYear) && (
+                                <span className="error-text">Age must be a number.</span>
+                            )}
                         </div>
 
                         <div className="booking-field-group">
@@ -714,6 +725,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 value={form.pax}
                                 onChange={handleChange}
                             />
+                            {(isNaN(form.pax) || parseInt(form.pax) <= 0) && form.pax && (
+                                <span className="error-text">Enter a valid positive number.</span>
+                            )}
                         </div>
 
                         <div className="booking-field-group">
@@ -725,6 +739,9 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 value={form.waiters}
                                 onChange={handleChange}
                             />
+                            {(isNaN(form.pax) || parseInt(form.pax) <= 0) && form.pax && (
+                                <span className="error-text">Enter a valid positive number.</span>
+                            )}
                         </div>
 
                     </div>

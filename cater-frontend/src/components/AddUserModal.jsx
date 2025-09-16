@@ -18,9 +18,33 @@ function AddUserModal({ show, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid = Object.values(formData).every(val => val.trim() !== '');
-    if (!isFormValid) {
+    const { first_name, last_name, email, phone, address, gender, role } = formData;
+
+    if (!first_name.trim() || !last_name.trim() || !email.trim() || !phone.trim() || !address.trim() || !gender.trim() || !role.trim()) {
       Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
+      return;
+    }
+
+    if (first_name.length < 2 || last_name.length < 2) {
+      Swal.fire('Invalid', 'First and last name must have at least 2 characters.', 'warning');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Swal.fire('Invalid', 'Please enter a valid email address.', 'warning');
+      return;
+    }
+
+    const phoneRegex = /^[0-9]{10,11}$/;
+    if (!phoneRegex.test(phone)) {
+      Swal.fire('Invalid', 'Phone number must be 10–11 digits.', 'warning');
+      return;
+    }
+
+    const validRoles = ['cook', 'stylist', 'head waiter'];
+    if (!validRoles.includes(role.toLowerCase())) {
+      Swal.fire('Invalid', 'Please select a valid role.', 'warning');
       return;
     }
 

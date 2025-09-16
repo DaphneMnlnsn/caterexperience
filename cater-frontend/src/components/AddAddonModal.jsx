@@ -42,16 +42,38 @@ function AddAddonModal({ show, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isFormValid =
-      formData.addon_name.trim() !== '' &&
-      formData.addon_type.trim() !== '' &&
-      formData.addon_status.trim() !== '' &&
-      formData.prices.length > 0 &&
-      formData.prices.every(p => p.description.trim() !== '' && p.price.toString().trim() !== '');
+    const { addon_name, addon_type, addon_description, addon_status, prices } = formData;
 
-    if (!isFormValid) {
-      Swal.fire('Incomplete', 'Please fill in all the fields.', 'warning');
+    if (!addon_name.trim() || !addon_type.trim()) {
+      Swal.fire('Incomplete', 'Addon name and type are required.', 'warning');
       return;
+    }
+
+    if (addon_name.length < 3) {
+      Swal.fire('Invalid', 'Addon name must be at least 3 characters.', 'warning');
+      return;
+    }
+
+    if (addon_description && addon_description.length > 500) {
+      Swal.fire('Invalid', 'Description must be less than 500 characters.', 'warning');
+      return;
+    }
+
+    if (prices.length === 0) {
+      Swal.fire('Invalid', 'At least one price tier is required.', 'warning');
+      return;
+    }
+
+    for (let i = 0; i < prices.length; i++) {
+      const p = prices[i];
+      if (!p.description.trim()) {
+        Swal.fire('Invalid', `Tier ${i + 1}: Description is required.`, 'warning');
+        return;
+      }
+      if (isNaN(Number(p.price)) || Number(p.price) <= 0) {
+        Swal.fire('Invalid', `Tier ${i + 1}: Price must be a valid positive number.`, 'warning');
+        return;
+      }
     }
 
     Swal.fire({
@@ -91,7 +113,7 @@ function AddAddonModal({ show, onClose, onSave }) {
           <input
             type="text"
             name="addon_name"
-            value={formData.package_name}
+            value={formData.addon_name}
             onChange={handleChange}
           />
 
@@ -113,7 +135,7 @@ function AddAddonModal({ show, onClose, onSave }) {
           <label>Description</label>
           <textarea
             name="description"
-            value={formData.description}
+            value={formData.addon_description}
             onChange={handleChange}
           />
 

@@ -60,4 +60,38 @@ m-7 -35 c-2 -5 -32 -11 -68 -13 -54 -2 -65 0 -65 13 0 13 11 15 68 13 38 -2
 -838 l0 -1085 -320 -3 c-176 -1 -330 0 -342 3 l-23 5 0 1079 c0 593 3 1081 7
 1085 4 3 158 5 342 4 l336 -3 0 -1085z"/>
 </g>
+<defs>
+  <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3"
+    orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L6,3 L0,6 Z" fill="black"/>
+  </marker>
+</defs>
+
+<line x1="7" y1="155" x2="167" y2="155"
+  stroke="black" stroke-width="0.5"
+  marker-start="url(#arrow)" marker-end="url(#arrow)" />
+<text x="90" y="153" font-size="7" text-anchor="middle">1050</text>
+
+<line x1="170" y1="155" x2="170" y2="235"
+  stroke="black" stroke-width="0.5"
+  marker-start="url(#arrow)" marker-end="url(#arrow)" />
+<text x="140" y="-75" font-size="7" text-anchor="middle"
+  alignment-baseline="middle" transform="rotate(-90,297,46)">500</text>
+
+<line x1="170" y1="239" x2="170" y2="388"
+  stroke="black" stroke-width="0.5"
+  marker-start="url(#arrow)" marker-end="url(#arrow)" />
+<text x="40" y="-75" font-size="7" text-anchor="middle"
+  alignment-baseline="middle" transform="rotate(-90,297,46)">1005</text>
+
+<line x1="191" y1="200" x2="263" y2="200"
+  stroke="black" stroke-width="0.5"
+  marker-start="url(#arrow)" marker-end="url(#arrow)" />
+<text x="225" y="198" font-size="7" text-anchor="middle">480</text>
+
+<line x1="267" y1="200" x2="267" y2="423"
+  stroke="black" stroke-width="0.5"
+  marker-start="url(#arrow)" marker-end="url(#arrow)" />
+<text x="60" y="22" font-size="7" text-anchor="middle"
+  alignment-baseline="middle" transform="rotate(-90,297,46)">1500</text>
 </svg>

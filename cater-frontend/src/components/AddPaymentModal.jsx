@@ -62,8 +62,39 @@ function AddPaymentModal({ show, onClose, onSave, bookingId }) {
         e.preventDefault();
 
         if (!formData.amount_paid || !formData.payment_method || !bookingId) {
-            Swal.fire('Incomplete', 'Please fill in all required fields.', 'warning');
+          Swal.fire('Incomplete', 'Please fill in all required fields.', 'warning');
+          return;
+        }
+
+        if (Number(formData.amount_paid) <= 0) {
+          Swal.fire('Invalid', 'Amount paid must be greater than 0.', 'warning');
+          return;
+        }
+
+        if (formData.payment_method === 'Cash') {
+          if (!formData.cash_given || Number(formData.cash_given) <= 0) {
+            Swal.fire('Invalid', 'Cash given must be greater than 0.', 'warning');
             return;
+          }
+
+          if (Number(formData.cash_given) < Number(formData.amount_paid)) {
+            Swal.fire(
+              'Invalid',
+              'Cash given cannot be less than the amount paid.',
+              'warning'
+            );
+            return;
+          }
+
+          if (Number(formData.change_given) < 0) {
+            Swal.fire('Invalid', 'Change cannot be negative.', 'warning');
+            return;
+          }
+        }
+
+        if (formData.payment_method === 'GCash' && !formData.proof_image) {
+          Swal.fire('Incomplete', 'Please upload a proof of payment for GCash.', 'warning');
+          return;
         }
 
         const payload = new FormData();

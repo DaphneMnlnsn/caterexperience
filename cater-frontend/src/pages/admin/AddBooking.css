@@ -187,6 +187,12 @@
 .conflict { color: red; }
 .error { color: orange; }
 
+.error-text {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: block;
+}
 
 @media (max-width: 900px) {
   .booking-grid-3,

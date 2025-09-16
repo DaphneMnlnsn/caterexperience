@@ -26,14 +26,13 @@ class InventoryUsageUpdatedNotification extends Notification
 
     public function toArray($notifiable)
     {
-        $action = $this->type === 'returned quantity updated';
 
         return [
             'action' => 'inventory_usage_updated',
             'booking_id' => $this->usage->bookingInventory->booking_id,
-            'inventory_item' => $this->usage->bookingInventory->inventory->item_name,
+            'inventory_item' => $this->usage->bookingInventory->item->item_name,
             'quantity_returned' => $this->usage->quantity_returned,
-            'message' => "Inventory item {$this->usage->bookingInventory->inventory->item_name} had its {$action}.",
+            'message' => "Inventory item {$this->usage->bookingInventory->item->item_name} had its returned quantity updated.",
             'url' => "/bookings/{$this->usage->bookingInventory->booking_id}",
         ];
     }

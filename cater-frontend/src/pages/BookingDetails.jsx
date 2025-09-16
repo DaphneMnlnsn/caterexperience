@@ -357,6 +357,21 @@ function BookingDetails() {
 
   const handleSaveRow = async (bookingInventoryId) => {
     try {
+
+      if (editedRow.quantity_assigned < 0) {
+        Swal.fire('Invalid', 'Assigned quantity cannot be negative.', 'warning');
+        return;
+      }
+      if (editedRow.quantity_used < 0 || editedRow.quantity_returned < 0) {
+        Swal.fire('Invalid', 'Used/Returned quantities cannot be negative.', 'warning');
+        return;
+      }
+
+      if (Number(editedRow.quantity_returned) > Number(editedRow.quantity_assigned)) {
+        Swal.fire('Invalid', 'Returned quantity cannot exceed assigned.', 'warning');
+        return;
+      }
+      
       if (isAdmin) {
         await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
           quantity_assigned: editedRow.quantity_assigned,
@@ -789,6 +804,7 @@ function BookingDetails() {
                               {isRowEditing && isAdmin ? (
                                 <input
                                   type="number"
+                                  disabled
                                   value={editedRow.quantity_used ?? ''}
                                   onChange={(e) =>
                                     setEditedRow({
