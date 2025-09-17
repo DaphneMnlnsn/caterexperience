@@ -527,7 +527,7 @@ function BookingDetails() {
                 </>
               ) : (
                 <span>
-                  {['Airconditioned Room', 'Pavilion', 'Pool'].includes(booking.event_location)
+                  {['Airconditioned Room', 'Pavilion', 'Poolside'].includes(booking.event_location)
                     ? booking.event_location
                     : `Outside Location - ${booking.event_location}`}
                 </span>

@@ -318,15 +318,6 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             return false;
         }
 
-        if (!form.agree) {
-            Swal.fire({
-            icon: 'warning',
-            title: 'Terms Not Agreed',
-            text: 'You must agree to the Terms and Conditions.',
-            });
-            return false;
-        }
-
         return true;
     };
 
@@ -601,7 +592,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 <option value="">Select Venue</option>
                                 <option value="Airconditioned Room">Airconditioned Room</option>
                                 <option value="Pavilion">Pavilion</option>
-                                <option value="Pool">Pool</option>
+                                <option value="Poolside">Pool</option>
                                 <option value="outside">Outside Location</option>
                             </select>
                         </div>
