@@ -93,3 +93,47 @@
   pointer-events: none;
   background-color: transparent !important;
 }
+
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: #fff176;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 2000;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 70%;
+    max-width: 280px;
+    transform: translateX(-100%);
+    z-index: 1500;
+  }
+  .logo-sidebar {
+    width: 180px;
+    margin: 20% auto 0 auto;
+    display: block;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-toggle {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 85%;
+    max-width: 240px;
+  }
+}

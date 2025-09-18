@@ -1,6 +1,7 @@
-nav{
-    font-family: 'Lora', serif;
+nav {
+  font-family: 'Lora', serif;
 }
+
 .navbar {
   width: 100%;
   height: 12%;
@@ -16,10 +17,12 @@ nav{
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
 }
+
 .logo-landing {
   height: 40px;
   object-fit: contain;
 }
+
 .nav-links {
   list-style: none;
   display: flex;
@@ -32,7 +35,6 @@ nav{
 .nav-links li {
   cursor: pointer;
   position: relative;
-  cursor: pointer;
 }
 .nav-links li::after {
   content: "";
@@ -44,9 +46,11 @@ nav{
   background-color: #f3c623;
   transition: width 0.2s ease-in-out;
 }
-.nav-links li:hover::after {
+.nav-links li:hover::after,
+.nav-links li.active::after {
   width: 100%;
 }
+
 .login-button {
   background-color: #fff86b;
   border: none;
@@ -63,6 +67,64 @@ nav{
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.nav-links li.active::after {
-  width: 100%;
+.hamburger-menu-icon {
+  display: none !important;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+}
+
+@media (max-width: 718px) {
+  .desktop-only {
+    display: none;
+  }
+
+  .hamburger-menu-icon {
+    display: block !important;
+  }
+
+  .mobile-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: 70px;
+    right: 0;
+    width: 220px;
+    background: white;
+    padding: 20px;
+    gap: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .mobile-menu.open {
+    transform: translateX(0);
+  }
+
+  .mobile-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .mobile-menu li {
+    font-size: 16px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .mobile-menu .login-button {
+    width: 100%;
+    text-align: center;
+  }
 }

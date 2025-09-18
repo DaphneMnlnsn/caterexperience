@@ -330,6 +330,7 @@ class EventBookingController extends Controller
                     'customer_password' => Hash::make($validated['customer_lastname'] . '.123'),
                     'customer_phone' => $validated['customer_phone'],
                     'customer_address' => $validated['customer_address'],
+                    'require_pass_change' => true,
                 ]
             );
 
