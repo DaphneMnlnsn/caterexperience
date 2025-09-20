@@ -2,15 +2,17 @@
 
 namespace App\Notifications;
 
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 
 class TaskStatusUpdatedNotification extends Notification
 {
     use Queueable;
 
-    protected $task;
+    protected $task, $notifiable;
 
     public function __construct($task)
     {
@@ -36,6 +38,34 @@ class TaskStatusUpdatedNotification extends Notification
 
     public function toBroadcast($notifiable)
     {
+        $this->notifiable = $notifiable;
         return new BroadcastMessage($this->toArray($notifiable));
+    }
+
+    public function broadcastOn()
+    {
+        if (!isset($this->notifiable)) {
+            Log::error('broadcastOn called but notifiable not set on notification; returning fallback channel.');
+            return new Channel('notifications-invalid');
+        }
+
+        if ($this->notifiable instanceof \App\Models\Customer) {
+            $model = 'Customer';
+            $id = $this->notifiable->customer_id;
+        } else {
+            $model = 'User';
+            $id = $this->notifiable->id;
+        }
+
+        $channelName = "notifications-App.Models.{$model}.{$id}";
+
+        Log::info('broadcastOn: using channel', ['channel' => $channelName]);
+
+        return [$channelName];
+    }
+
+    public function broadcastAs()
+    {
+        return 'NewNotification';
     }
 }

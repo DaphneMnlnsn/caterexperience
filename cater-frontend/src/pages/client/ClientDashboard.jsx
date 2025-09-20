@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../admin/AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
-import { FaBell, FaClock, FaUser, FaMoneyBill } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
 import Header from '../../components/Header';
 
 function ClientDashboard() {

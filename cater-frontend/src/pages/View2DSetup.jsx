@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaBell } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 import './Edit2DSetup.css';
 import VenueCanvas from '../components/VenueCanvas';

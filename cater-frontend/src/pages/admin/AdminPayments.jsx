@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import './AdminUsers.css';
 import Sidebar from '../../components/Sidebar';
-import Swal from 'sweetalert2';
-import { FaBell, FaPen, FaTrash, FaReceipt } from 'react-icons/fa';
+import { FaReceipt } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Invoice from '../../components/Invoice';
 import dayjs from 'dayjs';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
 import Header from '../../components/Header';
 
 function AdminPayments() {

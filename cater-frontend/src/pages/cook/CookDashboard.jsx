@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../admin/AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
 import DashboardCalendar from '../../components/DashboardCalendar';
-import { FaBell } from 'react-icons/fa';
-import axios from 'axios';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
 import Header from '../../components/Header';
 
 function CookDashboard() {

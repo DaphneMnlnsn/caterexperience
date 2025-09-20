@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import './TaskBoard.css';
 import { FaCalendarAlt, FaCheckCircle, FaUser, FaEllipsisV } from 'react-icons/fa';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';

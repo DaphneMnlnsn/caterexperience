@@ -31,6 +31,7 @@ import Notifications from "./pages/Notifications";
 import WaiterDashboard from "./pages/head waiter/WaiterDashboard";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import axiosClient from "./axiosClient";
+import { ToastContainer } from "react-toastify";
 
 export default function App(){
   useEffect(() => {
@@ -39,6 +40,14 @@ export default function App(){
   }, []);
 
   return(
+    <>
+    <ToastContainer
+        position="top-right"
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -248,5 +257,6 @@ export default function App(){
         />
       </Routes>
     </Router>
+    </>
   );
 }

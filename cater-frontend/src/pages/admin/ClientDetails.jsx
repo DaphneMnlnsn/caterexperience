@@ -3,9 +3,7 @@ import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
 import { useParams, useNavigate } from 'react-router-dom';
 import './ClientDetails.css';
-import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
 import Header from '../../components/Header';
 
 function ClientDetails() {

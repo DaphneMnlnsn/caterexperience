@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { FaBell, FaInfoCircle } from 'react-icons/fa';
+import { FaInfoCircle } from 'react-icons/fa';
 import Header from '../components/Header';
 import axiosClient from '../axiosClient';
 import { Link } from 'react-router-dom';

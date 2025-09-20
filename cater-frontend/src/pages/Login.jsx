@@ -5,7 +5,6 @@ import Navbar from '../components/LandingNavbar';
 import './Login.css';
 import Swal from 'sweetalert2';
 import background from '../assets/bg.jpg';
-import { redirect } from 'react-router-dom';
 
 function Login() {
     const navigate = useNavigate();

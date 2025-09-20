@@ -55,7 +55,7 @@ function EditAddonModal({ show, onClose, onSave, addon }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const { addon_name, addon_type, addon_description, addon_status, prices } = formData;
+    const { addon_name, addon_type, addon_description, prices } = formData;
     
     if (!addon_name.trim() || !addon_type.trim()) {
       Swal.fire('Incomplete', 'Addon name and type are required.', 'warning');

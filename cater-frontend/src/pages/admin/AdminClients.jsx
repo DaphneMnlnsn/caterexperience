@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './AdminClients.css';
 import Sidebar from '../../components/Sidebar';
 import { Link } from 'react-router-dom';
-import { FaBell, FaInfoCircle } from 'react-icons/fa';
+import { FaInfoCircle } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Header from '../../components/Header';
 

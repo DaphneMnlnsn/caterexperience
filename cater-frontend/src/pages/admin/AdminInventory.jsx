@@ -4,9 +4,8 @@ import AddItemModal from '../../components/AddItemModal';
 import EditItemModal from '../../components/EditItemModal';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell, FaArchive, FaPen, FaUndo } from 'react-icons/fa';
+import { FaArchive, FaPen, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
 import Header from '../../components/Header';
 
 function AdminInventory() {

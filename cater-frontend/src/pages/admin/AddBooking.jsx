@@ -5,7 +5,6 @@ import Swal from 'sweetalert2';
 import Sidebar from '../../components/Sidebar';
 import TermsAndConditions from '../../components/TermsAndConditions';
 import axiosClient from '../../axiosClient';
-import { FaBell } from 'react-icons/fa';
 import Header from '../../components/Header';
 
 function AddBooking() {

@@ -4,7 +4,6 @@ import AddFoodModal from '../components/AddFoodModal';
 import EditFoodModal from '../components/EditFoodModal';
 import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell, FaFilter, FaPen, FaTrash } from 'react-icons/fa';
 import axiosClient from '../axiosClient';
 import Header from '../components/Header';
 
@@ -18,7 +17,6 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [selectedFood, setSelectedFood] = useState(null);
     const [halalFilter, setHalalFilter] = useState('');
     const isAdmin = user && user.role?.toLowerCase() === 'admin';
-    const isCook = user && user.role?.toLowerCase() === 'cook';
 
     useEffect(() => {
         fetchFoods();

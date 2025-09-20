@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import './VenueSetups.css';
 import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell } from 'react-icons/fa';
 import axiosClient from '../axiosClient';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -13,7 +12,6 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [setups, setSetups] = useState([]);
-  const [selectedSetup, setSelectedSetup] = useState(null);
   const [filter, setFilter] = useState('pending');
 
   useEffect(() => {

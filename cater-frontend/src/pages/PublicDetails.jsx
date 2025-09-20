@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
-import Swal from 'sweetalert2';
 import VenuePreview from '../components/VenuePreview';
 import './BookingDetails.css';
 import axiosClient from '../axiosClient';
@@ -13,15 +11,9 @@ function BookingDetails() {
     const navigate = useNavigate();
   const [showInvoice, setShowInvoice] = useState(false);
   const [booking, setBooking] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState({});
   const [foods, setFoods] = useState([]);
   const [availableStaff, setAvailableStaff] = useState([]);
-  const [tasks, setTasks] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [inventorySummary, setInventorySummary] = useState([]);
-  const [editingRowId, setEditingRowId] = useState(null);
-  const [editedRow, setEditedRow] = useState({});
 
   useEffect(() => {
     fetchDetails();
@@ -33,20 +25,6 @@ function BookingDetails() {
         setBooking(mapBookingData(res.data.booking));
 
         const bookingFromServer = res.data.booking || {};
-
-        const mapped = (bookingFromServer.tasks || []).map(task => ({
-          id: task.task_id,
-          task_name: task.title,
-          status: task.status,
-          deadline: task.due_date,
-          assigned_to_name: task.assignee
-            ? `${toTitleCase(task.assignee.role)} ${task.assignee.first_name}`
-            : 'Unassigned',
-          assignee: task.assignee || null,
-          priority: task.priority,
-          booking_ref: 'Task-' + (task.task_id ?? 'N/A')
-        }));
-        setTasks(mapped);
 
         const staffList = [
           ...res.data.booking.staff_assignments.map(sa => ({

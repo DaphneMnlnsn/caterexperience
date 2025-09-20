@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './AddUserModal.css';
 import axiosClient from '../axiosClient';
 import Swal from 'sweetalert2';

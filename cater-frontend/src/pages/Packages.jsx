@@ -8,7 +8,6 @@ import AddAddonModal from '../components/AddAddonModal';
 import EditAddonModal from '../components/EditAddonModal';
 import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell } from 'react-icons/fa';
 import Header from '../components/Header';
 import axiosClient from '../axiosClient';
 

@@ -4,9 +4,8 @@ import AddUserModal from '../../components/AddUserModal';
 import EditUserModal from '../../components/EditUserModal';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell, FaFilter, FaPen, FaArchive, FaUndo } from 'react-icons/fa';
+import { FaPen, FaArchive, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
-import NotificationsDropdown from '../../components/NotificationsDropdown';
 import Header from '../../components/Header';
 
 function AdminUsers() {

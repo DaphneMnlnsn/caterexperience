@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import './AdminUsers.css';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import dayjs from 'dayjs';
 import Header from '../../components/Header';

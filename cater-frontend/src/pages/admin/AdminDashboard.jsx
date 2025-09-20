@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ToastContainer } from "react-toastify";
 import './AdminDashboard.css';
 import Sidebar from '../../components/Sidebar';
 import DashboardCalendar from '../../components/DashboardCalendar';
-import { FaBell } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Header from '../../components/Header';
 

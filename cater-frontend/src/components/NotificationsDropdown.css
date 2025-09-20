@@ -103,9 +103,10 @@
 }
 
 .custom-toast {
+  font-family: 'Lora', serif;
   background: #fff176 !important;
   color: #000 !important;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .custom-toast-body {

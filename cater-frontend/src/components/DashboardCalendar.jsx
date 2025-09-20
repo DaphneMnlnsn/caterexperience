@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import './DashboardCalendar.css';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../axiosClient';
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useParams } from 'react-router-dom';
-import { FaBell, FaPen, FaTrash } from 'react-icons/fa';
+import { FaPen, FaTrash } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import TaskBoard from '../components/TaskBoard';
 import AddTaskModal from '../components/AddTaskModal';
