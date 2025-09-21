@@ -119,7 +119,8 @@ class EventBookingController extends Controller
             'staffAssignments.user',
             'payments',
             'eventAddons.addon',
-            'eventAddons.addonPrice'
+            'eventAddons.addonPrice',
+            'extraCharges'
         ])->find($id);
 
         if (!$booking) {
@@ -203,40 +204,41 @@ class EventBookingController extends Controller
     protected function generateAutoTasks($booking, $assignedUserIds, $creatorId)
     {
         $users = User::whereIn('id', $assignedUserIds)->get();
+        $eventDateTime = Carbon::parse($booking->event_date . ' ' . $booking->event_start_time);
 
         foreach ($users as $user) {
             switch ($user->role) {
                 case 'admin':
                     $tasks = [
-                        'Setup Group Chat',
-                        'Log Downpayment',
-                        'Monitor Event',
-                        'Collect Feedback',
+                        ['Setup Group Chat', $eventDateTime->copy()->subDays(8)->setTime(9, 0)],
+                        ['Log Downpayment', $eventDateTime->copy()->subDays(8)->setTime(12, 0)],
+                        ['Monitor Event', $eventDateTime->copy()->setTime(8, 0)],
+                        ['Collect Feedback', $eventDateTime->copy()->addDays(1)->setTime(17, 0)],
                     ];
                     break;
 
                 case 'stylist':
                     $tasks = [
-                        'Sketch Layout Based on Client Preferences',
-                        'Inventory Check (Stylist)',
-                        'Setup Venue and Send Photo',
+                        ['Sketch Layout Based on Client Preferences', $eventDateTime->copy()->subDays(5)->setTime(10, 0)],
+                        ['Inventory Check (Stylist)', $eventDateTime->copy()->subDays(1)->setTime(14, 0)],
+                        ['Setup Venue and Send Photo', $eventDateTime->copy()->setTime(7, 0)],
                     ];
                     break;
 
                 case 'cook':
                     $tasks = [
-                        'Prepare Food for Event',
-                        'Deliver Food to Venue',
+                        ['Prepare Food for Event', $eventDateTime->copy()->subHours(3)],
+                        ['Deliver Food to Venue', $eventDateTime->copy()->subHours(1)],
                     ];
                     break;
 
                 case 'head waiter':
                     $tasks = [
-                        'Check Venue Setup',
-                        'Inventory Check (Waiter)',
-                        'Setup Equipment at Venue',
-                        'Serve Food During Event',
-                        'Pack-up Equipment',
+                        ['Check Venue Setup', $eventDateTime->copy()->subHours(2)],
+                        ['Inventory Check (Waiter)', $eventDateTime->copy()->subHours(3)],
+                        ['Setup Equipment at Venue', $eventDateTime->copy()->subHours(1)],
+                        ['Serve Food During Event', $eventDateTime->copy()->setTime($eventDateTime->hour, $eventDateTime->minute)],
+                        ['Pack-up Equipment', $eventDateTime->copy()->addHours(3)],
                     ];
                     break;
 
@@ -244,7 +246,7 @@ class EventBookingController extends Controller
                     $tasks = [];
             }
 
-            foreach ($tasks as $title) {
+            foreach ($tasks as [$title, $dueDateTime]) {
                 Task::create([
                     'booking_id' => $booking->booking_id,
                     'assigned_to' => $user->id,
@@ -253,12 +255,13 @@ class EventBookingController extends Controller
                     'description' => null,
                     'status' => 'To-Do',
                     'priority' => 'Normal',
-                    'due_date' => $booking->event_date,
+                    'due_date' => $dueDateTime,
                     'auto_generated' => true,
                 ]);
             }
         }
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -277,7 +280,7 @@ class EventBookingController extends Controller
             'package_price_id' => 'required|integer|exists:package_price,package_price_id',
             'food_ids' => 'required|array',
             'food_ids.*' => 'integer|exists:food,food_id',
-            'theme_id' => 'required|integer',
+            'theme_id' => 'nullable|integer',
             'event_total_price' => 'required|numeric',
             'price_breakdown' => 'required|array',
             'freebies' => 'nullable|string',
@@ -477,7 +480,7 @@ class EventBookingController extends Controller
 
         DB::beginTransaction();
         try {
-            $booking = EventBooking::with(['menu.foods', 'client', 'staffAssignments'])
+            $booking = EventBooking::with(['menu.foods', 'customer', 'staffAssignments'])
                 ->findOrFail($id);
 
             $booking->update([

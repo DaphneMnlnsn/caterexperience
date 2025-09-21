@@ -251,63 +251,8 @@ function BookingDetails() {
             <p><strong>Freebies:</strong> {booking.freebies || 'None'}</p>
           </div>
         </div>
-
         <hr className="booking-section-divider" />
-
-        {/* Venue Design Preview */}
-          <>
-            <div className="section white-bg">
-              <div className="section-header">
-                <h3>Venue Design</h3>
-              </div>
-              <VenuePreview bookingId={booking.booking_id} isClient={true}/>
-            </div>
-
-            <hr className="booking-section-divider" />
-          </>
-
-        {/* Payments Table */}
-          <div className="section white-bg">
-            <div className="section-title">
-              <h3>Payments</h3>
-            </div>
-
-            <div className="payments-info">
-              <p><strong>Down payment:</strong> Php {parseFloat(booking.down_payment).toLocaleString()}.00</p>
-              <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.total_amount) - parseFloat(booking.amount_paid)).toLocaleString()}.00</p>
-            </div>
-
-            <div className="booking-table-wrapper">
-              <table className="booking-table">
-                <thead>
-                  <tr>
-                    <th>Amount Paid</th>
-                    <th>Payment Date</th>
-                    <th>Payment Method</th>
-                    <th>Payment Remarks</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {booking.payments?.map((payment, index) => (
-                    <tr key={index}>
-                      <td>Php {parseFloat(payment.amount_paid).toLocaleString()}</td>
-                      <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
-                      <td>{payment.payment_method}</td>
-                      <td>{payment.remarks}</td>
-                      <td onClick={() => {
-                        setShowInvoice(true);
-                        setSelectedPayment(payment.payment_id);
-                      }}><i className="fa fa-receipt"></i></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
       </div>
-
-        <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
     </div>
   );
 }

@@ -14,6 +14,9 @@ import Invoice from '../components/Invoice';
 import MenuChecklist from '../components/MenuChecklist';
 import RequestChangesModal from '../components/RequestChangesModal';
 import Header from '../components/Header';
+import AddExtraChargeModal from '../components/AddExtraChargeModal';
+import ExtraChargesModal from '../components/ExtraChargesModal';
+import RescheduleModal from '../components/RescheduleModal';
 
 function BookingDetails() {
   const { id } = useParams();
@@ -39,6 +42,9 @@ function BookingDetails() {
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [showRequestChangesModal, setShowRequestChangesModal] = useState(false);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
+  const [showAddChargeModal, setShowAddChargeModal] = useState(false);
+  const [showChargesModal, setShowChargesModal] = useState(false);
+  const [showReschedModal, setShowReschedModal] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [booking, setBooking] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -248,87 +254,6 @@ function BookingDetails() {
     });
   };
 
-  const handleResched = () => {
-    if (!isAdmin) return;
-    Swal.fire({
-      title: 'Reschedule Event',
-      html: `
-        <input id="resched-date" type="date" class="swal2-input" placeholder="Event Date" />
-        <input id="resched-start" type="time" class="swal2-input" placeholder="Start Time" />
-        <input id="resched-end" type="time" class="swal2-input" placeholder="End Time" readonly />
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm Reschedule',
-      didOpen: () => {
-        const startInput = document.getElementById('resched-start');
-        const endInput = document.getElementById('resched-end');
-
-        startInput.addEventListener('change', () => {
-          const startTime = startInput.value;
-          if (startTime) {
-            const [hours, minutes] = startTime.split(':').map(Number);
-            const startDate = new Date(2000, 0, 1, hours, minutes);
-            startDate.setHours(startDate.getHours() + 4);
-            const endHours = String(startDate.getHours()).padStart(2, '0');
-            const endMinutes = String(startDate.getMinutes()).padStart(2, '0');
-            endInput.value = `${endHours}:${endMinutes}`;
-          } else {
-            endInput.value = '';
-          }
-        });
-      },
-      preConfirm: async () => {
-        const event_date = document.getElementById('resched-date').value;
-        const event_start_time = document.getElementById('resched-start').value;
-        const event_end_time = document.getElementById('resched-end').value;
-
-        if (!event_date || !event_start_time || !event_end_time) {
-          Swal.showValidationMessage('All fields are required');
-          return false;
-        }
-
-        try {
-          const res = await axiosClient.get('/bookings/check-availability', {
-            params: {
-              event_date,
-              event_start_time,
-              event_end_time,
-            },
-          });
-
-          if (!res.data.available) {
-            Swal.showValidationMessage('Selected time slot is not available.');
-            return false;
-          }
-
-          return { event_date, event_start_time, event_end_time };
-        } catch (err) {
-          Swal.showValidationMessage('Availability check failed.');
-          return false;
-        }
-      },
-    }).then((result) => {
-      if (result.isConfirmed && result.value) {
-        const { event_date, event_start_time, event_end_time } = result.value;
-
-        axiosClient.post(`/bookings/${id}/resched`, {
-          event_date,
-          event_start_time,
-          event_end_time,
-        })
-          .then(() => {
-            Swal.fire('Rescheduled!', 'Event was successfully moved.', 'success').then(() => {
-              fetchDetails();
-            });
-          })
-          .catch((err) => {
-            console.error(err.response?.data || err.message);
-            Swal.fire('Error', 'Failed to reschedule.', 'error');
-          });
-      }
-    });
-  };
-
   const handleCancel = () => {
     if (!isAdmin) return;
     Swal.fire({
@@ -491,6 +416,10 @@ function BookingDetails() {
               <span>{booking.customer_contact_number}</span>
             </div>
             <div>
+              <span>Event Code:</span>
+              <span>{booking.event_code}</span>
+            </div>
+            <div>
               <span>Event Name:</span>
               {isEditing ? (
                 <input
@@ -512,7 +441,7 @@ function BookingDetails() {
                     <option value="">Select Venue</option>
                     <option value="Airconditioned Room">Airconditioned Room</option>
                     <option value="Pavilion">Pavilion</option>
-                    <option value="Pool">Pool</option>
+                    <option value="Poolside">Poolside</option>
                     <option value="outside">Outside Location</option>
                   </select>
 
@@ -556,6 +485,17 @@ function BookingDetails() {
               </span>
             </div>
             <div>
+              <span>Watcher/Bantay:</span>
+              {isEditing ? (
+                <input
+                  value={editedData.bantay}
+                  onChange={e => setEditedData({ ...editedData, bantay: e.target.value })}
+                />
+              ) : (
+                <span>{booking.bantay || 'N/A'}</span>
+              )}
+            </div>
+            <div>
               <span>Celebrant Name:</span>
               {isEditing ? (
                 <input
@@ -576,17 +516,6 @@ function BookingDetails() {
                 />
               ) : (
                 <span>{booking.age || 'N/A'}</span>
-              )}
-            </div>
-            <div>
-              <span>Watcher/Bantay:</span>
-              {isEditing ? (
-                <input
-                  value={editedData.bantay}
-                  onChange={e => setEditedData({ ...editedData, bantay: e.target.value })}
-                />
-              ) : (
-                <span>{booking.bantay || 'N/A'}</span>
               )}
             </div>
             <div>
@@ -927,17 +856,25 @@ function BookingDetails() {
           <div className="section white-bg">
             <div className="section-title">
               <h3>Payments</h3>
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
-                <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
-              )}
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
-                <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
-              )}
+              <div className='action-buttons'>
+                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
+                  <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
+                )}
+                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
+                  <button className="booking-edit-btn" onClick={() => setShowChargesModal(true)}>View Extra Charges</button>
+                )}
+                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
+                  <button className="booking-edit-btn" onClick={() => setShowAddChargeModal(true)}>+ Add Extra Charge</button>
+                )}
+                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
+                  <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
+                )}
+              </div>
             </div>
 
             <div className="payments-info">
-              <p><strong>Down payment:</strong> Php {parseFloat(booking.down_payment).toLocaleString()}.00</p>
-              <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.total_amount) - parseFloat(booking.amount_paid)).toLocaleString()}.00</p>
+              <p><strong>Total Amount:</strong> Php {parseFloat(booking.final_amount).toLocaleString()}.00</p>
+              <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.final_amount) - parseFloat(booking.amount_paid)).toLocaleString()}.00</p>
             </div>
 
             <div className="booking-table-wrapper">
@@ -975,7 +912,7 @@ function BookingDetails() {
           <div className="booking-delete-section">
             {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
               <>
-                <button className="booking-resched-btn" onClick={handleResched}>Reschedule Booking</button>
+                <button className="booking-resched-btn" onClick={() => setShowReschedModal(true)}>Reschedule Booking</button>
                 <button className="booking-delete-btn" onClick={handleCancel}>Cancel Booking</button>
               </>
             )}
@@ -1008,6 +945,8 @@ function BookingDetails() {
         <>
           <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
           <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />
+          <AddExtraChargeModal show={showAddChargeModal} onClose={() => setShowAddChargeModal(false)} onSave={fetchDetails} bookingId={id} />
+          <RescheduleModal show={showReschedModal} onClose={() => setShowReschedModal(false)} onSave={fetchDetails} bookingId={id} isAdmin={isAdmin} />
           <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
         </>
       )}
@@ -1015,6 +954,7 @@ function BookingDetails() {
       {(isClient || isAdmin) && (
         <>
           <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
+          <ExtraChargesModal show={showChargesModal} onClose={() => setShowChargesModal(false)} onSave={fetchDetails} bookingId={id} />
         </>
       )}
     </div>

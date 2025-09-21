@@ -261,7 +261,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         const requiredFields = [
             'firstName', 'lastName', 'email', 'contact', 'address',
             'eventName', 'eventDate', 'eventStart', 'eventEnd', 'eventLocation',
-            'package', 'motif', 'pax', 'watcher', 'waiters'
+            'package', 'pax', 'watcher', 'waiters'
         ];
 
     const missing = requiredFields.filter(field => {
@@ -1059,6 +1059,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         name="headWaiter1"
                         value={form.headWaiter1}
                         onChange={handleChange}
+                        required
                     >
                         <option value="">Select Waiter</option>
                         {staff
@@ -1078,6 +1079,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         name="cook"
                         value={form.cook}
                         onChange={handleChange}
+                        required
                     >
                         <option value="">Select Cook</option>
                         {staff

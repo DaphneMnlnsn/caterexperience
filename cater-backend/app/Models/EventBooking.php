@@ -39,6 +39,8 @@ class EventBooking extends Model
         'price_breakdown' => 'array',
     ];
 
+    protected $appends = ['final_amount'];
+
     public function customer() {
         return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
     }
@@ -85,6 +87,11 @@ class EventBooking extends Model
     {
         return $this->hasMany(BookingInventory::class, 'booking_id', 'booking_id'); 
     }
+
+    public function extraCharges()
+    {
+        return $this->hasMany(ExtraCharge::class, 'booking_id', 'booking_id');
+    }
     
     protected static function generateReadableCode($length = 6)
     {
@@ -104,4 +111,12 @@ class EventBooking extends Model
             $booking->event_code = $code;
         });
     }
+
+    public function getFinalAmountAttribute()
+    {
+        $totalPrice = $this->event_total_price ?? 0;
+        $extraCharges = $this->extraCharges->sum('amount') ?? 0;
+        return $totalPrice + $extraCharges;
+    }
+
 }
