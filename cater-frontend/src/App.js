@@ -35,7 +35,7 @@ import { ToastContainer } from "react-toastify";
 
 export default function App(){
   useEffect(() => {
-    axiosClient.get('http://localhost:8000/sanctum/csrf-cookie')
+    axiosClient.get(`${process.env.REACT_APP_BASE_URL}/sanctum/csrf-cookie`)
       .catch(err => console.error('CSRF error', err));
   }, []);
 

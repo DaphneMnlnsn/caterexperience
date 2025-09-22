@@ -84,7 +84,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         const fullName = user ? `${user.first_name} ${user.last_name}` : 'Unknown';
         params.append("generated_by", fullName);
 
-        window.open(`http://localhost:8000/api/payments/report?${params.toString()}`, '_blank');
+        window.open(`${process.env.REACT_APP_BASE_URL}/api/payments/report?${params.toString()}`, '_blank');
     };
 
     return (

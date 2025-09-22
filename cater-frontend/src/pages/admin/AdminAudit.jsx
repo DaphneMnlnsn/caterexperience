@@ -104,7 +104,7 @@ function AdminAudit() {
     const fullName = user ? `${user.first_name} ${user.last_name}` : 'Unknown';
     params.append("generated_by", fullName);
 
-    window.open(`http://localhost:8000/api/audit/report?${params.toString()}`, '_blank');
+    window.open(`${process.env.REACT_APP_BASE_URL}/api/audit/report?${params.toString()}`, '_blank');
   };
 
   const renderPageButtons = () => {

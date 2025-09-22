@@ -2,7 +2,7 @@ import Echo from "laravel-echo";
 import Ably from "ably";
 import axiosClient from "./axiosClient";
 
-await axiosClient.get("http://localhost:8000/sanctum/csrf-cookie", {
+await axiosClient.get(`${process.env.REACT_APP_BASE_URL}/sanctum/csrf-cookie`, {
   withCredentials: true,
 });
 
