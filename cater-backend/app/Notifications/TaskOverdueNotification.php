@@ -2,19 +2,20 @@
 
 namespace App\Notifications;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Log;
+use App\Models\Task;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class TaskStatusUpdatedNotification extends Notification
+class TaskOverdueNotification extends Notification
 {
     use Queueable;
 
     protected $task, $notifiable;
 
-    public function __construct($task)
+    public function __construct(Task $task)
     {
         $this->task = $task;
     }
@@ -27,12 +28,11 @@ class TaskStatusUpdatedNotification extends Notification
     public function toArray($notifiable)
     {
         return [
-            'action'     => 'task_status_updated',
-            'task_id'  => $this->task->task_id,
+            'task_id' => $this->task->task_id,
             'booking_id' => $this->task->booking_id,
             'title' => $this->task->title,
-            'status'   => $this->task->status,
-            'message'  => "Task {$this->task->title} status updated to '{$this->task->status}'.",
+            'due_date' => $this->task->due_date,
+            'message' => "Your task '{$this->task->title}' is overdue!",
             'url' => "/bookings/{$this->task->booking_id}",
         ];
     }
@@ -42,11 +42,10 @@ class TaskStatusUpdatedNotification extends Notification
         $this->notifiable = $notifiable;
         return new BroadcastMessage($this->toArray($notifiable));
     }
-
+    
     public function broadcastOn()
     {
         if (!isset($this->notifiable)) {
-            Log::error('broadcastOn called but notifiable not set on notification; returning fallback channel.');
             return new Channel('notifications-invalid');
         }
 
@@ -59,8 +58,6 @@ class TaskStatusUpdatedNotification extends Notification
         }
 
         $channelName = "notifications-App.Models.{$model}.{$id}";
-
-        Log::info('broadcastOn: using channel', ['channel' => $channelName]);
 
         return [$channelName];
     }
