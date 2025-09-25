@@ -105,7 +105,7 @@ function AddPaymentModal({ show, onClose, onSave, bookingId }) {
         payload.append('remarks', formData.remarks);
         payload.append('cash_given', formData.cash_given || 0);
         payload.append('change_given', formData.change_given || 0);
-        payload.append('payment_status', 'completed');
+        payload.append('payment_status', 'Completed');
 
         if (formData.proof_image) {
             payload.append('proof_image', formData.proof_image);

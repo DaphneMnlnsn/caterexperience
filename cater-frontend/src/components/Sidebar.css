@@ -33,23 +33,38 @@
   margin: 0;
 }
 .sidebar nav ul li {
-  width: 100%;
-  padding: 12px 20px;
+  list-style: none;
   margin-bottom: 4px;
-  font-weight: bold;
+}
+
+.nav-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  cursor: pointer;
-  transition: background 0.3s ease;
+  width: 100%;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: bold;
   font-size: 15px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+  border: none;
+  background: none;
+  text-align: left;
 }
-.sidebar nav ul li:hover,
-.sidebar nav ul li.active,
-.nav-link,
-.nav-link:hover {
+
+.nav-link:hover,
+.nav-link.active {
   background-color: #fff176;
 }
+
+.logout-btn {
+  font: inherit;
+  font-weight: bold;
+  font-size: 15px;
+}
+
 .sidebar nav ul li svg {
   min-width: 20px;
   font-size: 16px;
@@ -57,18 +72,7 @@
 .sidebar nav ul li:last-child {
   margin-bottom: 20%;
 }
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  text-decoration: none;
-  color: inherit;
-  font-weight: bold;
-  transition: background 0.3s ease;
-  font-size: 15px;
-  width: 100%;
-}
+
 .sidebar nav a {
   text-decoration: none;
   color: inherit;
@@ -83,8 +87,9 @@
   background-color: #fff176;
 }
 .section-header-sidebar {
-  font-size: 12px;
+  font-size: 14px;
   color: #888;
+  font-weight: bold;
   text-transform: uppercase;
   padding: 8px 20px;
   margin-top: 12px;

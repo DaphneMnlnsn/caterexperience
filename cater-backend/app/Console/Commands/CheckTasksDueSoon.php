@@ -15,11 +15,13 @@ class CheckTasksDueSoon extends Command
 
     public function handle()
     {
+        $today = now()->toDateString();
+
         $tomorrowStart = now()->addDay()->startOfDay();
         $tomorrowEnd   = now()->addDay()->endOfDay();
 
         $tasksDueSoon = Task::whereBetween('due_date', [$tomorrowStart, $tomorrowEnd])
-            ->whereNotIn('status', ['Completed', 'Done'])
+            ->whereNotIn('status', ['Completed', 'Done', 'Cancelled'])
             ->with('assignee')
             ->get();
 
@@ -30,6 +32,7 @@ class CheckTasksDueSoon extends Command
             $exists = $user->notifications()
                 ->where('type', TaskDueSoonNotification::class)
                 ->where('data->task_id', $task->task_id)
+                ->whereDate('created_at', $today)
                 ->exists();
 
             if (! $exists) {
@@ -38,7 +41,7 @@ class CheckTasksDueSoon extends Command
         }
 
         $tasksOverdue = Task::where('due_date', '<', now()->startOfDay())
-        ->whereNotIn('status', ['Completed', 'Done'])
+        ->whereNotIn('status', ['Completed', 'Done', 'Cancelled'])
         ->with('assignee')
         ->get();
 
@@ -49,6 +52,7 @@ class CheckTasksDueSoon extends Command
             $exists = $user->notifications()
                 ->where('type', TaskOverdueNotification::class)
                 ->where('data->task_id', $task->task_id)
+                ->whereDate('created_at', $today)
                 ->exists();
 
             if (! $exists) {

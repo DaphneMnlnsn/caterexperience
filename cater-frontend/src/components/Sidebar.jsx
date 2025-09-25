@@ -55,7 +55,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Hamburger toggle (visible only on mobile/tablet) */}
       <button 
         className="sidebar-toggle"
         onClick={() => setIsOpen(!isOpen)}
@@ -73,20 +72,19 @@ export default function Sidebar() {
                 <React.Fragment key={section}>
                   <li className="section-header-sidebar">{section}</li>
                   {groupedMenu[section].map(item => (
-                    <li 
-                      key={item.label} 
-                      className={item.to && location.pathname === item.to ? "active" : ""}
-                      onClick={() => {
-                        if (item.logout) handleLogout();
-                        if (isOpen) setIsOpen(false); // auto-close after click
-                      }}
-                    >
+                    <li key={item.label}>
                       {item.to ? (
-                        <NavLink to={item.to} className={({ isActive }) => (isActive ? "active" : "")}>
+                        <NavLink
+                          to={item.to}
+                          className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                          onClick={() => isOpen && setIsOpen(false)}
+                        >
                           {item.icon} {item.label}
                         </NavLink>
                       ) : (
-                        <span>{item.icon} {item.label}</span>
+                        <button className="nav-link logout-btn" onClick={handleLogout}>
+                          {item.icon} {item.label}
+                        </button>
                       )}
                     </li>
                   ))}
@@ -96,20 +94,19 @@ export default function Sidebar() {
               <>
                 <li className="section-header-sidebar">Main</li>
                 {filteredMenu.map(item => (
-                  <li 
-                    key={item.label} 
-                    className={item.to && location.pathname === item.to ? "active" : ""}
-                    onClick={() => {
-                      if (item.logout) handleLogout();
-                      if (isOpen) setIsOpen(false);
-                    }}
-                  >
+                  <li key={item.label}>
                     {item.to ? (
-                      <NavLink to={item.to} className={({ isActive }) => (isActive ? "active" : "")}>
+                      <NavLink
+                        to={item.to}
+                        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                        onClick={() => isOpen && setIsOpen(false)}
+                      >
                         {item.icon} {item.label}
                       </NavLink>
                     ) : (
-                      <span>{item.icon} {item.label}</span>
+                      <button className="nav-link logout-btn" onClick={handleLogout}>
+                        {item.icon} {item.label}
+                      </button>
                     )}
                   </li>
                 ))}
