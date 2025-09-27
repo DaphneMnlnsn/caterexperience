@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import './AddFoodModal.css';
 import axiosClient from '../axiosClient';
 
-function AddPaymentModal({ show, onClose, onSave, bookingId }) {
+function AddPaymentModal({ show, onClose, onSave, bookingId, remainingBalance }) {
   
     const [formData, setFormData] = useState({
         amount_paid: '',
@@ -57,6 +57,13 @@ function AddPaymentModal({ show, onClose, onSave, bookingId }) {
         }
     };
 
+    const handleRemoveImage = () => {
+      setFormData((prev) => ({
+        ...prev,
+        proof_image: null,
+        imagePreview: ''
+      }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -68,6 +75,11 @@ function AddPaymentModal({ show, onClose, onSave, bookingId }) {
 
         if (Number(formData.amount_paid) <= 0) {
           Swal.fire('Invalid', 'Amount paid must be greater than 0.', 'warning');
+          return;
+        }
+
+        if (Number(formData.amount_paid) > remainingBalance) {
+          Swal.fire('Invalid', 'Amount paid must not be greater than remaining balance.', 'warning');
           return;
         }
 
@@ -97,6 +109,20 @@ function AddPaymentModal({ show, onClose, onSave, bookingId }) {
           return;
         }
 
+        if(formData.proof_image){
+          const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!validTypes.includes(formData.proof_image.type)) {
+            Swal.fire('Invalid', 'Image must be JPG, PNG, or WEBP.', 'warning');
+            return;
+          }
+      
+          const maxSize = 2 * 1024 * 1024; 
+          if (formData.proof_image.size > maxSize) {
+            Swal.fire('Invalid', 'Image must be less than 2MB.', 'warning');
+            return;
+          }
+        }
+        
         const payload = new FormData();
         payload.append('booking_id', bookingId);
         payload.append('amount_paid', formData.amount_paid);
@@ -207,11 +233,30 @@ function AddPaymentModal({ show, onClose, onSave, bookingId }) {
             />
             <label htmlFor="image-upload" className="food-import-btn">Import Picture</label>
             {formData.imagePreview && (
+              <>
               <img
                 src={formData.imagePreview}
                 alt="Preview"
                 style={{ maxWidth: '100%', borderRadius: '6px', marginTop: '0.5rem' }}
               />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '1px',
+                  background: '#ff4d4d',
+                  border: 'none',
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                ✕
+              </button>
+              </>
             )}
           </div>
 

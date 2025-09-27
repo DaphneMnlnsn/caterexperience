@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import axiosClient from '../axiosClient';
 import EditTaskModal from './EditTaskModal';
 
-function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions, isAdmin }) {
+function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions, isAdmin, currentUserId }) {
   const columns = ['To-Do', 'In-Progress', 'Done'];
   const [selectedTask, setSelectedTask] = React.useState(null);
   const [showEditModal, setShowEditModal] = React.useState(false);
@@ -87,12 +87,14 @@ function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions, isAdmin }) {
                             <FaCalendarAlt className="icon calendar-icon" />
                             <span className="date-text">
                               {new Date(task.deadline).toLocaleString('en-US', {
-                                month: 'long',
-                                day: 'numeric',
-                                year: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit'
-                              })}
+                                  month: 'long',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  timeZone: 'UTC'
+                                })
+                              }
                             </span>
                           </div>
                           <div className="booking-id">✔ {task.booking_ref}</div>
@@ -125,6 +127,7 @@ function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions, isAdmin }) {
           assignedStaffs={assignedStaffs}
           staffOptions={staffOptions}
           isAdmin={isAdmin}
+          currentUserId={currentUserId}
         />
       )}
     </DragDropContext>

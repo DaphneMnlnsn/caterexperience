@@ -3,13 +3,13 @@ import Swal from 'sweetalert2';
 import './AddUserModal.css';
 import axiosClient from '../axiosClient';
 
-function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOptions }) {
+function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOptions, isAdmin, currentUserId }) {
   const [formData, setFormData] = React.useState({
     title: '',
     description: '',
     priority: '',
     due_date: '',
-    assigned_to: '',
+    assigned_to: isAdmin ? '' : currentUserId,
   });
 
   const handleSubmit = (e) => {
@@ -27,17 +27,19 @@ function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOption
       return;
     }
 
-    if (description && description.length < 255) {
+    if (description && description.length > 255) {
       Swal.fire('Invalid', 'Task description must be less than 255 characters.', 'warning');
       return;
     }
 
-    const today = new Date();
+    const now = new Date();
     const dueDate = new Date(due_date);
-    if (dueDate < today.setHours(0,0,0,0)) {
-      Swal.fire('Invalid', 'Due date cannot be in the past.', 'warning');
+
+    if (dueDate < now) {
+      Swal.fire('Invalid', 'Due date/time cannot be in the past.', 'warning');
       return;
     }
+
 
     if (!staffOptions.some(staff => staff.id.toString() === assigned_to.toString())) {
       Swal.fire('Invalid', 'Please select a valid staff member.', 'warning');
@@ -99,11 +101,15 @@ function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOption
             <option value="High">High</option>
           </select>
 
-          <label>Due Date</label>
-          <input type="date" value={formData.due_date} onChange={e => setFormData({ ...formData, due_date: e.target.value })} />
+          <label>Due Date & Time</label>
+          <input
+            type="datetime-local"
+            value={formData.due_date}
+            onChange={e => setFormData({ ...formData, due_date: e.target.value })}
+          />
 
           <label>Assign To</label>
-          <select value={formData.assigned_to} onChange={e => setFormData({ ...formData, assigned_to: e.target.value })}>
+          <select value={formData.assigned_to} onChange={e => setFormData({ ...formData, assigned_to: e.target.value })} disabled={!isAdmin}>
             <option value="">Select Staff</option>
             {staffOptions.map(staff => (
               <option key={staff.id} value={staff.id}>

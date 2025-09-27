@@ -71,6 +71,8 @@ function BookingDetails() {
         const mapped = (bookingFromServer.tasks || []).map(task => ({
           id: task.task_id,
           task_name: task.title,
+          created_by: task.created_by,
+          description: task.description,
           status: task.status,
           deadline: task.due_date,
           assigned_to_name: task.assignee
@@ -668,6 +670,7 @@ function BookingDetails() {
                 assignedStaffs={booking.staffs}
                 staffOptions={availableStaff}
                 isAdmin={isAdmin}
+                currentUserId={user.id}
               />
             </div>
             <hr className="booking-section-divider" />
@@ -965,12 +968,13 @@ function BookingDetails() {
         creatorId={user.id}
         staffOptions={availableStaff}
         isAdmin={isAdmin}
+        currentUserId={user.id}
       />
 
       {isAdmin && (
         <>
           <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
-          <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} balance={(parseFloat(booking.final_amount) - parseFloat(booking.amount_paid))} />
+          <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} remainingBalance={(parseFloat(booking.final_amount) - parseFloat(booking.amount_paid))} />
           <AddExtraChargeModal show={showAddChargeModal} onClose={() => setShowAddChargeModal(false)} onSave={fetchDetails} bookingId={id} />
           <RescheduleModal show={showReschedModal} onClose={() => setShowReschedModal(false)} onSave={fetchDetails} bookingId={id} isAdmin={isAdmin} />
           <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>

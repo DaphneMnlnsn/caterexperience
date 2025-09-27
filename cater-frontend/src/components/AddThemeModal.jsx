@@ -64,9 +64,9 @@ function AddThemeModal({ show, onClose, onSave }) {
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024; 
+    const maxSize = 2 * 1024 * 1024; 
     if (imageFile.size > maxSize) {
-      Swal.fire('Invalid', 'Image must be less than 5MB.', 'warning');
+      Swal.fire('Invalid', 'Image must be less than 2MB.', 'warning');
       return;
     }
 

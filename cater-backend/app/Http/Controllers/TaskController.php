@@ -21,7 +21,7 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:Low,Normal,High',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date_format:Y-m-d\TH:i',
             'auto_generated' => 'nullable|boolean',
         ]);
 
@@ -72,7 +72,7 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'required|in:Low,Normal,High',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date_format:Y-m-d\TH:i',
             'assigned_to' => 'nullable|exists:users,id',
             'status' => 'nullable|string',
         ]);

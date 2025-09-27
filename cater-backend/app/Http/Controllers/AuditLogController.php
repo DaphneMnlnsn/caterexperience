@@ -14,7 +14,7 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        AuditLogger::log('Viewed', 'Module: Audit Log | Viewed audit logs');
+        //AuditLogger::log('Viewed', 'Module: Audit Log | Viewed audit logs');
 
         $query = AuditLog::with('auditable');
 
@@ -232,7 +232,7 @@ class AuditLogController extends Controller
             'totalLogs'   => $totalLogs,
         ]);
 
-        AuditLogger::log('Viewed', 'Module: Audit | Generated audit report PDF');
+        AuditLogger::log('Viewed', 'Module: Audit Log | Generated audit report PDF');
 
         return $pdf->stream('audit-report.pdf');
     }

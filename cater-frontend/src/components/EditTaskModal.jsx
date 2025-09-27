@@ -3,12 +3,14 @@ import './AddUserModal.css';
 import axiosClient from '../axiosClient';
 import Swal from 'sweetalert2';
 
-function EditTaskModal({ task, onClose, onUpdate, staffOptions = [] }) {
+function EditTaskModal({ task, onClose, onUpdate, staffOptions = [], isAdmin, currentUserId}) {
     const [formData, setFormData] = useState({
         title: task?.task_name || '',
         description: task?.description || '',
         priority: task?.priority || '',
-        due_date: task?.deadline?.slice(0, 10) || '',
+        due_date: task?.deadline
+            ? new Date(task.deadline).toISOString().slice(0, 16)
+            : '',
         assigned_to: task?.assignee?.id || '',
     });
 
@@ -27,16 +29,16 @@ function EditTaskModal({ task, onClose, onUpdate, staffOptions = [] }) {
             return;
         }
     
-        if (description && description.length < 255) {
+        if (description && description.length > 255) {
             Swal.fire('Invalid', 'Task description must be less than 255 characters.', 'warning');
             return;
         }
     
-        const today = new Date();
+        const now = new Date();
         const dueDate = new Date(due_date);
-        if (dueDate < today.setHours(0,0,0,0)) {
-            Swal.fire('Invalid', 'Due date cannot be in the past.', 'warning');
-            return;
+        if (dueDate < now) {
+        Swal.fire('Invalid', 'Due date/time cannot be in the past.', 'warning');
+        return;
         }
     
         if (!staffOptions.some(staff => staff.id.toString() === assigned_to.toString())) {
@@ -95,25 +97,32 @@ function EditTaskModal({ task, onClose, onUpdate, staffOptions = [] }) {
         <div className="modal-overlay">
         <div className="modal">
             <button className="modal-close" onClick={onClose}>×</button>
-            <h2>Edit Task</h2>
+            {(isAdmin || task.created_by == currentUserId) ? (
+                <h2>Edit Task</h2>
+                ) : (
+                <h2>Task</h2>
+            )}
             <form className="add-form" onSubmit={handleSubmit}>
             <label>Title</label>
             <input
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
+                disabled={!isAdmin && task.created_by !== currentUserId}
             />
 
             <label>Description</label>
             <textarea
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
+                disabled={!isAdmin && task.created_by !== currentUserId}
             />
 
-            <label>Due Date</label>
+            <label>Due Date & Time</label>
             <input
-                type="date"
+                type="datetime-local"
                 value={formData.due_date}
                 onChange={e => setFormData({ ...formData, due_date: e.target.value })}
+                disabled={!isAdmin && task.created_by !== currentUserId}
             />
 
             <label>Priority</label>
@@ -124,12 +133,13 @@ function EditTaskModal({ task, onClose, onUpdate, staffOptions = [] }) {
                 <option value="Low">Low</option>
                 <option value="Normal">Normal</option>
                 <option value="High">High</option>
+                disabled={!isAdmin && task.created_by !== currentUserId}
             </select>
 
-            <label>Assigned To</label>
+            <label>Assigned To </label>
             <select
                 value={formData.assigned_to}
-                onChange={e => setFormData({ ...formData, assigned_to: e.target.value })}
+                onChange={e => setFormData({ ...formData, assigned_to: e.target.value })} disabled={!isAdmin}
             >
                 <option value="">Unassigned</option>
                 {staffOptions.map(staff => (
@@ -137,12 +147,17 @@ function EditTaskModal({ task, onClose, onUpdate, staffOptions = [] }) {
                     {`${toTitle(staff.role)} – ${staff.name}`}
                 </option>
                 ))}
+                disabled={!isAdmin && task.created_by !== currentUserId}
             </select>
 
             <div className="modal-buttons">
-                <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
-                <button type="button" className="user-delete-btn" onClick={handleDelete}>Delete</button>
-                <button type="submit" className="user-save-btn">Save</button>
+                {(isAdmin || task.created_by == currentUserId) && (
+                    <>
+                        <button type="button" className="user-cancel-btn" onClick={onClose}>Cancel</button>
+                        <button type="button" className="user-delete-btn" onClick={handleDelete}>Delete</button>
+                        <button type="submit" className="user-save-btn">Save</button>
+                    </>
+                )}
             </div>
             </form>
         </div>
