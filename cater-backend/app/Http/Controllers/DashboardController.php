@@ -25,6 +25,7 @@ class DashboardController extends Controller
                 'event_booking.event_total_price',
                 DB::raw('COALESCE(SUM(payment.amount_paid), 0) as total_paid')
             )
+            ->whereNotIn('event_booking.booking_status', ['Finished', 'Cancelled'])
             ->groupBy('event_booking.booking_id', 'event_booking.event_total_price')
             ->get()
             ->filter(function ($booking) {

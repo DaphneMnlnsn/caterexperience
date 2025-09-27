@@ -355,6 +355,27 @@ function BookingDetails() {
     return today < oneWeekBefore;
   };
 
+  const handleFinishClick = () => {
+    const balance = parseFloat(booking.final_amount) - parseFloat(booking.amount_paid);
+
+    if (balance !== 0) {
+      Swal.fire({
+        title: 'Unpaid Balance',
+        text: `This event still has an outstanding balance of ₱${balance.toLocaleString()}. Do you still want to mark it as finished?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, finish it',
+        cancelButtonText: 'Cancel',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          handleFinish();
+        }
+      });
+    } else {
+      handleFinish();
+    }
+  };
+
   if (!booking) return <div>Loading...</div>;
 
   return (
@@ -391,11 +412,14 @@ function BookingDetails() {
                 </>
               ) : (
                 <>
-                  {isAdmin && booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (
-                    <>
-                      <button onClick={handleFinish} className="finish-btn">Mark as Finished</button>
-                      {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
-                    </>
+                  {isAdmin &&
+                    booking.booking_status !== 'Finished' &&
+                    booking.booking_status !== 'Cancelled' &&
+                    new Date(booking.event_date) <= new Date() && (
+                      <>
+                        <button onClick={handleFinishClick} className="finish-btn">Mark as Finished</button>
+                        {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
+                      </>
                   )}
                 </>
               )}
@@ -643,6 +667,7 @@ function BookingDetails() {
                 setTasks={setTasks}
                 assignedStaffs={booking.staffs}
                 staffOptions={availableStaff}
+                isAdmin={isAdmin}
               />
             </div>
             <hr className="booking-section-divider" />
@@ -866,7 +891,7 @@ function BookingDetails() {
                 {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
                   <button className="booking-edit-btn" onClick={() => setShowAddChargeModal(true)}>+ Add Extra Charge</button>
                 )}
-                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
+                {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (parseFloat(booking.final_amount) - parseFloat(booking.amount_paid)) > 0.00 && isAdmin && (
                   <button className="booking-edit-btn" onClick={() => setShowAddPaymentModal(true)}>+ Add New Payment</button>
                 )}
               </div>
@@ -939,12 +964,13 @@ function BookingDetails() {
         bookingId={id}
         creatorId={user.id}
         staffOptions={availableStaff}
+        isAdmin={isAdmin}
       />
 
       {isAdmin && (
         <>
           <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
-          <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} />
+          <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} balance={(parseFloat(booking.final_amount) - parseFloat(booking.amount_paid))} />
           <AddExtraChargeModal show={showAddChargeModal} onClose={() => setShowAddChargeModal(false)} onSave={fetchDetails} bookingId={id} />
           <RescheduleModal show={showReschedModal} onClose={() => setShowReschedModal(false)} onSave={fetchDetails} bookingId={id} isAdmin={isAdmin} />
           <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>

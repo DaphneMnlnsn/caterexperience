@@ -134,7 +134,7 @@ function AddAddonModal({ show, onClose, onSave }) {
 
           <label>Description</label>
           <textarea
-            name="description"
+            name="addon_description"
             value={formData.addon_description}
             onChange={handleChange}
           />

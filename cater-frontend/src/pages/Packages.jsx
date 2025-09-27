@@ -166,7 +166,7 @@ function Packages() {
                       >
                         {theme.theme_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
                         <div className="menu-card-content">
-                          <img src={`${process.env.REACT_APP_BASE_URL}/storage/${theme.theme_image_url}`} alt={theme.theme_name} />
+                          <img src={`${process.env.REACT_APP_BASE_URL}/${theme.theme_image_url}`} alt={theme.theme_name} />
                           <div className="theme-name">{theme.theme_name}</div>
                         </div>
                       </div>

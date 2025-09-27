@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\AuditLogger;
 use App\Models\Customer;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -134,6 +135,8 @@ class CustomerController extends Controller
         ]);
 
         AuditLogger::log('Updated', "Module: Customer | Updated customer: {$customer->customer_firstname} {$customer->customer_lastname}, ID: {$customer->customer_id}");
+
+        NotificationService::sendPasswordResetted($customer->customer_id, true);
 
         return response()->json(['message' => 'Customer updated successfully', 'customer' => $customer]);
     }

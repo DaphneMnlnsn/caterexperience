@@ -18,7 +18,7 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
         theme_name: theme.theme_name || '',
         description: theme.theme_description || '',
         imageFile: null,
-        imagePreview: theme.theme_image_url ? `${process.env.REACT_APP_BASE_URL}/storage/${theme.theme_image_url}` : '',
+        imagePreview: theme.theme_image_url ? `${process.env.REACT_APP_BASE_URL}/${theme.theme_image_url}` : '',
         theme_status: theme.theme_status || ''
       });
     }

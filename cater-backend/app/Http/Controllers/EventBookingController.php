@@ -145,8 +145,16 @@ class EventBookingController extends Controller
         }
 
         $tasks = $booking->tasks()
-            ->when($user instanceof User && strtolower($user->role) !== 'admin', function ($q) use ($user) {
-                $q->where('assigned_to', $user->id);
+            ->when($user instanceof User && strtolower($user->role) !== 'admin', function ($q) use ($user, $booking) {
+                if (strtolower($user->role) === 'head waiter') {
+                    $headWaiterIds = $booking->staffAssignments()
+                        ->whereHas('user', fn($u) => $u->where('role', 'head waiter'))
+                        ->pluck('user_id');
+
+                    $q->whereIn('assigned_to', $headWaiterIds);
+                } else {
+                    $q->where('assigned_to', $user->id);
+                }
             })
             ->with('assignee')
             ->get();
@@ -213,7 +221,7 @@ class EventBookingController extends Controller
                         ['Setup Group Chat', $eventDateTime->copy()->subDays(8)->setTime(9, 0)],
                         ['Log Downpayment', $eventDateTime->copy()->subDays(8)->setTime(12, 0)],
                         ['Monitor Event', $eventDateTime->copy()->setTime(8, 0)],
-                        ['Collect Feedback', $eventDateTime->copy()->addDays(1)->setTime(17, 0)],
+                        ['Collect Feedback', $eventDateTime->copy()->addDay()->setTime(17, 0)],
                     ];
                     break;
 
@@ -233,14 +241,29 @@ class EventBookingController extends Controller
                     break;
 
                 case 'head waiter':
-                    $tasks = [
-                        ['Check Venue Setup', $eventDateTime->copy()->subHours(2)],
-                        ['Inventory Check (Waiter)', $eventDateTime->copy()->subHours(3)],
-                        ['Setup Equipment at Venue', $eventDateTime->copy()->subHours(1)],
-                        ['Serve Food During Event', $eventDateTime->copy()->setTime($eventDateTime->hour, $eventDateTime->minute)],
-                        ['Pack-up Equipment', $eventDateTime->copy()->addHours(3)],
-                    ];
-                    break;
+                    if ($user->id === $users->where('role', 'head waiter')->first()->id) {
+                        $tasks = [
+                            ['Check Venue Setup', $eventDateTime->copy()->subHours(2)],
+                            ['Inventory Check (Waiter)', $eventDateTime->copy()->subHours(3)],
+                            ['Setup Equipment at Venue', $eventDateTime->copy()->subHours(1)],
+                            ['Serve Food During Event', $eventDateTime->copy()],
+                            ['Pack-up Equipment', $eventDateTime->copy()->addHours(3)],
+                        ];
+
+                        foreach ($tasks as [$title, $dueDateTime]) {
+                            Task::create([
+                                'booking_id'   => $booking->booking_id,
+                                'assigned_to'  => $user->id,
+                                'created_by'   => $creatorId,
+                                'title'        => $title,
+                                'status'       => 'To-Do',
+                                'priority'     => 'Normal',
+                                'due_date'     => $dueDateTime,
+                                'auto_generated' => true,
+                            ]);
+                        }
+                    }
+                    continue 2;
 
                 default:
                     $tasks = [];
@@ -392,7 +415,7 @@ class EventBookingController extends Controller
                     'payment_method' => 'Cash',
                     'payment_date' => now(),
                     'payment_status' => 'Completed',
-                    'remarks' => 'Downpayment',
+                    'remarks' => 'Reservation Fee',
                     'cash_given' => $request->downpayment,
                     'change_given' => 0,
                     'proof_image' => null,
@@ -602,9 +625,52 @@ class EventBookingController extends Controller
                 'event_end_time' => $validated['event_end_time'],
             ]);
 
-            Task::where('booking_id', $id)
-                ->where('auto_generated', true)
-                ->update(['due_date' => $validated['event_date']]);
+            $eventDateTime = Carbon::parse("{$validated['event_date']} {$validated['event_start_time']}");
+
+            foreach ($booking->tasks()->with('assignee')->where('auto_generated', true)->get() as $task) {
+                switch (strtolower($task->assignee->role)) {
+                    case 'admin':
+                        $map = [
+                            'Setup Group Chat'   => $eventDateTime->copy()->subDays(8)->setTime(9, 0),
+                            'Log Downpayment'    => $eventDateTime->copy()->subDays(8)->setTime(12, 0),
+                            'Monitor Event'      => $eventDateTime->copy()->setTime(8, 0),
+                            'Collect Feedback'   => $eventDateTime->copy()->addDay()->setTime(17, 0),
+                        ];
+                        break;
+
+                    case 'stylist':
+                        $map = [
+                            'Sketch Layout Based on Client Preferences' => $eventDateTime->copy()->subDays(5)->setTime(10, 0),
+                            'Inventory Check (Stylist)'                 => $eventDateTime->copy()->subDay()->setTime(14, 0),
+                            'Setup Venue and Send Photo'                => $eventDateTime->copy()->setTime(7, 0),
+                        ];
+                        break;
+
+                    case 'cook':
+                        $map = [
+                            'Prepare Food for Event' => $eventDateTime->copy()->subHours(3),
+                            'Deliver Food to Venue'  => $eventDateTime->copy()->subHour(),
+                        ];
+                        break;
+
+                    case 'head waiter':
+                        $map = [
+                            'Check Venue Setup'       => $eventDateTime->copy()->subHours(2),
+                            'Inventory Check (Waiter)' => $eventDateTime->copy()->subHours(3),
+                            'Setup Equipment at Venue' => $eventDateTime->copy()->subHour(),
+                            'Serve Food During Event'  => $eventDateTime->copy(),
+                            'Pack-up Equipment'        => $eventDateTime->copy()->addHours(3),
+                        ];
+                        break;
+
+                    default:
+                        $map = [];
+                }
+
+                if (isset($map[$task->title])) {
+                    $task->update(['due_date' => $map[$task->title]]);
+                }
+            }
 
             DB::commit();
 

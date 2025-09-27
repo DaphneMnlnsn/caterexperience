@@ -41,7 +41,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         celebrantName: '', ageYear: '', watcher: '', pax: '', waiters: '',
         package: null, motif: '', addons: [],
         beef: '', pork: '', chicken: '', vegetables: '', pastaFish: '', dessert: '',
-        downpayment: '', totalPrice: '', specialRequests: '', freebies: '',
+        downpayment: 2000, totalPrice: '', specialRequests: '', freebies: '',
         stylist: '', cook: '', headWaiter1: '', headWaiter2: '',
         customLocation: '',
         agree: false,
@@ -183,6 +183,21 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         selectedAddons.forEach(({ tier, qty }) => {
             if (tier) total += parseFloat(tier.price * qty);
         });
+
+        if (form.eventStart && form.eventEnd) {
+            const start = new Date(`2000-01-01T${form.eventStart}`);
+            const end = new Date(`2000-01-01T${form.eventEnd}`);
+            let durationHours = (end - start) / (1000 * 60 * 60);
+
+            if (durationHours <= 0) {
+                durationHours += 24;
+            }
+
+            if (durationHours > 4) {
+                const extraHours = Math.ceil(durationHours - 4);
+                total += extraHours * 500;
+            }
+        }
         setTotalAmount(total);
     }, [selectedPackageTier, selectedAddons]);
 
@@ -640,8 +655,20 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                             {form.eventStart && form.eventEnd && (() => {
                                 const start = new Date(`2000-01-01T${form.eventStart}`);
                                 const end = new Date(`2000-01-01T${form.eventEnd}`);
+                                let durationHours = (end - start) / (1000 * 60 * 60);
+                                if (durationHours <= 0) durationHours += 24;
+
                                 if (end <= start) {
                                     return <div className="availability note">🕛 Event ends the next day</div>;
+                                }
+
+                                if (durationHours > 4) {
+                                    const extraHours = Math.ceil(durationHours - 4);
+                                    return (
+                                        <div className="error">
+                                            ⚠️ Every extra hour is +₱500. Current extra hours: {extraHours}
+                                        </div>
+                                    );
                                 }
                                 return null;
                             })()}
@@ -987,7 +1014,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <div className="booking-grid booking-grid-2">
                         <div className="booking-field-group">
                         <label htmlFor="downpayment" className="booking-field-label">
-                            Downpayment/Reservation Amount
+                            Reservation Fee Amount
                         </label>
                         <input
                             id="downpayment"

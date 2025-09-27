@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\AuditLogger;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -102,6 +103,8 @@ class UserController extends Controller
         ]);
 
         AuditLogger::log('Updated', "Module: User | Updated user: {$user->first_name} {$user->last_name}, ID: {$user->id}");
+
+        NotificationService::sendPasswordResetted($user->id);
 
         return response()->json(['message' => 'User updated successfully', 'user' => $user]);
     }

@@ -10,6 +10,7 @@ use App\Notifications\BookingNearNotification;
 use App\Notifications\EightyPercentPaymentPendingNotification;
 use App\Notifications\EventFinishedNotification;
 use App\Notifications\FullPaymentPendingNotification;
+use App\Services\NotificationService;
 
 class CheckBookingsNotifications extends Command
 {
@@ -94,28 +95,11 @@ class CheckBookingsNotifications extends Command
         foreach ($bookings80Pending as $booking) {
             $admins = User::where('role', 'admin')->get();
             foreach ($admins as $admin) {
-                $exists = $admin->notifications()
-                    ->where('type', EightyPercentPaymentPendingNotification::class)
-                    ->where('data->booking_id', $booking->booking_id)
-                    ->whereDate('created_at', $today)
-                    ->exists();
-
-                if (! $exists) {
-                    $admin->notify(new EightyPercentPaymentPendingNotification($booking));
-                }
+                NotificationService::sendIfNotExists($admin, EightyPercentPaymentPendingNotification::class, $booking);
             }
 
             if ($booking->customer) {
-                $customer = $booking->customer;
-                $exists = $customer->notifications()
-                    ->where('type', EightyPercentPaymentPendingNotification::class)
-                    ->where('data->booking_id', $booking->booking_id)
-                    ->whereDate('created_at', $today)
-                    ->exists();
-
-                if (! $exists) {
-                    $customer->notify(new EightyPercentPaymentPendingNotification($booking));
-                }
+                NotificationService::sendifNotExists($booking->customer, EightyPercentPaymentPendingNotification::class, $booking);
             }
         }
 
@@ -136,28 +120,11 @@ class CheckBookingsNotifications extends Command
         foreach ($bookingsUnpaid as $booking) {
             $admins = User::where('role', 'admin')->get();
             foreach ($admins as $admin) {
-                $exists = $admin->notifications()
-                    ->where('type', FullPaymentPendingNotification::class)
-                    ->where('data->booking_id', $booking->booking_id)
-                    ->whereDate('created_at', $today)
-                    ->exists();
-
-                if (! $exists) {
-                    $admin->notify(new FullPaymentPendingNotification($booking));
-                }
+                NotificationService::sendIfNotExists($admin, FullPaymentPendingNotification::class, $booking);
             }
 
             if ($booking->customer) {
-                $customer = $booking->customer;
-                $exists = $customer->notifications()
-                    ->where('type', FullPaymentPendingNotification::class)
-                    ->where('data->booking_id', $booking->booking_id)
-                    ->whereDate('created_at', $today)
-                    ->exists();
-
-                if (! $exists) {
-                    $customer->notify(new FullPaymentPendingNotification($booking));
-                }
+                NotificationService::sendifNotExists($booking->customer, FullPaymentPendingNotification::class, $booking);
             }
         }
 

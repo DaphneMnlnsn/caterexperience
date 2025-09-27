@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\BookingCancelledNotification;
 use App\Notifications\BookingChangeRequestNotification;
 use App\Notifications\BookingUpdatedNotification;
+use App\Notifications\PasswordResettedNotification;
 use App\Notifications\TaskAssignedNotification;
 use App\Notifications\VenueSetupApprovedNotification;
 use App\Notifications\VenueSetupSubmittedNotification;
@@ -27,14 +28,7 @@ class NotificationService
 
         if (! $user) return;
 
-        $exists = $user->notifications()
-            ->where('type', TaskAssignedNotification::class)
-            ->where('data->booking_id', $booking->booking_id)
-            ->exists();
-
-        if (! $exists) {
-            $user->notify(new TaskAssignedNotification($booking));
-        }
+        $user->notify(new TaskAssignedNotification($booking));
     }
 
     public static function sendBookingUpdated($notifiableId, $booking, $isClient = false)
@@ -45,16 +39,19 @@ class NotificationService
 
         if (! $notifiable) return;
 
-        $exists = $notifiable->notifications()
-            ->where('type', BookingUpdatedNotification::class)
-            ->where('data->booking_id', $booking->booking_id)
-            ->exists();
-
-        if (! $exists) {
-            $notifiable->notify(new BookingUpdatedNotification($booking));
-        }
+        $notifiable->notify(new BookingUpdatedNotification($booking));
     }
 
+    public static function sendPasswordResetted($notifiableId, $isClient = false)
+    {
+        $notifiable = $isClient
+            ? Customer::find($notifiableId)
+            : User::find($notifiableId);
+
+        if (! $notifiable) return;
+
+        $notifiable->notify(new PasswordResettedNotification());
+    }
     public static function sendBookingCancelled($notifiableId, $booking, $isClient = false)
     {
         $notifiable = $isClient
@@ -63,28 +60,14 @@ class NotificationService
 
         if (! $notifiable) return;
 
-        $exists = $notifiable->notifications()
-            ->where('type', BookingCancelledNotification::class)
-            ->where('data->booking_id', $booking->booking_id)
-            ->exists();
-
-        if (! $exists) {
-            $notifiable->notify(new BookingCancelledNotification($booking));
-        }
+        $notifiable->notify(new BookingCancelledNotification($booking));
     }
     public static function sendBookingChangeRequest($booking, $requestText)
     {
         $admins = User::where('role', 'admin')->get();
 
         foreach ($admins as $admin) {
-            $exists = $admin->notifications()
-                ->where('type', BookingChangeRequestNotification::class)
-                ->where('data->booking_id', $booking->booking_id)
-                ->exists();
-
-            if (! $exists) {
-                $admin->notify(new BookingChangeRequestNotification($booking, $requestText));
-            }
+            $admin->notify(new BookingChangeRequestNotification($booking, $requestText));
         }
     }
 
@@ -93,15 +76,7 @@ class NotificationService
         $admins = User::where('role', 'admin')->get();
 
         foreach ($admins as $admin) {
-            $exists = $admin->notifications()
-                ->where('type', VenueUpdatedNotification::class)
-                ->where('data->booking_id', $booking->booking_id)
-                ->whereDate('created_at', now()->toDateString())
-                ->exists();
-
-            if (! $exists) {
-                $admin->notify(new VenueUpdatedNotification($booking->booking_id));
-            }
+            $admin->notify(new VenueUpdatedNotification($booking->booking_id));
         }
     }
 
@@ -113,30 +88,14 @@ class NotificationService
             return;
         }
 
-        $exists = $customer->notifications()
-            ->where('type', VenueSetupSubmittedNotification::class)
-            ->where('data->booking_id', $booking->booking_id)
-            ->whereDate('created_at', now()->toDateString())
-            ->exists();
-
-        if (! $exists) {
-            $customer->notify(new VenueSetupSubmittedNotification($booking->booking_id));
-        }
+        $customer->notify(new VenueSetupSubmittedNotification($booking->booking_id));
     }
 
     public static function sendVenueSetupApproved($booking)
     {
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
-            $exists = $admin->notifications()
-                ->where('type', VenueSetupApprovedNotification::class)
-                ->where('data->booking_id', $booking->booking_id)
-                ->whereDate('created_at', now()->toDateString())
-                ->exists();
-
-            if (! $exists) {
-                $admin->notify(new VenueSetupApprovedNotification($booking->booking_id));
-            }
+            $admin->notify(new VenueSetupApprovedNotification($booking->booking_id));
         }
 
         $staffIds = StaffAssignment::where('booking_id', $booking->booking_id)
@@ -148,15 +107,22 @@ class NotificationService
             ->get();
 
         foreach ($staffUsers as $staff) {
-            $exists = $staff->notifications()
-                ->where('type', VenueSetupApprovedNotification::class)
-                ->where('data->booking_id', $booking->booking_id)
-                ->whereDate('created_at', now()->toDateString())
-                ->exists();
+            $staff->notify(new VenueSetupApprovedNotification($booking->booking_id));
+        }
+    }
+    
+    public static function sendIfNotExists($notifiable, $notificationClass, $booking)
+    {
+        if (! $notifiable) return;
 
-            if (! $exists) {
-                $staff->notify(new VenueSetupApprovedNotification($booking->booking_id));
-            }
+        $exists = $notifiable->notifications()
+            ->where('type', $notificationClass)
+            ->where('data->booking_id', $booking->booking_id)
+            ->whereDate('created_at', now()->toDateString())
+            ->exists();
+
+        if (! $exists) {
+            $notifiable->notify(new $notificationClass($booking));
         }
     }
 

@@ -50,7 +50,14 @@ class PaymentController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('proof_image')) {
-            $imagePath = $request->file('proof_image')->store('proofs', 'public');
+            $file = $request->file('proof_image');
+            $extension = $file->getClientOriginalExtension();
+
+            $filename = uniqid('', true) . '.' . $extension;
+
+            $file->move(public_path('uploads/proofs'), $filename);
+
+            $imagePath = 'uploads/proofs/' . $filename;
         }
 
         $payment = Payment::create([
@@ -90,22 +97,36 @@ class PaymentController extends Controller
             'payment_method' => 'required|string',
             'payment_date' => 'required|date',
             'payment_status' => 'nullable|string',
-            'proof_image' => 'nullable|string',
+            'proof_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'remarks' => 'nullable|string',
             'cash_given' => 'nullable|numeric|min:0',
             'change_given' => 'nullable|numeric|min:0',
         ]);
 
-        $payment->update([
+        $data = [
             'amount_paid' => $validated['amount_paid'],
             'payment_method' => $validated['payment_method'],
             'payment_date' => $validated['payment_date'],
             'payment_status' => $validated['payment_status'] ?? $payment->payment_status,
-            'proof_image' => $validated['proof_image'] ?? $payment->proof_image,
             'remarks' => $validated['remarks'] ?? $payment->remarks,
             'cash_given' => $validated['cash_given'] ?? $payment->cash_given,
             'change_given' => $validated['change_given'] ?? $payment->change_given,
-        ]);
+        ];
+
+        if ($request->hasFile('proof_image')) {
+            if ($payment->proof_image && file_exists(public_path($payment->proof_image))) {
+                unlink(public_path($payment->proof_image));
+            }
+
+            $file = $request->file('proof_image');
+            $extension = $file->getClientOriginalExtension();
+
+            $filename = uniqid('', true) . '.' . $extension;
+
+            $file->move(public_path('uploads/proofs'), $filename);
+
+            $data['proof_image'] = 'uploads/proofs/' . $filename;
+        }
 
         AuditLogger::log('Updated', "Module: Payment | Updated payment ID: {$payment->payment_id}");
 
@@ -118,6 +139,10 @@ class PaymentController extends Controller
 
         if (!$payment) {
             return response()->json(['message' => 'Payment not found'], 404);
+        }
+
+        if ($payment->proof_image && file_exists(public_path($payment->proof_image))) {
+            unlink(public_path($payment->proof_image));
         }
 
         $paymentId = $payment->payment_id;

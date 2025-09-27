@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Helpers\AuditLogger;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Theme;
 
 class ThemeController extends Controller
@@ -14,6 +13,7 @@ class ThemeController extends Controller
         $themes = Theme::all();
         return response()->json(['themes' => $themes]);
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -25,7 +25,14 @@ class ThemeController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('theme_image')) {
-            $imagePath = $request->file('theme_image')->store('theme_images', 'public');
+            $file = $request->file('theme_image');
+            $extension = $file->getClientOriginalExtension();
+
+            $filename = uniqid('', true) . '.' . $extension;
+
+            $file->move(public_path('uploads/theme_images'), $filename);
+
+            $imagePath = 'uploads/theme_images/' . $filename;
         }
 
         $theme = Theme::create([
@@ -39,6 +46,7 @@ class ThemeController extends Controller
 
         return response()->json(['message' => 'Theme created successfully', 'theme' => $theme], 201);
     }
+
     public function update(Request $request, $id)
     {
         $theme = Theme::findOrFail($id);
@@ -50,24 +58,34 @@ class ThemeController extends Controller
             'theme_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        if ($request->hasFile('theme_image')) {
-            if ($theme->theme_image_url && Storage::disk('public')->exists($theme->theme_image_url)) {
-                Storage::disk('public')->delete($theme->theme_image_url);
-            }
-            $imagePath = $request->file('theme_image')->store('theme_images', 'public');
-            $theme->theme_image_url = $imagePath;
-        }
-
-        $theme->update([
+        $data = [
             'theme_name' => $validated['theme_name'],
             'theme_description' => $validated['theme_description'] ?? null,
             'theme_status' => $validated['theme_status'],
-        ]);
+        ];
+
+        if ($request->hasFile('theme_image')) {
+            if ($theme->theme_image_url && file_exists(public_path($theme->theme_image_url))) {
+                unlink(public_path($theme->theme_image_url));
+            }
+
+            $file = $request->file('theme_image');
+            $extension = $file->getClientOriginalExtension();
+
+            $filename = uniqid('', true) . '.' . $extension;
+
+            $file->move(public_path('uploads/theme_images'), $filename);
+
+            $data['theme_image_url'] = 'uploads/theme_images/' . $filename;
+        }
+
+        $theme->update($data);
 
         AuditLogger::log('Updated', "Module: Theme | Theme: {$theme->theme_name}, ID: {$theme->theme_id}");
 
         return response()->json(['message' => 'Theme updated successfully', 'theme' => $theme]);
     }
+
     public function destroy($id)
     {
         $theme = Theme::find($id);
@@ -76,8 +94,8 @@ class ThemeController extends Controller
             return response()->json(['message' => 'Theme not found'], 404);
         }
 
-        if ($theme->theme_image_url && Storage::disk('public')->exists($theme->theme_image_url)) {
-            Storage::disk('public')->delete($theme->theme_image_url);
+        if ($theme->theme_image_url && file_exists(public_path($theme->theme_image_url))) {
+            unlink(public_path($theme->theme_image_url));
         }
 
         $themeName = $theme->theme_name;

@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import axiosClient from '../axiosClient';
 import EditTaskModal from './EditTaskModal';
 
-function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions }) {
+function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions, isAdmin }) {
   const columns = ['To-Do', 'In-Progress', 'Done'];
   const [selectedTask, setSelectedTask] = React.useState(null);
   const [showEditModal, setShowEditModal] = React.useState(false);
@@ -124,6 +124,7 @@ function TaskBoard({ tasks, setTasks, assignedStaffs, staffOptions }) {
           }}
           assignedStaffs={assignedStaffs}
           staffOptions={staffOptions}
+          isAdmin={isAdmin}
         />
       )}
     </DragDropContext>

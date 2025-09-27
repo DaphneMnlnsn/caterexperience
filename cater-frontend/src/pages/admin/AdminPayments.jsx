@@ -53,12 +53,14 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         const eventName = p.booking?.event_name?.toLowerCase() || '';
         const remarks = p.remarks?.toLowerCase() || '';
         const paymentMethod = p.payment_method || '';
+        const paymentId = `R-${String(p.payment_id).padStart(5, '0')}`.toLowerCase();
 
         const searchMatch =
             fullName.includes(filters.search.toLowerCase()) ||
             eventName.includes(filters.search.toLowerCase()) ||
             remarks.includes(filters.search.toLowerCase()) ||
-            paymentMethod.toLowerCase().includes(filters.search.toLowerCase());
+            paymentMethod.toLowerCase().includes(filters.search.toLowerCase()) ||
+            paymentId.includes(filters.search.toLowerCase());
 
         const methodMatch = filters.method ? paymentMethod === filters.method : true;
 

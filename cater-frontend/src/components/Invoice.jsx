@@ -111,7 +111,7 @@ function Invoice({ show, onClose, selectedPayment }) {
               <center>
                 <h4>Proof of Payment</h4>
                 <img
-                  src={`${process.env.REACT_APP_BASE_URL}/storage/${paymentDetails.proof_image}`}
+                  src={`${process.env.REACT_APP_BASE_URL}/${paymentDetails.proof_image}`}
                   alt="Proof of Payment"
                   style={{
                     maxWidth: '50%',
