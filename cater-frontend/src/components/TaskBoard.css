@@ -133,3 +133,38 @@
 .task-card.overdue {
   border: 2px solid red;
 }
+
+@media (max-width: 768px) {
+  .task-board {
+    padding: 1rem;
+    gap: 1rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: auto;
+    max-height: 60vh;
+  }
+
+  .task-column {
+    min-width: 240px;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-board {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 1rem;
+    height: auto;
+    max-height: 60vh;
+    margin-bottom: 1rem;
+  }
+
+  .task-column {
+    width: 90%;
+    min-width: unset;
+    max-width: 100%;
+  }
+}

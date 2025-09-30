@@ -1,6 +1,6 @@
 <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
   width="300.000000pt" height="142.000000pt"
-  viewBox="0 0 305.000000 135.000000"
+  viewBox="0 0 300.000000 142.000000"
   preserveAspectRatio="xMidYMid meet">
 
 <metadata>
@@ -37,12 +37,12 @@ l-499 0 3 48 c2 37 -1 47 -13 47 -12 0 -16 -11 -16 -50 0 -27 -4 -50 -10 -50
 <line x1="2" y1="2" x2="295" y2="2"
   stroke="black" stroke-width="0.5"
   marker-start="url(#arrow)" marker-end="url(#arrow)" />
-<text x="148" y="0" font-size="5" text-anchor="middle">1560</text>
+<text x="148" y="4" font-size="5" text-anchor="middle">1560</text>
 
 <line x1="300" y1="5" x2="300" y2="120"
   stroke="black" stroke-width="0.5"
   marker-start="url(#arrow)" marker-end="url(#arrow)" />
-<text x="275" y="52" font-size="5" text-anchor="middle"
+<text x="275" y="48" font-size="5" text-anchor="middle"
   alignment-baseline="middle" transform="rotate(-90,297,46)">610</text>
 
 </svg>

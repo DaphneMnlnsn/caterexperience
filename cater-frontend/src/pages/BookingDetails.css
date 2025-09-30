@@ -206,3 +206,72 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+@media (max-width: 768px) {
+  .section {
+    padding: 1rem;
+  }
+
+  .section h3 {
+    font-size: 18px;
+  }
+
+  .menu-package-container {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .menu-right {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .payments-info {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 0.8rem;
+    border-radius: 8px;
+  }
+
+  .section h3 {
+    font-size: 16px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-right {
+    grid-template-columns: 1fr;
+  }
+
+  .payments-info p {
+    flex: 1 1 100%;
+    min-width: unset;
+  }
+
+  .booking-table {
+    font-size: 13px;
+    min-width: 100%;
+  }
+
+  .booking-delete-btn {
+      margin-top: 3%;
+      margin-bottom: 10%;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+
+  .action-buttons .booking-edit-btn,
+  .action-buttons .finish-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

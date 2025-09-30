@@ -175,7 +175,7 @@
   .addon-card {
     flex: 1 1 calc(50% - 1rem);
     max-width: 48%;
-    width: 100%;
+    width: 90%;
   }
 
   .theme-card .theme-name {
@@ -203,8 +203,8 @@
   .card-yellow,
   .addon-card {
     flex: 1 1 100%;
-    max-width: 100%;
-    width: 100%;
+    max-width: 90%;
+    width: 85%;
   }
 
   .theme-card .theme-name {

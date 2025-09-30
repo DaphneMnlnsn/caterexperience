@@ -90,4 +90,28 @@
   color: #c62828;
 }
 
+@media (max-width: 480px) {
+  .image-upload-container {
+    margin-bottom: 1rem;
+  }
 
+  .food-import-btn {
+    position: static;
+    display: block;
+    width: 95%;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  .add-form .half input {
+    width: 95%;
+  }
+
+  .plus-box {
+    width: 95%;
+  }
+
+  .halal-label {
+    font-size: 0.85rem;
+  }
+}

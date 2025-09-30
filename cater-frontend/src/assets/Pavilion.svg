@@ -2,7 +2,7 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
  "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
 <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
- width="574.000000pt" height="350.000000pt" viewBox="0 0 578.000000 339.000000"
+ width="574.000000pt" height="339.000000pt" viewBox="0 0 574.000000 339.000000"
  preserveAspectRatio="xMidYMid meet">
 
 <g transform="translate(0.000000,339.000000) scale(0.100000,-0.100000)"
@@ -47,12 +47,12 @@ m0 -50 c0 -19 -7 -20 -175 -20 -168 0 -175 1 -175 20 0 19 7 20 175 20 168 0
 <line x1="2" y1="2" x2="565" y2="2"
   stroke="black" stroke-width="0.5"
   marker-start="url(#arrow)" marker-end="url(#arrow)" />
-<text x="288" y="0" font-size="7" text-anchor="middle">2740</text>
+<text x="288" y="8" font-size="7" text-anchor="middle">2740</text>
 
 <line x1="570" y1="5" x2="570" y2="330"
   stroke="black" stroke-width="0.5"
   marker-start="url(#arrow)" marker-end="url(#arrow)" />
-<text x="195" y="323" font-size="7" text-anchor="middle"
+<text x="195" y="320" font-size="7" text-anchor="middle"
   alignment-baseline="middle" transform="rotate(-90,297,46)">1560</text>
   
 </svg>

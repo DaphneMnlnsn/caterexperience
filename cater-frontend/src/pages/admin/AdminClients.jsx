@@ -34,7 +34,6 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
         );
     });
 
-    
     return (
         <div className="page-container">
             <Sidebar />

@@ -94,11 +94,11 @@ function MenuChecklist({ bookingId = null, items: initialItems = null, isCook })
             ) : (
               items.map((it, idx) => (
                 <tr key={it.id} className={it.status === 'completed' ? 'mc-done' : ''}>
-                  <td className="mc-dish">{it.food_name}</td>
-                  <td className="mc-qty">{it.quantity_label || '-'}</td>
-                  <td className="mc-cat">{it.category || '-'}</td>
-                  <td className="mc-deadline">{formatDeadline(it.deadline)}</td>
-                  <td className="mc-check">
+                  <td className="mc-dish" data-label="Dish">{it.food_name}</td>
+                  <td className="mc-qty" data-label="Qty">{it.quantity_label || '-'}</td>
+                  <td className="mc-cat" data-label="Category">{it.category || '-'}</td>
+                  <td className="mc-deadline" data-label="Deadline">{formatDeadline(it.deadline)}</td>
+                  <td className="mc-check" data-label="Done">
                     <label className="mc-checkbox">
                       <input
                         type="checkbox"

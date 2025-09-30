@@ -76,7 +76,9 @@ function BookingDetails() {
           status: task.status,
           deadline: task.due_date,
           assigned_to_name: task.assignee
-            ? `${toTitleCase(task.assignee.role)} ${task.assignee.first_name}`
+            ? (task.assignee.role.toLowerCase() === 'head waiter'
+                ? 'Head Waiter'
+                : `${toTitleCase(task.assignee.role)} ${task.assignee.first_name}`)
             : 'Unassigned',
           assignee: task.assignee || null,
           priority: task.priority,
@@ -420,6 +422,12 @@ function BookingDetails() {
                     new Date(booking.event_date) <= new Date() && (
                       <>
                         <button onClick={handleFinishClick} className="finish-btn">Mark as Finished</button>
+                      </>
+                  )}
+                  {isAdmin &&
+                    booking.booking_status !== 'Finished' &&
+                    booking.booking_status !== 'Cancelled' && (
+                      <>
                         {canEditBooking() && <button onClick={handleEdit} className="booking-edit-btn">Edit Details</button>}
                       </>
                   )}

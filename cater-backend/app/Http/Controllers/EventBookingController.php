@@ -130,7 +130,7 @@ class EventBookingController extends Controller
         if ($user instanceof User && strtolower($user->role) === 'admin') {
         }
         elseif ($user instanceof User) {
-            $isAssigned = $booking->tasks()->where('assigned_to', $user->id)->exists();
+            $isAssigned = $booking->staffAssignments()->where('user_id', $user->id)->exists();
             if (!$isAssigned) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
@@ -576,7 +576,13 @@ class EventBookingController extends Controller
                 $task->update(['status' => 'Cancelled']);
             }
 
-            StaffAssignment::where('booking_id', $id)->delete();
+            foreach ($booking->menuFoods as $menuFood) {
+                $menuFood->update(['status' => 'completed']);
+            }
+
+            DB::table('venue_setup')
+                ->where('booking_id', $id)
+                ->update(['status' => 'cancelled']);
 
             DB::commit();
 

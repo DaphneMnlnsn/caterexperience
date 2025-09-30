@@ -150,3 +150,41 @@
 .search-results li:hover {
   background-color: #fff59d;
 }
+
+@media (max-width: 768px) {
+  .bookings-bottom {
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .booking-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 1;
+    width: 80%;
+    max-height: 70vh;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+    transform: translateY(100%);
+    opacity: 0;
+    animation: slideInDrawer 0.35s ease-out forwards;
+    z-index: 1000;
+  }
+
+  @keyframes slideInDrawer {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .calendar-section {
+    width: 90%;
+    flex: none;
+  }
+
+  .sidebar-header {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+  }
+}

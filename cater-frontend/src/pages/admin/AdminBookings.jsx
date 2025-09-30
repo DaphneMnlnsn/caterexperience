@@ -9,7 +9,7 @@ import Header from '../../components/Header';
 
 function AdminBookings() {
   const storedUser = localStorage.getItem('user');
-const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+  const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const navigate = useNavigate();
   const [bookingData, setBookingData] = React.useState([]);  
   const [selectedDate, setSelectedDate] = useState(() => {

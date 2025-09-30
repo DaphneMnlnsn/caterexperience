@@ -86,3 +86,75 @@
 .mc-save-btn:disabled { opacity: 0.6; cursor: default; }
 
 .mc-error { color: #c00; margin-top: 12px; text-align: center; }
+
+@media (max-width: 768px) {
+  .menu-checklist-card {
+    padding: 0.75rem;
+  }
+
+  .mc-title {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .mc-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-spacing: 0;
+  }
+
+  .mc-table th,
+  .mc-table td {
+    font-size: 13px;
+    padding: 0.6rem;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .mc-table,
+  .mc-table thead,
+  .mc-table tbody,
+  .mc-table th,
+  .mc-table td,
+  .mc-table tr {
+    display: block;
+    width: 95%;
+  }
+
+  .mc-table thead {
+    display: none;
+  }
+
+  .mc-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .mc-table td {
+    border: none;
+    padding: 0.4rem 0;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .mc-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    margin-bottom: 2px;
+    color: #333;
+  }
+
+  .mc-check {
+    text-align: left;
+    margin-top: 6px;
+  }
+}

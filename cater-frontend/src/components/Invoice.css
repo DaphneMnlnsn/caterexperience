@@ -148,3 +148,59 @@
     margin: 2;
   }
 }
+
+@media (max-width: 768px) {
+  .company-logo {
+    max-width: 150px;
+  }
+
+  .invoice-row,
+  .invoice-table-header,
+  .invoice-table-row,
+  .total-row,
+  .payment-row {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .total-label,
+  .total-amount {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .company-logo {
+    max-width: 120px;
+  }
+
+  .invoice-row {
+    font-size: 12px;
+    padding: 4px 0;
+  }
+
+  .customer-row {
+    font-size: 13px;
+    padding: 8px 0;
+  }
+
+  .invoice-table-header {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .invoice-table-row {
+    font-size: 12px;
+    padding: 2px 0;
+  }
+
+  .total-row {
+    font-size: 16px;
+    padding: 4px 0;
+  }
+
+  .thank-you {
+    font-size: 12px;
+    padding: 8px 0;
+  }
+}
