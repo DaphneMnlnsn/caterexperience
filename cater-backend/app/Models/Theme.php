@@ -16,4 +16,9 @@ class Theme extends Model
         'theme_image_url',
         'theme_status',
     ];
+
+    public function images()
+    {
+        return $this->hasMany(ThemeImage::class, 'theme_id', 'theme_id');
+    }
 }

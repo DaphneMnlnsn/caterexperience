@@ -24,6 +24,7 @@ class FoodController extends Controller
             'food_name' => 'required|string|max:255',
             'food_type' => 'required|string|max:100',
             'food_description' => 'nullable|string',
+            'food_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             'food_status' => 'required|string',
             'is_halal' => 'required|boolean',
         ]);
@@ -35,6 +36,16 @@ class FoodController extends Controller
             'food_status' => $validated['food_status'],
             'is_halal' => $validated['is_halal'],
         ]);
+
+        if ($request->hasFile('food_image')) {
+            $file = $request->file('food_image');
+            $filename = uniqid('', true) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/food_images'), $filename);
+
+            $food->update([
+                'food_image_url' => 'uploads/food_images/' . $filename,
+            ]);
+        }
 
         AuditLogger::log('Created', 'Module: Menu | Created food: ' . $validated['food_name']);
 
@@ -49,6 +60,7 @@ class FoodController extends Controller
             'food_name' => 'required|string|max:255',
             'food_type' => 'required|string|max:100',
             'food_description' => 'nullable|string',
+            'food_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             'food_status' => 'required|string',
             'is_halal' => 'required|boolean',
         ]);
@@ -61,6 +73,20 @@ class FoodController extends Controller
             'is_halal' => $validated['is_halal'],
         ]);
 
+        if ($request->hasFile('food_image')) {
+            if ($food->food_image_url && file_exists(public_path($food->food_image_url))) {
+                unlink(public_path($food->food_image_url));
+            }
+
+            $file = $request->file('food_image');
+            $filename = uniqid('', true) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/food_images'), $filename);
+
+            $food->update([
+                'food_image_url' => 'uploads/food_images/' . $filename,
+            ]);
+        }
+
         AuditLogger::log('Updated', 'Module: Menu | Updated food ID: ' . $id);
 
         return response()->json(['message' => 'Food updated successfully', 'food' => $food]);
@@ -71,6 +97,10 @@ class FoodController extends Controller
 
         if (!$food) {
             return response()->json(['message' => 'Food not found'], 404);
+        }
+
+        if ($food->food_image_url && file_exists(public_path($food->food_image_url))) {
+            unlink(public_path($food->food_image_url));
         }
 
         $foodName = $food->food_name;

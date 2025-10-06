@@ -7,8 +7,8 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
   const [formData, setFormData] = useState({
     theme_name: '',
     description: '',
-    imageFile: null,
-    imagePreview: '',
+    imageFiles: [],
+    imagePreviews: [],
     theme_status: ''
   });
 
@@ -17,8 +17,10 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
       setFormData({
         theme_name: theme.theme_name || '',
         description: theme.theme_description || '',
-        imageFile: null,
-        imagePreview: theme.theme_image_url ? `${process.env.REACT_APP_BASE_URL}/${theme.theme_image_url}` : '',
+        imageFiles: [],
+        imagePreviews: theme.images
+          ? theme.images.map(img => `${process.env.REACT_APP_BASE_URL}/${img.image_url}`)
+          : [],
         theme_status: theme.theme_status || ''
       });
     }
@@ -27,29 +29,52 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
-    if (name === 'image') {
-      const file = files[0];
-      if (file) {
+    if (name === 'images') {
+      const filesArray = Array.from(files);
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const maxSize = 2 * 1024 * 1024;
+
+      const validFiles = filesArray.filter(file => {
+        if (!validTypes.includes(file.type)) {
+          Swal.fire('Invalid', `${file.name} must be JPG, PNG, or WEBP.`, 'warning');
+          return false;
+        }
+        if (file.size > maxSize) {
+          Swal.fire('Invalid', `${file.name} must be less than 2MB.`, 'warning');
+          return false;
+        }
+        return true;
+      });
+
+      validFiles.forEach(file => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          setFormData((prev) => ({
+          setFormData(prev => ({
             ...prev,
-            imageFile: file,
-            imagePreview: reader.result
+            imageFiles: [...prev.imageFiles, file],
+            imagePreviews: [...prev.imagePreviews, reader.result],
           }));
         };
         reader.readAsDataURL(file);
-      }
+      });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
+  const handleRemoveImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      imageFiles: prev.imageFiles.filter((_, i) => i !== index),
+      imagePreviews: prev.imagePreviews.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { theme_name, description, imageFile } = formData;
-    
+    const { theme_name, description } = formData;
+
     if (!theme_name.trim()) {
       Swal.fire('Incomplete', 'Theme name is required.', 'warning');
       return;
@@ -65,20 +90,8 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
       return;
     }
 
-    if (!imageFile) {
-      Swal.fire('Incomplete', 'Please upload an image.', 'warning');
-      return;
-    }
-
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(imageFile.type)) {
-      Swal.fire('Invalid', 'Image must be JPG, PNG, or WEBP.', 'warning');
-      return;
-    }
-
-    const maxSize = 5 * 1024 * 1024; 
-    if (imageFile.size > maxSize) {
-      Swal.fire('Invalid', 'Image must be less than 5MB.', 'warning');
+    if (formData.imageFiles.length === 0 && formData.imagePreviews.length === 0) {
+      Swal.fire('Incomplete', 'Please upload at least one image.', 'warning');
       return;
     }
 
@@ -86,9 +99,7 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
     payload.append('theme_name', formData.theme_name);
     payload.append('theme_description', formData.description);
     payload.append('theme_status', formData.theme_status);
-    if (formData.imageFile) {
-      payload.append('theme_image', formData.imageFile);
-    }
+    formData.imageFiles.forEach(file => payload.append('theme_images[]', file));
 
     Swal.fire({
       title: 'Save Changes?',
@@ -166,24 +177,60 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
             onChange={handleChange}
           />
 
-          <label>Image</label>
+          <label>Images</label>
           <div className="image-upload-container">
             <input
               type="file"
-              name="image"
+              name="images"
               id="image-upload"
               accept="image/*"
+              multiple
               onChange={handleChange}
               hidden
             />
-            <label htmlFor="image-upload" className="food-import-btn">Import Picture</label>
-            {formData.imagePreview && (
-              <img
-                src={formData.imagePreview}
-                alt="Preview"
-                style={{ maxWidth: '100%', borderRadius: '6px', marginTop: '0.5rem' }}
-              />
-            )}
+            <label htmlFor="image-upload" className="food-import-btn">Import Pictures</label>
+
+            <div className="image-preview-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '0.5rem' }}>
+              {formData.imagePreviews.map((preview, index) => (
+                <div
+                  key={index}
+                  style={{
+                    position: 'relative',
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '6px',
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    style={{
+                      position: 'absolute',
+                      top: '-6px',
+                      right: '-6px',
+                      background: 'rgba(0,0,0,0.6)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '22px',
+                      height: '22px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      lineHeight: '22px',
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <label>Status</label>

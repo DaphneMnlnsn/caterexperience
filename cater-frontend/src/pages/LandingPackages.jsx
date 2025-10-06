@@ -3,12 +3,15 @@ import './LandingPage';
 import axiosClient from '../axiosClient';
 import LandingNavbar from '../components/LandingNavbar';
 import { FaFacebook, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 export default function Packages() {
   const [searchTerm, setSearchTerm] = useState('');
   const [packages, setPackages] = useState([]);
   const [themes, setThemes] = useState([]);
   const [addons, setAddons] = useState([]);
+  const [selectedTheme, setSelectedTheme] = useState(null);
 
   useEffect(() => {
     fetchPackages();
@@ -129,10 +132,39 @@ export default function Packages() {
                           <div 
                           key={theme.theme_id} 
                           className={`theme-card ${theme.theme_status === 'archived' ? 'archived' : ''}`}
+                          onClick={() => {
+                            setSelectedTheme(theme);
+                          }}
                           >
                             {theme.theme_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
                             <div className="menu-card-content">
-                              <img src={`${process.env.REACT_APP_BASE_URL}/${theme.theme_image_url}`} alt={theme.theme_name} />
+                              {theme.images && theme.images.length > 0 ? (
+                                <div className="theme-images">
+                                  {theme.images.slice(0, 3).map((img, index) => (
+                                    <img
+                                      key={index}
+                                      src={`${process.env.REACT_APP_BASE_URL}/${img.image_url}`}
+                                      alt={`${theme.theme_name} ${index + 1}`}
+                                      className="theme-thumbnail"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTheme({
+                                          ...theme,
+                                          lightboxOpen: true,
+                                          currentIndex: index,
+                                        });
+                                      }}
+                                    />
+                                  ))}
+                                  {theme.images.length > 3 && (
+                                    <div className="more-overlay">
+                                      +{theme.images.length - 3}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="no-image">No image</div>
+                              )}
                               <div className="theme-name">{theme.theme_name}</div>
                             </div>
                           </div>
@@ -210,6 +242,17 @@ export default function Packages() {
           Copyright © 2025. All Rights Reserved | CaterXperience
         </div>
       </footer>
+
+      {selectedTheme?.lightboxOpen && (
+        <Lightbox
+          open={selectedTheme.lightboxOpen}
+          close={() => setSelectedTheme(null)}
+          index={selectedTheme.currentIndex || 0}
+          slides={selectedTheme.images.map((img) => ({
+            src: `${process.env.REACT_APP_BASE_URL}/${img.image_url}`,
+          }))}
+        />
+      )}
     </>
   );
 }

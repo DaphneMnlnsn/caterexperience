@@ -106,6 +106,18 @@ function ClientDetails() {
   const handleSaveChanges = (e) => {
     e.preventDefault();
 
+    const phoneDigits = editedClient.customer_phone.replace('+639', '');
+
+    if (phoneDigits.length < 9) {
+      Swal.fire({
+        title: 'Invalid Contact Number',
+        text: 'Contact number must have 9 digits after +639.',
+        icon: 'warning',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
     axiosClient.put(`/customers/${id}`, editedClient)
     .then(res => {
       setClient(res.data.customer);
@@ -179,15 +191,23 @@ function ClientDetails() {
                   />
                 </label>
 
-                <label>Contact Number:
-                  <input
-                    type="text"
-                    value={editedClient.customer_phone}
-                    onChange={e =>
-                      setEditedClient({ ...editedClient, customer_phone: e.target.value })
-                    }
-                    required
-                  />
+                <label className='phone-editing'>Contact Number:
+                  <div className="phone-input-details">
+                    <span className="phone-prefix-details">+639</span>
+                    <input
+                      type="text"
+                      placeholder="xxxxxxxxx"
+                      value={editedClient.customer_phone.replace('+639', '')}
+                      onChange={e => {
+                        const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                        setEditedClient({
+                          ...editedClient,
+                          customer_phone: `+639${digits}`,
+                        });
+                      }}
+                      required
+                    />
+                  </div>
                 </label>
 
                 <label>Address:

@@ -27,7 +27,9 @@ function LandingMenu() {
                     description: food.food_description,
                     id: food.food_id,
                     is_halal: food.is_halal,
-                    food_status: food.food_status
+                    food_status: food.food_status,
+                    food_image_url: food.food_image_url,
+                    food_type: food.food_type
                     });
                     return acc;
                 }, {});
@@ -49,7 +51,8 @@ function LandingMenu() {
     .map(category => ({
         ...category,
         items: category.items.filter(item => {
-        const matchesName = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesName = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.food_type.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesHalal =
             halalFilter === '' ||
             (halalFilter === 'halal' && item.is_halal === true) ||
@@ -93,19 +96,28 @@ function LandingMenu() {
                 <section className="page-bottom">
                     <div className="menu-categories">
                         {filteredMenuData.map(cat => (
-                            <div key={cat.category} className="menu-category-block">
-                                <h3 className="category-title">{cat.category}</h3>
-                                <div className="menu-grid">
-                                    {cat.items.map(item => (
-                                        <div key={item.name} className="menu-card">
-                                            {item.food_status !== 'available' && <div className="archive-overlay">Unavailable</div>}
-                                            <div className="menu-card-content">
-                                                <span className="menu-name">{item.name}</span>
-                                            </div>
-                                        </div>
-                                    ))}
+                          <div key={cat.category} className="menu-category-block">
+                            <h3 className="category-title">{cat.category}</h3>
+                            <div className="menu-grid">
+                              {cat.items.map(item => (
+                                <div key={item.name} className="menu-card">
+                                  {item.food_status !== 'available' && <div className="archive-overlay">Unavailable</div>}
+                                  <div className="menu-card-content">
+                                    {item.food_image_url ? (
+                                        <img
+                                            src={`${process.env.REACT_APP_BASE_URL}/${item.food_image_url}`}
+                                            alt={item.name}
+                                            className="menu-card-img"
+                                        />
+                                    ) : (
+                                        <div className="menu-card-placeholder">No Image</div>
+                                    )}
+                                    <span className="menu-name">{item.name}</span>
+                                  </div>
                                 </div>
+                              ))}
                             </div>
+                          </div>
                         ))}
                         {filteredMenuData.length === 0 && (
                             <p className="no-results">No foods found.</p>

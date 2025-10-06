@@ -10,6 +10,8 @@ import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import axiosClient from '../axiosClient';
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 function Packages() {
   const storedUser = localStorage.getItem('user');
@@ -158,15 +160,41 @@ function Packages() {
                       key={theme.theme_id} 
                       className={`theme-card ${theme.theme_status === 'archived' ? 'archived' : ''}`}
                       onClick={() => {
+                        setSelectedTheme(theme);
                         if (isAdmin) {
-                          setSelectedTheme(theme);
                           setShowEditThemeModal(true);
                         }
                       }}
                       >
                         {theme.theme_status === 'archived' && <div className="archive-overlay">Unavailable</div>}
                         <div className="menu-card-content">
-                          <img src={`${process.env.REACT_APP_BASE_URL}/${theme.theme_image_url}`} alt={theme.theme_name} />
+                          {theme.images && theme.images.length > 0 ? (
+                            <div className="theme-images">
+                              {theme.images.slice(0, 3).map((img, index) => (
+                                <img
+                                  key={index}
+                                  src={`${process.env.REACT_APP_BASE_URL}/${img.image_url}`}
+                                  alt={`${theme.theme_name} ${index + 1}`}
+                                  className="theme-thumbnail"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTheme({
+                                      ...theme,
+                                      lightboxOpen: true,
+                                      currentIndex: index,
+                                    });
+                                  }}
+                                />
+                              ))}
+                              {theme.images.length > 3 && (
+                                <div className="more-overlay">
+                                  +{theme.images.length - 3}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="no-image">No image</div>
+                          )}
                           <div className="theme-name">{theme.theme_name}</div>
                         </div>
                       </div>
@@ -221,6 +249,16 @@ function Packages() {
           </div>
         </section>
       </div>
+      {selectedTheme?.lightboxOpen && (
+        <Lightbox
+          open={selectedTheme.lightboxOpen}
+          close={() => setSelectedTheme(null)}
+          index={selectedTheme.currentIndex || 0}
+          slides={selectedTheme.images.map((img) => ({
+            src: `${process.env.REACT_APP_BASE_URL}/${img.image_url}`,
+          }))}
+        />
+      )}
       {isAdmin && ( <AddPackageModal show={showAddPackageModal} onClose={() => setShowAddPackageModal(false)} onSave={fetchPackages} />)}
       {isAdmin && (
         <EditPackageModal

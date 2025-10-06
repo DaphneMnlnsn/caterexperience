@@ -505,6 +505,7 @@ function BookingDetails() {
                   <option value="Birthday">Birthday</option>
                   <option value="Wedding">Wedding</option>
                   <option value="Corporate">Corporate</option>
+                  <option value="Corporate">Others</option>
                 </select>
               ) : (
                 <span>{booking.event_type}</span>

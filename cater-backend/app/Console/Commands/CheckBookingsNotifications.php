@@ -24,7 +24,9 @@ class CheckBookingsNotifications extends Command
         $today = Carbon::now()->toDateString();
         $threeDaysFromNow = Carbon::now()->addDays(3)->toDateString();
 
-        $bookingsNear = EventBooking::whereBetween('event_date', [$today, $threeDaysFromNow])->get();
+        $bookingsNear = EventBooking::whereBetween('event_date', [$today, $threeDaysFromNow])
+                            ->whereNotIn('booking_status', ['Finished', 'Cancelled'])
+                            ->get();
 
         foreach ($bookingsNear as $booking) {
             foreach ($admins as $admin) {
@@ -44,21 +46,21 @@ class CheckBookingsNotifications extends Command
                     $user = $assign->user;
                     if (! $user) continue;
 
-                    $exists = $admin->notifications()
+                    $exists = $user->notifications()
                         ->where('type', BookingNearNotification::class)
                         ->where('data->booking_id', $booking->booking_id)
                         ->whereDate('created_at', $today)
                         ->exists();
 
                     if (! $exists) {
-                        $admin->notify(new BookingNearNotification($booking));
+                        $user->notify(new BookingNearNotification($booking));
                     }
                 }
             }
         }
 
         $finished = EventBooking::whereDate('event_date', '<', Carbon::now()->toDateString())
-            ->where('booking_status', '!=', 'Finished')
+            ->whereNotIn('booking_status', ['Finished', 'Cancelled'])
             ->get();
 
         foreach ($finished as $booking) {
@@ -79,6 +81,7 @@ class CheckBookingsNotifications extends Command
 
         $bookingsCandidates = EventBooking::whereDate('event_date', '>=', $today)
             ->whereDate('event_date', '<=', $end)
+            ->whereNotIn('booking_status', ['Finished', 'Cancelled'])
             ->with('customer')
             ->withSum('payments', 'amount_paid')
             ->get();
@@ -99,12 +102,13 @@ class CheckBookingsNotifications extends Command
             }
 
             if ($booking->customer) {
-                NotificationService::sendifNotExists($booking->customer, EightyPercentPaymentPendingNotification::class, $booking);
+                NotificationService::sendIfNotExists($booking->customer, EightyPercentPaymentPendingNotification::class, $booking);
             }
         }
 
         $bookingsUnpaid = EventBooking::whereDate('event_date', '<', now()->toDateString())
             ->with('customer')
+            ->whereNotIn('booking_status', ['Finished', 'Cancelled'])
             ->withSum('payments', 'amount_paid')
             ->get();
 
@@ -124,7 +128,7 @@ class CheckBookingsNotifications extends Command
             }
 
             if ($booking->customer) {
-                NotificationService::sendifNotExists($booking->customer, FullPaymentPendingNotification::class, $booking);
+                NotificationService::sendIfNotExists($booking->customer, FullPaymentPendingNotification::class, $booking);
             }
         }
 

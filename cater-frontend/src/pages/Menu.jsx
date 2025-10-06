@@ -31,11 +31,13 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     const category = food.food_type;
                     if (!acc[category]) acc[category] = [];
                     acc[category].push({
-                    name: food.food_name,
-                    description: food.food_description,
-                    id: food.food_id,
-                    is_halal: food.is_halal,
-                    food_status: food.food_status
+                        name: food.food_name,
+                        description: food.food_description,
+                        id: food.food_id,
+                        is_halal: food.is_halal,
+                        food_status: food.food_status,
+                        food_image_url: food.food_image_url,
+                        food_type: food.food_type
                     });
                     return acc;
                 }, {});
@@ -57,7 +59,8 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     .map(category => ({
         ...category,
         items: category.items.filter(item => {
-        const matchesName = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesName = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.food_type.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesHalal =
             halalFilter === '' ||
             (halalFilter === 'halal' && item.is_halal === true) ||
@@ -118,13 +121,23 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                                         food_type: cat.category,
                                                         food_id: item.id,
                                                         is_halal: item.is_halal,
-                                                        food_status: item.food_status
+                                                        food_status: item.food_status,
+                                                        images: item.food_image_url ? [item.food_image_url] : [],
                                                     });
                                                     setShowEditModal(true);
                                                 }
                                             }}>
                                             {item.food_status !== 'available' && <div className="archive-overlay">Unavailable</div>}
                                             <div className="menu-card-content">
+                                                {item.food_image_url ? (
+                                                    <img
+                                                        src={`${process.env.REACT_APP_BASE_URL}/${item.food_image_url}`}
+                                                        alt={item.name}
+                                                        className="menu-card-img"
+                                                    />
+                                                ) : (
+                                                    <div className="menu-card-placeholder">No Image</div>
+                                                )}
                                                 <span className="menu-name">{item.name}</span>
                                             </div>
                                         </div>

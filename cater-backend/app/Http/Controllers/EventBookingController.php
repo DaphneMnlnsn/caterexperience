@@ -34,7 +34,8 @@ class EventBookingController extends Controller
                 'event_booking.event_name as title',
                 'event_booking.event_date as date'
             )
-            ->where('event_booking.event_date', '>=', now());
+            ->where('event_booking.event_date', '>=', now())
+            ->where('event_booking.booking_status', '!=', 'Cancelled');
 
         if (strtolower($user->role) !== 'admin') {
             $query->whereHas('staffAssignments', function ($q) use ($user) {

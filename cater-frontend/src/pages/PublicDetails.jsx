@@ -136,14 +136,6 @@ function BookingDetails() {
               <span>{booking.customer_firstname} {booking.customer_middlename} {booking.customer_lastname}</span>
             </div>
             <div>
-              <span>Client Address:</span>
-              <span>{booking.customer_address}</span>
-            </div>
-            <div>
-              <span>Client Contact Number:</span>
-              <span>{booking.customer_contact_number}</span>
-            </div>
-            <div>
               <span>Event Name:</span>
                 <span>{booking.event_name}</span>
             </div>

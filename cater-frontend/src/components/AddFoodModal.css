@@ -90,6 +90,21 @@
   color: #c62828;
 }
 
+.image-preview-single {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.food-preview-img {
+  width: 50%;
+  height: 50%;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid #ddd;
+}
+
 @media (max-width: 480px) {
   .image-upload-container {
     margin-bottom: 1rem;

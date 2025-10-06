@@ -74,9 +74,9 @@ function EditUserModal({ show, onClose, onSave, user }) {
       return;
     }
 
-    const phoneRegex = /^[0-9]{10,11}$/;
+    const phoneRegex = /^[0-9]{9}$/;
     if (!phoneRegex.test(phone)) {
-      Swal.fire('Invalid', 'Phone number must be 10–11 digits.', 'warning');
+      Swal.fire('Invalid', 'Phone number must be 9 digits after +639.', 'warning');
       return;
     }
 
@@ -96,7 +96,10 @@ function EditUserModal({ show, onClose, onSave, user }) {
       confirmButtonText: 'Yes, save it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosClient.put(`/users/${user.id}`, formData)
+        axiosClient.put(`/users/${user.id}`, {
+          ...formData,
+          phone: `+639${formData.phone}`,
+        })
         .then((res) => {
           Swal.fire('Saved!', 'User has been updated.', 'success');
           onSave(res.data.user);
@@ -134,7 +137,18 @@ function EditUserModal({ show, onClose, onSave, user }) {
           <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
 
           <label>Phone</label>
-          <input type="tel" size="11" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+          <div className="phone-input">
+            <span className="phone-prefix">+639</span>
+            <input
+              type="text"
+              value={formData.phone}
+              onChange={e => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                setFormData({ ...formData, phone: digits });
+              }}
+              placeholder="xxxxxxxxx"
+            />
+          </div>
 
           <label>Address</label>
           <input type="text" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />

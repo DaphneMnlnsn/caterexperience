@@ -254,7 +254,7 @@ function AddPaymentModal({ show, onClose, onSave, bookingId, remainingBalance })
                   cursor: 'pointer'
                 }}
               >
-                ✕
+                ×
               </button>
               </>
             )}

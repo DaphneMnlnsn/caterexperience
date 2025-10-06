@@ -63,15 +63,15 @@ function LandingPage() {
           <div className="venue-cards">
             <div className="landing-venue-card">
               <div className="venue-image pavilion"></div>
-              <h3>Pavilion</h3>
+              <h3>Ron Pavilion</h3>
             </div>
             <div className="landing-venue-card">
               <div className="venue-image banquet-room"></div>
-              <h3>Banquet Room</h3>
+              <h3>MyBanquet (Banquet Room)</h3>
             </div>
             <div className="landing-venue-card">
               <div className="venue-image poolside"></div>
-              <h3>Poolside Area</h3>
+              <h3>Merlion Pool</h3>
             </div>
           </div>
         </div>

@@ -162,6 +162,50 @@
   color: #333;
 }
 
+.theme-images {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.theme-thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.theme-thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.more-overlay {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.no-image {
+  width: 80px;
+  height: 80px;
+  background: #f3f3f3;
+  color: #999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
 @media (max-width: 768px) {
   .packages-grid {
     flex-wrap: wrap;

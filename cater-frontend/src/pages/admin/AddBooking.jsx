@@ -398,7 +398,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             customer_firstname: form.firstName,
             customer_lastname: form.lastName,
             customer_middlename: form.middleName,
-            customer_phone: form.contact,
+            customer_phone: `+639${form.contact}`,
             customer_address: form.address,
             assigned_user_ids: assignedUserIds,
             created_by: user.id,
@@ -523,18 +523,24 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     )}
                     </div>
                     <div className="booking-field-group">
-                    <label htmlFor="contact" className="booking-field-label">Contact Number</label>
-                    <input
-                        id="contact"
-                        name="contact"
-                        placeholder="Phone"
-                        value={form.contact}
-                        onChange={handleChange}
-                        disabled={customerPicked}
-                    />
-                    {!/^\d{10,11}$/.test(form.contact) && form.contact && (
-                        <span className="error-text">Phone must be 10–11 digits.</span>
-                    )}
+                        <label htmlFor="contact" className="booking-field-label">Contact Number</label>
+                        <div className="phone-input">
+                            <span className="phone-prefix">+639</span>
+                            <input
+                                id="contact"
+                                name="contact"
+                                placeholder="xxxxxxxxx"
+                                value={form.contact}
+                                onChange={(e) => {
+                                const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                                handleChange({ target: { name: 'contact', value: digits } });
+                                }}
+                                disabled={customerPicked}
+                            />
+                        </div>
+                        {!/^\d{9}$/.test(form.contact) && form.contact && (
+                        <span className="error-text">Phone must be 9 digits after +639.</span>
+                        )}
                     </div>
                     <div className="booking-field-group" style={{ gridColumn: '1/4' }}>
                     <label htmlFor="address" className="booking-field-label">Address</label>
@@ -580,6 +586,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 <option value="Birthday">Birthday</option>
                                 <option value="Wedding">Wedding</option>
                                 <option value="Corporate">Corporate</option>
+                                <option value="General">General</option>
                             </select>
                         </div>
 

@@ -99,14 +99,18 @@ function MenuChecklist({ bookingId = null, items: initialItems = null, isCook })
                   <td className="mc-cat" data-label="Category">{it.category || '-'}</td>
                   <td className="mc-deadline" data-label="Deadline">{formatDeadline(it.deadline)}</td>
                   <td className="mc-check" data-label="Done">
-                    <label className="mc-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={it.status === 'completed'}
-                        onChange={() => {if(isCook){toggleComplete(idx)}}}
-                      />
-                      <span className="mc-checkmark" />
-                    </label>
+                    {isCook && (
+                      <>
+                        <label className="mc-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={it.status === 'completed'}
+                            onChange={() => {if(isCook){toggleComplete(idx)}}}
+                          />
+                          <span className="mc-checkmark" />
+                        </label>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
