@@ -141,7 +141,7 @@ function EditUserModal({ show, onClose, onSave, user }) {
             <span className="phone-prefix">+639</span>
             <input
               type="text"
-              value={formData.phone}
+              value={formData.phone.replace('+639', '')}
               onChange={e => {
                 const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
                 setFormData({ ...formData, phone: digits });

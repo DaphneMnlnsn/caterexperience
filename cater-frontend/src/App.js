@@ -32,6 +32,7 @@ import WaiterDashboard from "./pages/head waiter/WaiterDashboard";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import axiosClient from "./axiosClient";
 import { ToastContainer } from "react-toastify";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App(){
   useEffect(() => {
@@ -252,6 +253,14 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['admin','stylist','head waiter', 'cook', 'client']}>
               <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={['admin','stylist','head waiter', 'cook', 'client']}>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

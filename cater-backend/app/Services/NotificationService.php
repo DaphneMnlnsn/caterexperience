@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\BookingCancelledNotification;
 use App\Notifications\BookingChangeRequestNotification;
 use App\Notifications\BookingUpdatedNotification;
+use App\Notifications\InformationUpdatedNotification;
 use App\Notifications\PasswordResettedNotification;
 use App\Notifications\TaskAssignedNotification;
 use App\Notifications\VenueSetupApprovedNotification;
@@ -52,6 +53,18 @@ class NotificationService
 
         $notifiable->notify(new PasswordResettedNotification());
     }
+
+    public static function sendInformationUpdated($notifiableId, $isClient = false)
+    {
+        $notifiable = $isClient
+            ? Customer::find($notifiableId)
+            : User::find($notifiableId);
+
+        if (! $notifiable) return;
+
+        $notifiable->notify(new InformationUpdatedNotification());
+    }
+
     public static function sendBookingCancelled($notifiableId, $booking, $isClient = false)
     {
         $notifiable = $isClient

@@ -255,6 +255,35 @@ const renderPreviewFromServer = (obj) => {
     case 'backdropline': case 'backdrop': return <BackdropPreview props={previewProps} />;
     case 'lightoutline': case 'light': return <LightPreview props={previewProps} />;
     case 'fanoutline': case 'fan': return <FanPreview props={previewProps} />;
+    case 'placeholder': {
+      const w_px = previewProps.w ?? (1.0 * PX_PER_M);
+      const h_px = previewProps.h ?? (1.0 * PX_PER_M);
+      return (
+        <Group>
+          <Rect
+            x={-w_px / 2}
+            y={-h_px / 2}
+            width={w_px}
+            height={h_px}
+            stroke="#888"
+            dash={[6, 3]}
+            strokeWidth={2}
+            fill="rgba(200,200,200,0.15)"
+            cornerRadius={5}
+          />
+          <Text
+            text={previewProps.label ?? 'TBD'}
+            x={-w_px / 2}
+            y={h_px / 2 + 4}
+            width={w_px}
+            align="center"
+            fontSize={10}
+            fill="#555"
+            listening={false}
+          />
+        </Group>
+      );
+    }
     default:
       return (
         <Group>
@@ -289,9 +318,16 @@ const ObjectPalette = ({ onSelect, apiBase = '/objects' }) => {
   }, [apiBase]);
 
   const handleDragStart = (e, item) => {
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
     const copy = { ...item, object_props: parseProps(item.object_props) };
-    e.dataTransfer.setData('application/json', JSON.stringify(copy));
-    e.dataTransfer.effectAllowed = 'copy';
+    
+    if (!isTouch) {
+      e.dataTransfer.setData('application/json', JSON.stringify(copy));
+      e.dataTransfer.effectAllowed = 'copy';
+    } else {
+      if (onSelect) onSelect(copy);
+    }
   };
 
   if (loading) return <div className="palette-loading">Loading objects…</div>;

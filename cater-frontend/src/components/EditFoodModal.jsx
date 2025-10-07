@@ -101,6 +101,7 @@ function EditFoodModal({ show, onClose, onSave, food }) {
         payload.append('food_type', formData.food_type);
         payload.append('food_status', formData.food_status);
         payload.append('is_halal', formData.is_halal ? 1 : 0);
+        payload.append('delete_image', formData.existingImages.length === 0 ? 1 : 0);
 
         if (formData.newImage) {
           payload.append('food_image', formData.newImage);
@@ -246,7 +247,7 @@ function EditFoodModal({ show, onClose, onSave, food }) {
             <>
               <input
                 type="file"
-                name="image"
+                name="food_image"
                 id="food-image-upload"
                 accept="image/*"
                 onChange={handleChange}

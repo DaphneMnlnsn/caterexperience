@@ -17,3 +17,8 @@ Route::middleware('role:admin')->group(function () {
 Route::middleware('role:admin,stylist,cook,head waiter,client')->group(function () {
     Route::put('users/{id}/reset', [UserController::class, 'resetPass']);
 });
+
+Route::middleware('role:admin,stylist,cook,head waiter')->group(function () {
+    Route::get('/user/profile', [UserController::class, 'profile']);
+    Route::put('/user/profile', [UserController::class, 'updateProfile']);
+});

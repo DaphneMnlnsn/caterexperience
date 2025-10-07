@@ -6,6 +6,7 @@ use App\Helpers\AuditLogger;
 use App\Models\Customer;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class CustomerController extends Controller
@@ -86,6 +87,8 @@ class CustomerController extends Controller
 
         AuditLogger::log('Updated', 'Module: Customer | Updated customer ID: ' . $customer->customer_id);
 
+        NotificationService::sendInformationUpdated($customer->customer_id, true);
+
         return response()->json(['message' => 'Customer updated successfully', 'customer' => $customer]);
     }
 
@@ -139,5 +142,52 @@ class CustomerController extends Controller
         NotificationService::sendPasswordResetted($customer->customer_id, true);
 
         return response()->json(['message' => 'Customer updated successfully', 'customer' => $customer]);
+    }
+    public function profile()
+    {
+        /** @var \App\Models\Customer $customer */
+        $customer = Auth::user();
+
+        if (!$customer) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        return response()->json($customer);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        /** @var \App\Models\Customer $customer */
+        $customer = Auth::user();
+
+        if (!$customer) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $validated = $request->validate([
+            'customer_firstname' => 'required|string|max:255',
+            'customer_lastname' => 'required|string|max:255',
+            'customer_middlename' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:20',
+            'customer_address' => 'nullable|string|max:255',
+            'customer_password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        $customer->customer_firstname = $validated['customer_firstname'];
+        $customer->customer_lastname = $validated['customer_lastname'];
+        $customer->customer_middlename = $validated['customer_middlename'] ?? $customer->customer_middlename;
+        $customer->customer_phone = $validated['customer_phone'] ?? $customer->customer_phone;
+        $customer->customer_address = $validated['customer_address'] ?? $customer->customer_address;
+
+        if (!empty($validated['customer_password'])) {
+            $customer->customer_password = Hash::make($validated['customer_password']);
+            $customer->require_pass_change = false;
+        }
+
+        $customer->save();
+
+        AuditLogger::log('Updated', "Module: Customer | Updated own profile, ID: {$customer->customer_id}");
+
+        return response()->json(['message' => 'Profile updated successfully', 'customer' => $customer]);
     }
 }

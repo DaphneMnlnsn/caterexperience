@@ -66,6 +66,7 @@ function VenueCanvas(props, ref) {
   const [layoutType, setLayoutType] = useState(null);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateName, setTemplateName] = useState(null);
+  const [stageSize, setStageSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [templateNotes, setTemplateNotes] = useState(null);
 
   const predefKey = `predef-layout-${layoutType ?? 'default'}`;
@@ -84,6 +85,18 @@ function VenueCanvas(props, ref) {
       setPredefinedLayout(null);
     }
   }, [predefKey, layoutType]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const container = document.querySelector('.canvas-container');
+      if (container) {
+        setStageSize({ width: container.offsetWidth, height: container.offsetHeight });
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleResetLayout = () => {
     setSelectedId(null);
@@ -183,6 +196,7 @@ function VenueCanvas(props, ref) {
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
   const [placed, setPlaced] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [selectedObjectFromPalette, setSelectedObjectFromPalette] = useState(null);
 
   const [editingLabel, setEditingLabel] = useState(null);
   const editingRef = useRef(null);
@@ -412,12 +426,12 @@ function VenueCanvas(props, ref) {
     setPlaced(prev => prev.map(p => p.id === id ? { ...p, x_m: newX_m, y_m: newY_m } : p));
   };
 
-
   const handleTransformEnd = (id, e) => {
     const node = e.target;
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
     const avgScale = (scaleX + scaleY) / 2;
+
     node.scaleX(1);
     node.scaleY(1);
 
@@ -426,10 +440,10 @@ function VenueCanvas(props, ref) {
     const stageScaleNow = stage ? stage.scaleX() : 1;
     const stageX = stage ? (stage.x() || 0) : 0;
     const stageY = stage ? (stage.y() || 0) : 0;
-    
+
     const x_stage_px = (abs.x - stageX) / stageScaleNow;
     const y_stage_px = (abs.y - stageY) / stageScaleNow;
-    
+
     const newX_m_raw = pxToMeters(x_stage_px);
     const newY_m_raw = pxToMeters(y_stage_px);
 
@@ -439,18 +453,49 @@ function VenueCanvas(props, ref) {
     if (gridEnabled) {
       const snappedX_px = metersToPx(newX_m);
       const snappedY_px = metersToPx(newY_m);
-
       node.position({ x: snappedX_px, y: snappedY_px });
       node.getLayer() && node.getLayer().batchDraw();
     }
 
-    setPlaced(prev => prev.map(p => p.id === id ? {
-      ...p,
-      rotation: node.rotation(),
-      scale: (p.scale ?? 1) * avgScale,
-      x_m: newX_m,
-      y_m: newY_m,
-    } : p));
+    setPlaced(prev =>
+      prev.map(p => {
+        if (p.id !== id) return p;
+
+        const type = p.object_type?.toLowerCase?.() ?? '';
+        const resizableTypes = ['divider', 'backdrop', 'arch', 'placeholder'];
+
+        if (resizableTypes.includes(type)) {
+          const newW_m = p.object_props?.w
+            ? (p.object_props.w * scaleX)
+            : (node.width() * scaleX / pxPerMeter);
+          const newH_m = p.object_props?.h
+            ? (p.object_props.h * scaleY)
+            : (node.height() * scaleY / pxPerMeter);
+
+          const updatedProps = {
+            ...p.object_props,
+            w: newW_m,
+            h: newH_m,
+          };
+
+          return {
+            ...p,
+            rotation: node.rotation(),
+            object_props: updatedProps,
+            x_m: newX_m,
+            y_m: newY_m,
+          };
+        }
+
+        return {
+          ...p,
+          rotation: node.rotation(),
+          scale: (p.scale ?? 1) * avgScale,
+          x_m: newX_m,
+          y_m: newY_m,
+        };
+      })
+    );
   };
 
   useEffect(() => {
@@ -617,7 +662,7 @@ function VenueCanvas(props, ref) {
         );
       }
       case 'divider': {
-        const len_px = (getMeterValue(props, 'length', REAL_DEFAULTS.divider_len_m) ?? REAL_DEFAULTS.divider_len_m) * pxPerMeterLocal;
+        const len_px = (getMeterValue(props, 'length', REAL_DEFAULTS.divider_len_m) ?? REAL_DEFAULTS.divider_len_m) * pxPerMeterLocal * scaleForObject;
         return (
           <Group>
             <Line points={[-len_px/2,0,len_px/2,0]} stroke="#000" strokeWidth={2} dash={props.dash ?? [10,5]} />
@@ -676,6 +721,38 @@ function VenueCanvas(props, ref) {
             {labelText && <Text text={labelText} x={-25} y={15} width={50} align="center" fontSize={10} fontFamily="Lora" listening={false} />}  
           </Group>
         );
+      case 'placeholder': {
+        const w_m = getMeterValue(props, 'w', 1.0);
+        const h_m = getMeterValue(props, 'h', 1.0);
+        const w_px = w_m * pxPerMeterLocal * scaleForObject;
+        const h_px = h_m * pxPerMeterLocal * scaleForObject;
+
+        return (
+          <Group>
+            <Rect
+              x={-w_px / 2}
+              y={-h_px / 2}
+              width={w_px}
+              height={h_px}
+              stroke="#888"
+              dash={[6, 3]}
+              strokeWidth={2}
+              fill="rgba(200,200,200,0.15)"
+              cornerRadius={5}
+            />
+            <Text
+              text={props.label ?? 'TBD'}
+              x={-w_px / 2}
+              y={h_px / 2 + 6}
+              width={w_px}
+              align="center"
+              fontSize={12}
+              fill="#555"
+              listening={false}
+            />
+          </Group>
+        );
+      }
       default:
         return (
           <Group>
@@ -722,6 +799,35 @@ function VenueCanvas(props, ref) {
       return <Group>{lines}</Group>;
     }
   }
+
+  const handleCanvasClick = (e) => {
+    if (!selectedObjectFromPalette) return;
+
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const pointerPos = stage.getPointerPosition();
+    if (!pointerPos) return;
+
+    const newX_m = pxToMeters(pointerPos.x);
+    const newY_m = pxToMeters(pointerPos.y);
+
+    setPlaced(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        object_type: selectedObjectFromPalette.object_type,
+        object_name: selectedObjectFromPalette.object_name,
+        object_props: selectedObjectFromPalette.object_props,
+        x_m: newX_m,
+        y_m: newY_m,
+        rotation: 0,
+        scale: 1,
+      },
+    ]);
+
+    setSelectedObjectFromPalette(null);
+  };
 
   const handleStageDragEnd = (e) => {
     const target = e.target;
@@ -852,6 +958,7 @@ function VenueCanvas(props, ref) {
 
   useImperativeHandle(ref, () => ({
     save: handleSave,
+    setSelectedObjectFromPalette,
     getPlaced: () => placed,
   }), [handleSave, placed]);
 
@@ -1001,7 +1108,7 @@ function VenueCanvas(props, ref) {
       style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, border: '1px solid #ddd', background: '#f7f7f7', position: 'relative' }}
     >
       <div style={{
-        position: 'absolute', left: 10, top: 10, zIndex: 9999, background: 'rgba(255,255,255,0.95)',
+        position: 'absolute', left: 10, top: 10, zIndex: 1000, background: 'rgba(255,255,255,0.95)',
         padding: 8, borderRadius: 6, boxShadow: '0 6px 12px rgba(0,0,0,0.08)', fontSize: 13
       }}>
         <label style={{display: 'flex', alignItems:'center', gap:8}}>
@@ -1098,13 +1205,14 @@ function VenueCanvas(props, ref) {
       )}
 
       <Stage
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
+        width={stageSize.width}
+        height={stageSize.height}
         draggable
         scaleX={stageScale}
         scaleY={stageScale}
         x={stagePos.x}
         y={stagePos.y}
+        onTouchStart={handleCanvasClick}
         onDragEnd={handleStageDragEnd}
         onWheel={handleWheel}
         ref={stageRef}

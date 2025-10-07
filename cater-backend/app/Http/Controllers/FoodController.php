@@ -73,6 +73,13 @@ class FoodController extends Controller
             'is_halal' => $validated['is_halal'],
         ]);
 
+        if ($request->boolean('delete_image') && $food->food_image_url) {
+            if (file_exists(public_path($food->food_image_url))) {
+                unlink(public_path($food->food_image_url));
+            }
+            $food->update(['food_image_url' => null]);
+        }
+
         if ($request->hasFile('food_image')) {
             if ($food->food_image_url && file_exists(public_path($food->food_image_url))) {
                 unlink(public_path($food->food_image_url));

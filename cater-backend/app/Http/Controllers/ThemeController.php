@@ -76,6 +76,18 @@ class ThemeController extends Controller
             }
         }
 
+        if ($request->has('deleted_images')) {
+            foreach ($request->deleted_images as $imageId) {
+                $image = ThemeImage::find($imageId);
+                if ($image) {
+                    if (file_exists(public_path($image->image_url))) {
+                        unlink(public_path($image->image_url));
+                    }
+                    $image->delete();
+                }
+            }
+        }
+
         AuditLogger::log('Updated', "Module: Theme | Theme: {$theme->theme_name}, ID: {$theme->theme_id}");
 
         return response()->json(['message' => 'Theme updated successfully', 'theme' => $theme->load('images')]);

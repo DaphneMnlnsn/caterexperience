@@ -19,8 +19,12 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
         description: theme.theme_description || '',
         imageFiles: [],
         imagePreviews: theme.images
-          ? theme.images.map(img => `${process.env.REACT_APP_BASE_URL}/${img.image_url}`)
-          : [],
+        ? theme.images.map(img => ({
+            id: img.image_id,
+            url: `${process.env.REACT_APP_BASE_URL}/${img.image_url}`
+          }))
+        : [],
+        deletedImageIds: [],
         theme_status: theme.theme_status || ''
       });
     }
@@ -63,11 +67,18 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
   };
 
   const handleRemoveImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      imageFiles: prev.imageFiles.filter((_, i) => i !== index),
-      imagePreviews: prev.imagePreviews.filter((_, i) => i !== index),
-    }));
+    setFormData(prev => {
+      const removed = prev.imagePreviews[index];
+      const isExisting = removed.id;
+      return {
+        ...prev,
+        imageFiles: prev.imageFiles.filter((_, i) => i !== index),
+        imagePreviews: prev.imagePreviews.filter((_, i) => i !== index),
+        deletedImageIds: isExisting
+          ? [...prev.deletedImageIds, removed.id]
+          : prev.deletedImageIds
+      };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -100,6 +111,9 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
     payload.append('theme_description', formData.description);
     payload.append('theme_status', formData.theme_status);
     formData.imageFiles.forEach(file => payload.append('theme_images[]', file));
+    formData.deletedImageIds.forEach(id =>
+      payload.append('deleted_images[]', id)
+    );
 
     Swal.fire({
       title: 'Save Changes?',
@@ -203,8 +217,8 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <img
-                    src={preview}
+                  <img 
+                    src={preview.url || preview} 
                     alt={`Preview ${index + 1}`}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />

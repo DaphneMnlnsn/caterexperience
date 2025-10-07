@@ -6,6 +6,7 @@ use App\Helpers\AuditLogger;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -88,6 +89,8 @@ class UserController extends Controller
 
         AuditLogger::log('Updated', "Module: User | Updated user: {$user->first_name} {$user->last_name}, ID: {$user->id}");
 
+        NotificationService::sendInformationUpdated($user->id);
+
         return response()->json(['message' => 'User updated successfully', 'user' => $user]);
     }
 
@@ -143,5 +146,44 @@ class UserController extends Controller
         AuditLogger::log('Deleted', "Module: User | Deleted user: {$userName}, ID: {$userId}");
 
         return response()->json(['message' => 'User deleted successfully'], 200);
+    }
+
+    public function profile()
+    {
+        $user = Auth::user();
+        return response()->json($user);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'user_phone' => 'nullable|string|max:15',
+            'address' => 'nullable|string|max:255',
+            'gender' => 'nullable|string',
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        $user->first_name = $validated['first_name'];
+        $user->last_name = $validated['last_name'];
+        $user->email = $validated['email'];
+        $user->user_phone = $validated['user_phone'] ?? $user->user_phone;
+        $user->address = $validated['address'] ?? $user->address;
+        $user->gender = $validated['gender'] ?? $user->gender;
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        AuditLogger::log('Updated', "Module: User | Updated own profile, ID: {$user->id}");
+
+        return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
     }
 }

@@ -3,6 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NotificationProvider from "./NotificationProvider";
 import NotificationsDropdown from "./NotificationsDropdown";
+import { Link } from "react-router-dom";
 
 export default function Header({ user }) {
   if (!user) return null;
@@ -16,7 +17,7 @@ export default function Header({ user }) {
           <div className="topbar-left"></div>
           <div className="topbar-right">
             <span className="user-name">
-              {user ? `${user.first_name} ${user.last_name}` : "Guest"}
+              <Link to="/profile" style={{ textDecoration: 'none', color: 'black' }}>{user ? `${user.first_name} ${user.last_name}` : "Guest"}</Link>
             </span>
             <NotificationsDropdown />
           </div>

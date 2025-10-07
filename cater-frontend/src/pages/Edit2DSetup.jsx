@@ -13,6 +13,7 @@ function Edit2DSetup() {
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const canvasRef = useRef(null);
+  const [showPalette, setShowPalette] = useState(true);
 
   const hasRole = (roles) => {
     if (!user?.role) return false;
@@ -89,10 +90,14 @@ function Edit2DSetup() {
 
   return (
     <div className="page-container setup-page-container">
-      <aside className="sidebar setup-sidebar">
+      <aside className={`sidebar setup-sidebar ${showPalette ? 'open' : 'closed'}`}>
         <img src={logo} alt="Logo" className="sidebar-logo" />
         <div className="palette-scroll">
-          <ObjectPalette />
+          <ObjectPalette onSelect={(obj) => {
+            if (canvasRef.current && canvasRef.current.setSelectedObjectFromPalette) {
+              canvasRef.current.setSelectedObjectFromPalette(obj);
+            }
+          }}/>
         </div>
         <div className="layout-select-container">
           <h3 className="layout-select-title">Use Predefined Layouts</h3>
@@ -136,6 +141,13 @@ function Edit2DSetup() {
           <option value="Airconditioned Room">Airconditioned Room</option>
           <option value="Custom Venue">Outside Venue</option>
         </select>
+
+        <button 
+          className="toggle-palette-btn" 
+          onClick={() => setShowPalette(prev => !prev)}
+        >
+          {showPalette ? 'Hide Palette' : 'Show Palette'}
+        </button>
 
         <div className="canvas-container">
           <VenueCanvas ref={canvasRef} setupId={setupId} templateId={selectedLayout} isClient={isClient} isWaiter={isWaiter}/>

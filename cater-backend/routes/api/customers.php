@@ -14,3 +14,8 @@ Route::middleware('role:admin')->group(function () {
         Route::put('/{id}/reset', [CustomerController::class, 'resetPass']);
     });
 });
+
+Route::middleware('role:client')->group(function () {
+    Route::get('/customer/profile', [CustomerController::class, 'profile']);
+    Route::put('/customer/profile', [CustomerController::class, 'updateProfile']);
+});
