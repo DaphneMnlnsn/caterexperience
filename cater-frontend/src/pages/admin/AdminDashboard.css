@@ -35,6 +35,7 @@ body {
 
 .notif-icon {
   font-size: 20px;
+  cursor: pointer;
 }
 
 .welcome-section {

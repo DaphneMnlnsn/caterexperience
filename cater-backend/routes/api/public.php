@@ -9,7 +9,7 @@ use App\Http\Controllers\FoodController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\AddonController;
 use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\PaymentController;
 
 Route::get('/test', function () {
@@ -27,3 +27,4 @@ Route::get('/payments/report', [PaymentController::class, 'generateReport']);
 Route::get('/audit/report', [AuditLogController::class, 'generateReport']);
 Route::get('/bookings/code/{code}', [EventBookingController::class, 'findByCode']);
 Route::get('/bookings/public/{id}', [EventBookingController::class, 'indexSelectedPublic']);
+Route::get('/backups/download/{file}', [BackupController::class, 'download']);

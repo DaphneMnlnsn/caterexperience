@@ -71,6 +71,17 @@
   color: red;
 }
 
+.backup-btn {
+  background-color: #fff176;
+  border: 0.5px solid #ccc;
+  padding: 6px 7px;
+  border-radius: 6px;
+  font-size: 0.8rem !important;
+  font-weight: bold;
+  font-family: 'Lora', serif;
+  cursor: pointer;
+}
+
 @media (max-width: 1024px) {
   .client-header {
     flex-wrap: wrap;

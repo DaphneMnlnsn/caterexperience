@@ -146,4 +146,63 @@ class BookingInventoryController extends Controller
 
         return response()->json(['message' => 'Inventory item deleted successfully'], 200);
     }
+
+    public function syncInventory(Request $request, $bookingId)
+    {
+        $assigned = $request->assignedInventory;
+        DB::beginTransaction();
+
+        try {
+            $existingItems = BookingInventory::where('booking_id', $bookingId)->get();
+            $namesToKeep = array_keys($assigned);
+
+            foreach ($existingItems as $existing) {
+                $inv = Inventory::find($existing->item_id);
+                if ($inv && !in_array($inv->item_name, $namesToKeep)) {
+                    $existing->delete();
+                }
+            }
+            
+            foreach ($assigned as $name => $qty) {
+                $inventoryItem = Inventory::where('item_name', $name)->first();
+                if (!$inventoryItem) continue;
+
+                $bookingInventory = BookingInventory::updateOrCreate(
+                    [
+                        'booking_id' => $bookingId,
+                        'item_id' => $inventoryItem->item_id,
+                    ],
+                    [
+                        'quantity_assigned' => $qty,
+                        'remarks' => 'Auto-assigned from venue layout',
+                    ]
+                );
+
+                EventInventoryUsage::updateOrCreate(
+                    ['booking_inventory_id' => $bookingInventory->booking_inventory_id],
+                    [
+                        'quantity_used' => $qty,
+                        'quantity_returned' => 0,
+                        'remarks' => 'Auto-generated from venue layout sync',
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            AuditLogger::log(
+                'Synced',
+                'Module: Booking Details | Auto-synced inventory for Booking ID: ' . $bookingId
+            );
+
+            return response()->json(['message' => 'Inventory and usage synced successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Failed to sync inventory',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

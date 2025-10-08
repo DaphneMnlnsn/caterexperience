@@ -33,6 +33,7 @@ import ClientDashboard from "./pages/client/ClientDashboard";
 import axiosClient from "./axiosClient";
 import { ToastContainer } from "react-toastify";
 import ProfilePage from "./pages/ProfilePage";
+import AdminBackups from "./pages/admin/AdminBackups";
 
 export default function App(){
   useEffect(() => {
@@ -66,6 +67,15 @@ export default function App(){
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/backups"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminBackups />
             </ProtectedRoute>
           }
         />

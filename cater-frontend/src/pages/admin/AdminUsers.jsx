@@ -154,16 +154,18 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                     <td>{formatRole(user.role)}</td>
                                     <td>{user.tasks_count ?? 0}</td>
                                     <td className="actions">
-                                        {!showArchived ? (
-                                            <>
-                                                <FaPen className="icon edit-icon" onClick={() => {
-                                                setSelectedUser(user);
-                                                setShowEditModal(true);
-                                                }}/>
-                                                <FaArchive className="icon delete-icon" onClick={() => handleArchiveUser(user)} />
-                                            </>
-                                        ) : (
-                                            <FaUndo className="icon edit-icon" onClick={() => handleRestoreUser(user)} />
+                                        {user.role !== 'admin' && (
+                                            !showArchived ? (
+                                                <>
+                                                    <FaPen className="icon edit-icon" onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setShowEditModal(true);
+                                                    }}/>
+                                                    <FaArchive className="icon delete-icon" onClick={() => handleArchiveUser(user)} />
+                                                </>
+                                            ) : (
+                                                <FaUndo className="icon edit-icon" onClick={() => handleRestoreUser(user)} />
+                                            )
                                         )}
                                     </td>
                                     </tr>

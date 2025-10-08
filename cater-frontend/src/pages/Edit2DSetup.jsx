@@ -150,7 +150,7 @@ function Edit2DSetup() {
         </button>
 
         <div className="canvas-container">
-          <VenueCanvas ref={canvasRef} setupId={setupId} templateId={selectedLayout} isClient={isClient} isWaiter={isWaiter}/>
+          <VenueCanvas ref={canvasRef} setupId={setupId} bookingId={id} templateId={selectedLayout} isClient={isClient} isWaiter={isWaiter}/>
         </div>
       </div>
     </div>

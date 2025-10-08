@@ -57,7 +57,7 @@ const getAnyProp = (props, name, fallback = undefined) => {
 };
 
 function VenueCanvas(props, ref) {
-  const { setupId, templateId, isClient, isWaiter, venueRealWidthMeters = null, venueRealAreaMeters = null } = props;
+  const { setupId, bookingId, templateId, isClient, isWaiter, venueRealWidthMeters = null, venueRealAreaMeters = null } = props;
   const stageRef = useRef();
   const trRef = useRef();
   const groupRefs = useRef({});
@@ -881,6 +881,14 @@ function VenueCanvas(props, ref) {
         setPlaced(mapped);
       }
 
+      try {
+        const assignedInventory = computeAssignedInventory(placed);
+        await axiosClient.post(`/bookings/${bookingId}/inventory-sync`, { assignedInventory });
+        console.log('Inventory synced successfully');
+      } catch (err) {
+        console.error('Failed to sync inventory:', err);
+      }
+
       Swal.fire('Saved!', 'Layout has been saved.', 'success');
       return res;
     } catch (err) {
@@ -1244,3 +1252,64 @@ function VenueCanvas(props, ref) {
 }
 
 export default forwardRef(VenueCanvas);
+
+const computeAssignedInventory = (placed) => {
+  const totals = {};
+
+  placed.forEach((p) => {
+    const type = p.object_type?.toLowerCase?.() ?? '';
+    const props = p.object_props || {};
+
+    switch (type) {
+      case 'chair':
+        totals['Chair'] = (totals['Chair'] || 0) + 1;
+        break;
+
+      case 'squaretable': {
+        totals['Square Table'] = (totals['Square Table'] || 0) + 1;
+        totals['Chair'] = (totals['Chair'] || 0) + 4;
+        break;
+      }
+
+      case 'roundtable': {
+        const chairCount = props.count ?? 6;
+        totals['Round Table'] = (totals['Round Table'] || 0) + 1;
+        totals['Chair'] = (totals['Chair'] || 0) + chairCount;
+        break;
+      }
+
+      case 'recttable': {
+        const topBottom = props.topBottom ?? props.topbottom ?? 0;
+        const sides = props.sides ?? 0;
+        const chairCount = topBottom * 2 + sides * 2 || 10;
+        totals['Rectangle Table'] = (totals['Rectangle Table'] || 0) + 1;
+        totals['Chair'] = (totals['Chair'] || 0) + chairCount;
+        break;
+      }
+
+      case 'ovaltable': {
+        const chairCount = props.count ?? 8;
+        totals['Oval Table'] = (totals['Oval Table'] || 0) + 1;
+        totals['Chair'] = (totals['Chair'] || 0) + chairCount;
+        break;
+      }
+
+      case 'buffettable':
+        totals['Buffet Table'] = (totals['Buffet Table'] || 0) + 1;
+        break;
+
+      case 'plant':
+        totals['Plant Decoration'] = (totals['Plant Decoration'] || 0) + 1;
+        break;
+
+      case 'light':
+        totals['Spotlight'] = (totals['Spotlight'] || 0) + 1;
+        break;
+
+      default:
+        break;
+    }
+  });
+
+  return totals;
+};

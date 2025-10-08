@@ -27,6 +27,7 @@ Route::middleware('role:admin,stylist,head waiter')->group(function () {
         Route::get('/{id}/inventory-summary', [BookingInventoryController::class, 'index']);
     });
     Route::put('/inventory-usage/{id}', [BookingInventoryController::class, 'updateUsage']);
+    Route::post('/bookings/{bookingId}/inventory-sync', [BookingInventoryController::class, 'syncInventory']);
 });
 
 Route::middleware('role:admin,stylist,head waiter,cook,client')->group(function () {
