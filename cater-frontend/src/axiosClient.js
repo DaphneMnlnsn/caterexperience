@@ -5,7 +5,8 @@ const axiosClient = axios.create({
   baseURL: `${process.env.REACT_APP_BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  withCredentials: true,
 });
 
 axiosClient.interceptors.request.use((config) => {

@@ -207,6 +207,18 @@
   box-sizing: border-box;
 }
 
+.addons-section input,
+.addons-section select {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: 1px solid #bbb;
+  font-family: 'Lora', serif;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  transition: border 0.2s;
+}
+
 @media (max-width: 768px) {
   .section {
     padding: 1rem;

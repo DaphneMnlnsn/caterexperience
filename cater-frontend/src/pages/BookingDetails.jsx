@@ -56,6 +56,8 @@ function BookingDetails() {
   const [inventorySummary, setInventorySummary] = useState([]);
   const [editingRowId, setEditingRowId] = useState(null);
   const [editedRow, setEditedRow] = useState({});
+  const [availableAddons, setAvailableAddons] = useState([]);
+  const [addonTiersMap, setAddonTiersMap] = useState({});
 
   useEffect(() => {
     fetchDetails();
@@ -108,6 +110,20 @@ function BookingDetails() {
       .catch(err => {
         console.error('Failed to fetch booking details:', err.response?.data || err.message);
       });
+
+    axiosClient.get('/addons').then(res => {
+      const addonsData = res.data.addons || [];
+      setAvailableAddons(addonsData);
+
+      const tiersMap = {};
+      addonsData.forEach(addon => {
+        const prices = addon.prices || addon.addon_prices || addon.addon_price || [];
+        if (prices.length > 0) {
+          tiersMap[addon.addon_id] = prices;
+        }
+      });
+      setAddonTiersMap(tiersMap);
+    });
 
     axiosClient.get('/foods')
       .then(res => setFoods(res.data.foods || []))
@@ -192,10 +208,16 @@ function BookingDetails() {
         if (matchedFood) acc[type] = matchedFood.food_id;
         return acc;
       }, {}),
-      event_location: ['Airconditioned Room', 'Pavilion', 'Pool'].includes(booking.event_location)
+      event_addons: (booking.event_addons || []).map(a => ({
+        addon_id: parseInt(a.addon_id ?? a.addon?.addon_id ?? ''),
+        addon_price_id: parseInt(a.addon_price_id ?? a.addon_price?.addon_price_id ?? ''),
+        quantity: a.quantity ?? 1,
+      })),
+      freebies: booking.freebies || '',
+      event_location: ['Airconditioned Room', 'Pavilion', 'Poolside'].includes(booking.event_location)
         ? booking.event_location
         : 'outside',
-      custom_location: ['Airconditioned Room', 'Pavilion', 'Pool'].includes(booking.event_location)
+      custom_location: ['Airconditioned Room', 'Pavilion', 'Poolside'].includes(booking.event_location)
         ? ''
         : booking.event_location,
     });
@@ -210,16 +232,32 @@ function BookingDetails() {
       })
       .filter(Boolean);
 
-    axiosClient.put(`/bookings/${id}`, {
+    const selectedAddons = (editedData.event_addons || [])
+    .filter(a => a.addon_id)
+    .map(a => ({
+      addon_id: parseInt(a.addon_id),
+      addon_price_id: a.addon_price_id ? parseInt(a.addon_price_id) : null,
+      quantity: parseInt(a.quantity) || 1
+    }));
+
+    const payload = {
       event_name: editedData.event_name,
-      event_location: editedData.event_location === 'outside' ? editedData.custom_location : editedData.event_location,
+      event_location:
+        editedData.event_location === 'outside'
+          ? editedData.custom_location
+          : editedData.event_location,
       event_type: editedData.event_type,
       celebrant_name: editedData.celebrant_name,
       age: editedData.age,
       watcher: editedData.bantay,
       special_request: editedData.special_request,
-      food_names: selectedFoodNames
-    })
+      food_names: selectedFoodNames,
+      freebies: editedData.freebies || null,
+      event_addons: selectedAddons,
+    };
+
+    axiosClient
+      .put(`/bookings/${id}`, payload)
       .then(() => {
         Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
           setIsEditing(false);
@@ -640,21 +678,123 @@ function BookingDetails() {
             </div>
           </div>
           <div className="addons-section">
-            <h4>Selected Add-ons</h4>
-            {booking.event_addons?.length ? (
-              <ul className="addons-list">
-                {booking.event_addons.map((addon) => (
-                  <li key={addon.id}>
-                    {addon.addon?.addon_name} ({addon.addon_price?.description}) × {addon.quantity} = 
-                    ₱{parseFloat(addon.total_price).toLocaleString()}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No add-ons selected.</p>
-            )}
-            <p><strong>Freebies:</strong> {booking.freebies || 'None'}</p>
-          </div>
+            <div className="booking-field-group" style={{ gridColumn: '1 / span 2' }}>
+              <label className="booking-field-label">Add-ons</label>
+
+              {isEditing ? (
+                <>
+                  {(editedData.event_addons || []).map((row, idx) => (
+                    <div
+                      key={idx}
+                      className="addon-row"
+                      style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}
+                    >
+                      <select
+                        value={row.addon_id || ''}
+                        onChange={e => {
+                          const addonId = parseInt(e.target.value);
+                          const newRows = [...(editedData.event_addons || [])];
+                          newRows[idx] = { ...newRows[idx], addon_id: addonId, addon_price_id: '', quantity: 1 };
+                          setEditedData({ ...editedData, event_addons: newRows });
+                        }}
+                      >
+                        <option value="">Select Add-on…</option>
+                        {availableAddons.map(a => (
+                          <option key={a.addon_id} value={a.addon_id}>
+                            {a.addon_name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {row.addon_id && addonTiersMap[row.addon_id]?.length > 0 && (
+                        <select
+                          value={row.addon_price_id || ''}
+                          onChange={e => {
+                            const tierId = parseInt(e.target.value);
+                            const newRows = [...(editedData.event_addons || [])];
+                            newRows[idx] = { ...newRows[idx], addon_price_id: tierId };
+                            setEditedData({ ...editedData, event_addons: newRows });
+                          }}
+                        >
+                          <option value="">Select Tier…</option>
+                          {addonTiersMap[row.addon_id].map(t => (
+                            <option key={t.addon_price_id} value={t.addon_price_id}>
+                              {t.description} – ₱{parseFloat(t.price).toLocaleString()}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      <input
+                        type="number"
+                        min="1"
+                        value={row.quantity ?? 1}
+                        style={{ width: '3rem' }}
+                        onChange={e => {
+                          const qty = parseInt(e.target.value) || 1;
+                          const newRows = [...(editedData.event_addons || [])];
+                          newRows[idx] = { ...newRows[idx], quantity: qty };
+                          setEditedData({ ...editedData, event_addons: newRows });
+                        }}
+                      />
+
+                      {/* Remove button */}
+                      <button
+                        type="button"
+                        className="close-btn"
+                        onClick={() => {
+                          const newRows = [...(editedData.event_addons || [])];
+                          newRows.splice(idx, 1);
+                          setEditedData({ ...editedData, event_addons: newRows });
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const rows = editedData.event_addons ? [...editedData.event_addons] : [];
+                      rows.push({ addon_id: '', addon_price_id: '', quantity: 1 });
+                      setEditedData({ ...editedData, event_addons: rows });
+                    }}
+                    className="addon-btn"
+                  >
+                    + Add Add-on
+                  </button>
+
+                  <div className="booking-field-group" style={{ marginTop: '1rem', gridColumn: '1 / span 2' }}>
+                    <label className="booking-field-label">Freebies</label>
+                    <input
+                      type="text"
+                      value={editedData.freebies ?? ''}
+                      onChange={e => setEditedData({ ...editedData, freebies: e.target.value })}
+                      placeholder="Enter freebies / notes"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {booking.event_addons?.length ? (
+                    <ul className="addons-list">
+                      {booking.event_addons.map(addon => (
+                        <li key={addon.id}>
+                          {addon.addon?.addon_name}
+                          {addon.addon_price?.description ? ` (${addon.addon_price.description})` : ''} ×{' '}
+                          {addon.quantity} = ₱{parseFloat(addon.total_price).toLocaleString()}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No add-ons selected.</p>
+                  )}
+                  <p><strong>Freebies:</strong> {booking.freebies || 'None'}</p>
+                </>
+              )}
+            </div>
+            </div>
         </div>
 
         <hr className="booking-section-divider" />

@@ -32,8 +32,7 @@ class AuthController extends Controller
 
             AuditLogger::log('Login', "Module: Authentication | Role: {$user->role}");
 
-            return response()->json([
-                'status' => 'success',
+            $payload = [
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'user' => [
@@ -44,6 +43,15 @@ class AuthController extends Controller
                     'role' => $user->role,
                     'require_pass_change' => (bool) $user->require_pass_change,
                 ]
+            ];
+
+            $key = substr(hash('sha256', 'CaterXperience@2025'), 0, 32);
+            $iv = substr(hash('sha256', 'fixed_iv_example'), 0, 16);
+            $encrypted = openssl_encrypt(json_encode($payload), 'AES-256-CBC', $key, 0, $iv);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $encrypted,
             ]);
         }
 
@@ -62,8 +70,7 @@ class AuthController extends Controller
 
             AuditLogger::log('Login', "Module: Authentication | Role: client");
 
-            return response()->json([
-                'status' => 'success',
+            $payload = [
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'user' => [
@@ -74,6 +81,15 @@ class AuthController extends Controller
                     'role' => 'client',
                     'require_pass_change' => (bool) $customer->require_pass_change,
                 ]
+            ];
+
+            $key = substr(hash('sha256', 'CaterXperience@2025'), 0, 32);
+            $iv = substr(hash('sha256', 'fixed_iv_example'), 0, 16);
+            $encrypted = openssl_encrypt(json_encode($payload), 'AES-256-CBC', $key, 0, $iv);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $encrypted,
             ]);
         }
 

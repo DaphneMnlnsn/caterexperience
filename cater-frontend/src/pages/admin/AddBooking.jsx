@@ -10,7 +10,7 @@ import Header from '../../components/Header';
 function AddBooking() {
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+    const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -106,13 +106,19 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
             const start = new Date(`2000-01-01T${form.eventStart}`);
             let end = new Date(`2000-01-01T${form.eventEnd}`);
+            const minStart = new Date(`2000-01-01T07:00`);
+
+            if (start < minStart) {
+                setAvailabilityStatus('error-too-early');
+                return;
+            }
 
             if (end <= start) {
                 end.setDate(end.getDate() + 1);
             }
             if (end <= start || (end - start) / (1000 * 60 * 60) < 4) {
-            setAvailabilityStatus(null);
-            return;
+                setAvailabilityStatus(null);
+                return;
             }
 
             try {
@@ -137,6 +143,12 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     useEffect(() => {
         const start = form.eventStart ? new Date(`2000-01-01T${form.eventStart}`) : null;
         let end = form.eventEnd ? new Date(`2000-01-01T${form.eventEnd}`) : null;
+        const minStart = new Date(`2000-01-01T07:00`);
+
+        if (start < minStart) {
+            setAvailabilityStatus('error-too-early');
+            return;
+        }
 
         if (start && end) {
             if (end <= start) {
@@ -409,9 +421,19 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
             const start = new Date(`2000-01-01T${form.eventStart}`);
             const end = new Date(`2000-01-01T${form.eventEnd}`);
             const diffHours = (end - start) / (1000 * 60 * 60);
+            const minStart = new Date(`2000-01-01T07:00`);
 
+            if (start < minStart) {
+                Swal.fire('Error', 'Start time cannot be earlier than 07:00AM.', 'error');
+                return;
+            }
             if (end <= start) {
                 Swal.fire('Error', 'End time must be after start time.', 'error');
+                return;
+            }
+
+            if (diffHours < 4) {
+                Swal.fire('Error', 'Event duration must be at least 4 hours.', 'error');
                 return;
             }
 
@@ -530,7 +552,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 id="contact"
                                 name="contact"
                                 placeholder="xxxxxxxxx"
-                                value={form.contact}
+                                value={form.contact.replace('+639', '')}
                                 onChange={(e) => {
                                 const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
                                 handleChange({ target: { name: 'contact', value: digits } });
@@ -538,8 +560,8 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 disabled={customerPicked}
                             />
                         </div>
-                        {!/^\d{9}$/.test(form.contact) && form.contact && (
-                        <span className="error-text">Phone must be 9 digits after +639.</span>
+                        {!/^\d{9}$/.test(form.contact.replace('+639', '')) && form.contact && (
+                            <span className="error-text">Phone must be 9 digits after +639.</span>
                         )}
                     </div>
                     <div className="booking-field-group" style={{ gridColumn: '1/4' }}>
@@ -640,10 +662,13 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 id="eventStart"
                                 name="eventStart"
                                 type="time"
-                                min="05:00"
+                                min="08:00"
                                 value={form.eventStart}
                                 onChange={handleStartChange}
                             />
+                            {availabilityStatus === 'error-too-early' && (
+                                <div className="availability conflict">❌ Events cannot start before 7:00 AM</div>
+                            )}
                             {availabilityStatus === 'available' && (
                                 <div className="availability available">✅ Time slot is available</div>
                             )}
@@ -690,6 +715,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                 value={form.eventEnd}
                                 onChange={handleChange}
                                 min={form.eventStart}
+                                disabled={!form.eventStart}
                             />
                         </div>
 
@@ -886,7 +912,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         <button type="button" onClick={addAddonRow} className='addon-btn'>
                             + Add Addon
                         </button>
-                        </div>
+                    </div>
 
                 </div>
                 </div>

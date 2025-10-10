@@ -14,7 +14,7 @@ function RescheduleModal({ show, onClose, bookingId, onSave, isAdmin }) {
 
   const today = new Date();
   const minDate = new Date();
-  minDate.setDate(today.getDate() + 7); 
+  minDate.setDate(today.getDate() + 8); 
   const minDateStr = minDate.toISOString().split('T')[0];
 
   useEffect(() => {
@@ -54,15 +54,6 @@ function RescheduleModal({ show, onClose, bookingId, onSave, isAdmin }) {
     setAvailabilityError('');
 
     try {
-      const res = await axiosClient.get('/bookings/check-availability', {
-        params: { event_date, event_start_time, event_end_time },
-      });
-
-      if (!res.data.available) {
-        setAvailabilityError('Selected time slot is not available.');
-        return;
-      }
-
       const result = await Swal.fire({
         title: 'Are you sure?',
         text: 'Do you want to reschedule this event?',
@@ -124,7 +115,7 @@ function RescheduleModal({ show, onClose, bookingId, onSave, isAdmin }) {
             type="time"
             name="event_end_time"
             value={formData.event_end_time}
-            readOnly
+            onChange={handleChange}
           />
 
           {availabilityError && <p className="error">{availabilityError}</p>}

@@ -19,8 +19,10 @@ use App\Models\Menu;
 use App\Models\EventAddon;
 use App\Models\EventInventoryUsage;
 use App\Models\Food;
+use App\Models\PackagePrice;
 use App\Models\VenueSetup;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class EventBookingController extends Controller
@@ -339,6 +341,7 @@ class EventBookingController extends Controller
             $menu->foods()->sync($validated['food_ids']);
 
             $conflict = EventBooking::where('event_date', $validated['event_date'])
+                ->whereNotIn('booking_status', ['Cancelled', 'Finished'])
                 ->where(function ($q) use ($validated) {
                     $q->whereBetween('event_start_time', [$validated['event_start_time'], $validated['event_end_time']])
                     ->orWhereBetween('event_end_time', [$validated['event_start_time'], $validated['event_end_time']]);
@@ -459,6 +462,7 @@ class EventBookingController extends Controller
         $proposedEnd = Carbon::parse($request->input('event_end_time'));
 
         $conflicts = EventBooking::where('event_date', $eventDate)
+            ->whereNotIn('booking_status', ['Cancelled', 'Finished'])
             ->where(function ($query) use ($proposedStart, $proposedEnd) {
                 $query->where(function ($q) use ($proposedStart, $proposedEnd) {
                     $q->whereRaw("ADDTIME(event_start_time, '-02:00:00') < ?", [$proposedEnd])
@@ -499,7 +503,11 @@ class EventBookingController extends Controller
             'watcher'         => 'nullable|string',
             'special_request' => 'nullable|string',
             'food_names'      => 'required|array',
-            'food_names.*'    => 'string'
+            'food_names.*'    => 'string',
+            'freebies' => 'nullable|string',
+            'event_addons' => 'nullable|array',
+            'event_addons.*.addon_id' => 'required|integer|exists:addons,addon_id',
+            'event_addons.*.quantity' => 'required|integer|min:1',
         ]);
 
         DB::beginTransaction();
@@ -515,6 +523,7 @@ class EventBookingController extends Controller
                 'age'             => $validated['age'],
                 'watcher'         => $validated['watcher'],
                 'special_request' => $validated['special_request'],
+                'freebies'        => $request->input('freebies'),
             ]);
 
             $allFoods = Food::whereIn('food_name', $validated['food_names'])
@@ -522,19 +531,90 @@ class EventBookingController extends Controller
                 ->toArray();
             $booking->menu->foods()->sync($allFoods);
 
-            EventAddon::where('booking_id', $booking->booking_id)->delete();
-            if ($request->has('event_addons')) {
-                foreach ($request->event_addons as $addon) {
-                    EventAddon::create([
-                        'booking_id'   => $booking->booking_id,
-                        'addon_id'     => $addon['addon_id'],
-                        'quantity'     => $addon['quantity'],
-                        'price_each'   => $addon['price_each'],
-                        'total_price'  => $addon['total_price'],
-                        'remarks'      => $addon['remarks'] ?? null,
+            $layoutType = in_array($validated['event_location'], [
+                'Pavilion', 'Airconditioned Room', 'Poolside'
+            ]) ? $validated['event_location'] : 'Custom Venue';
+
+            $venueSetup = VenueSetup::where('booking_id', $booking->booking_id)->first();
+            if ($venueSetup) {
+                if ($venueSetup->layout_type !== $layoutType) {
+                    $venueSetup->update([
+                        'layout_type' => $layoutType,
+                        'status' => 'pending'
                     ]);
                 }
+            } else {
+                VenueSetup::create([
+                    'booking_id'   => $booking->booking_id,
+                    'layout_name'  => $validated['event_name'] . ' Layout',
+                    'layout_type'  => $layoutType,
+                    'status'       => 'pending',
+                ]);
             }
+
+            EventAddon::where('booking_id', $booking->booking_id)->delete();
+
+            $totalAddons = 0;
+
+            if ($request->filled('event_addons')) {
+                foreach ($request->input('event_addons') as $addon) {
+                    $addon = (array) $addon;
+
+                    $addonId       = $addon['addon_id'] ?? null;
+                    $addonPriceId  = $addon['addon_price_id'] ?? null;
+                    $quantity      = isset($addon['quantity']) ? (int) $addon['quantity'] : 1;
+
+                    if (!$addonId) {
+                        continue;
+                    }
+
+                    $addonPrice = $addonPriceId ? AddonPrice::find($addonPriceId) : AddonPrice::where('addon_id', $addonId)->first();
+                    $unitPrice = $addonPrice ? floatval($addonPrice->price ?? 0) : 0;
+                    $lineTotal = $unitPrice * $quantity;
+
+                    EventAddon::create([
+                        'booking_id'     => $booking->booking_id,
+                        'addon_id'       => $addonId,
+                        'addon_price_id' => $addonPriceId,
+                        'quantity'       => $quantity,
+                        'total_price'    => $lineTotal,
+                    ]);
+
+                    $totalAddons += $lineTotal;
+                }
+            }
+
+            $packagePriceId = $booking->package_price_id ?? $request->input('package_price_id') ?? null;
+            $packagePrice = $packagePriceId ? PackagePrice::find($packagePriceId) : ($booking->packagePrice ?? null);
+
+            $packageBase = 0;
+            if ($packagePrice) {
+                $packageBase = floatval($packagePrice->price_amount ?? $packagePrice->price ?? 0);
+            }
+
+            $eventDate = $booking->event_date;
+            $startTime = $booking->event_start_time;
+            $endTime   = $booking->event_end_time;
+
+            $start = Carbon::parse("$eventDate $startTime");
+            $end   = Carbon::parse("$eventDate $endTime");
+
+            if ($end->lte($start)) {
+                $end->addDay();
+            }
+
+            $durationHours = $end->floatDiffInHours($start);
+
+            $extraHours = max(0, $durationHours - 4);
+
+            $extraCharge = ceil($extraHours) * 500;
+
+            $packageBase = $booking->packagePrice ? floatval($booking->packagePrice->price_amount ?? $booking->packagePrice->price ?? 0) : 0;
+            $totalAddons = $booking->eventAddons->sum('total_price');
+
+            $newTotal = $packageBase + $totalAddons + $extraCharge;
+
+            $booking->update(['event_total_price' => $newTotal]);
 
             AuditLogger::log('Updated', 'Module: Booking Details | Updated booking ID: ' . $id);
 
@@ -609,13 +689,16 @@ class EventBookingController extends Controller
             'event_end_time' => 'required|date_format:H:i|after:event_start_time',
         ]);
 
-        $booking = EventBooking::findOrFail($id);
+        $booking = EventBooking::with(['packagePrice', 'eventAddons', 'tasks.assignee', 'staffAssignments'])->findOrFail($id);
 
         $conflict = EventBooking::where('event_date', $validated['event_date'])
             ->where('booking_id', '!=', $id)
+            ->whereNotIn('booking_status', ['Cancelled', 'Finished'])
             ->where(function ($q) use ($validated) {
-                $q->whereBetween('event_start_time', [$validated['event_start_time'], $validated['event_end_time']])
-                ->orWhereBetween('event_end_time', [$validated['event_start_time'], $validated['event_end_time']]);
+                $q->where(function ($q2) use ($validated) {
+                    $q2->where('event_start_time', '<', $validated['event_end_time'])
+                    ->where('event_end_time', '>', $validated['event_start_time']);
+                });
             })
             ->exists();
 
@@ -632,46 +715,64 @@ class EventBookingController extends Controller
                 'event_end_time' => $validated['event_end_time'],
             ]);
 
-            $eventDateTime = Carbon::parse("{$validated['event_date']} {$validated['event_start_time']}");
+            $eventDate = $validated['event_date'];
+            $start = Carbon::parse("$eventDate {$validated['event_start_time']}");
+            $end = Carbon::parse("$eventDate {$validated['event_end_time']}");
 
-            foreach ($booking->tasks()->with('assignee')->where('auto_generated', true)->get() as $task) {
-                switch (strtolower($task->assignee->role)) {
+            if ($end->lte($start)) {
+                $end->addDay();
+            }
+
+            $durationHours = $end->floatDiffInHours($start);
+            $extraHours = max(0, $durationHours - 4);
+            $extraCharge = ceil($extraHours) * 500;
+
+            $packageBase = $booking->packagePrice ? floatval($booking->packagePrice->price_amount ?? $booking->packagePrice->price ?? 0) : 0;
+            $totalAddons = $booking->eventAddons->sum('total_price');
+            $newTotal = $packageBase + $totalAddons + $extraCharge;
+
+            $booking->update([
+                'event_total_price' => $newTotal,
+            ]);
+
+            $eventDateTime = Carbon::parse("{$validated['event_date']} {$validated['event_start_time']}");
+            foreach ($booking->tasks as $task) {
+                if (!$task->auto_generated || !$task->assignee) continue;
+
+                $role = strtolower($task->assignee->role);
+                $map = [];
+
+                switch ($role) {
                     case 'admin':
                         $map = [
-                            'Setup Group Chat'   => $eventDateTime->copy()->subDays(8)->setTime(9, 0),
-                            'Log Downpayment'    => $eventDateTime->copy()->subDays(8)->setTime(12, 0),
-                            'Monitor Event'      => $eventDateTime->copy()->setTime(8, 0),
-                            'Collect Feedback'   => $eventDateTime->copy()->addDay()->setTime(17, 0),
+                            'Setup Group Chat' => $eventDateTime->copy()->subDays(8)->setTime(9, 0),
+                            'Log Downpayment' => $eventDateTime->copy()->subDays(8)->setTime(12, 0),
+                            'Monitor Event' => $eventDateTime->copy()->setTime(8, 0),
+                            'Collect Feedback' => $eventDateTime->copy()->addDay()->setTime(17, 0),
                         ];
                         break;
-
                     case 'stylist':
                         $map = [
                             'Sketch Layout Based on Client Preferences' => $eventDateTime->copy()->subDays(5)->setTime(10, 0),
-                            'Inventory Check (Stylist)'                 => $eventDateTime->copy()->subDay()->setTime(14, 0),
-                            'Setup Venue and Send Photo'                => $eventDateTime->copy()->setTime(7, 0),
+                            'Inventory Check (Stylist)' => $eventDateTime->copy()->subDay()->setTime(14, 0),
+                            'Setup Venue and Send Photo' => $eventDateTime->copy()->setTime(7, 0),
                         ];
                         break;
-
                     case 'cook':
                         $map = [
                             'Prepare Food for Event' => $eventDateTime->copy()->subHours(3),
-                            'Deliver Food to Venue'  => $eventDateTime->copy()->subHour(),
+                            'Deliver Food to Venue' => $eventDateTime->copy()->subHour(),
                         ];
                         break;
-
                     case 'head waiter':
                         $map = [
-                            'Check Venue Setup'       => $eventDateTime->copy()->subHours(2),
+                            'Check Venue Setup' => $eventDateTime->copy()->subHours(2),
                             'Inventory Check (Waiter)' => $eventDateTime->copy()->subHours(3),
                             'Setup Equipment at Venue' => $eventDateTime->copy()->subHour(),
-                            'Serve Food During Event'  => $eventDateTime->copy(),
-                            'Pack-up Equipment'        => $eventDateTime->copy()->addHours(3),
+                            'Serve Food During Event' => $eventDateTime->copy(),
+                            'Pack-up Equipment' => $eventDateTime->copy()->addHours(3),
                         ];
                         break;
-
-                    default:
-                        $map = [];
                 }
 
                 if (isset($map[$task->title])) {
@@ -682,14 +783,16 @@ class EventBookingController extends Controller
             DB::commit();
 
             AuditLogger::log('Updated', 'Module: Event Booking | Rescheduled booking ID: ' . $id);
-            
-            NotificationService::sendBookingUpdated($booking->customer_id, $booking, true);
 
+            NotificationService::sendBookingUpdated($booking->customer_id, $booking, true);
             foreach ($booking->staffAssignments as $assignment) {
                 NotificationService::sendBookingUpdated($assignment->user_id, $booking);
             }
 
-            return response()->json(['message' => 'Booking successfully rescheduled.']);
+            return response()->json([
+                'message' => 'Booking successfully rescheduled.',
+                'booking' => $booking->fresh(),
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Rescheduling failed.', 'error' => $e->getMessage()], 500);

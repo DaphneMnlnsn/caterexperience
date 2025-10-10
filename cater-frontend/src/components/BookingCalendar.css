@@ -79,3 +79,15 @@
 .fc-daygrid-day-events {
   flex-grow: 1;
 }
+
+.fc-daygrid-day.selected-date {
+  background-color: #ffe478d1 !important;
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px rgb(255, 229, 125);
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+.fc-daygrid-day:hover {
+  background-color: #fff9c4;
+}

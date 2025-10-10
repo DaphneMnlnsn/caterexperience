@@ -17,6 +17,7 @@
     "ably": "^2.13.0",
     "axios": "^1.10.0",
     "bootstrap": "^5.3.6",
+    "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
     "konva": "^9.3.22",
     "laravel-echo": "^2.2.0",

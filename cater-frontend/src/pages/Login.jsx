@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/LandingNavbar';
+import CryptoJS from 'crypto-js';
 import './Login.css';
 import Swal from 'sweetalert2';
 import background from '../assets/bg.jpg';
@@ -31,11 +32,25 @@ function Login() {
             });
 
             if (response.data.status === 'success') {
-                const user = response.data.user;
+                const encrypted = response.data.data;
+                const key = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256('CaterXperience@2025').toString().substring(0, 32));
+                const iv = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256('fixed_iv_example').toString().substring(0, 16));
 
-                localStorage.setItem('token', response.data.access_token);
-                localStorage.setItem('user', btoa(JSON.stringify(user)));
-                localStorage.setItem('role', user.role);
+                const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7,
+                });
+
+                const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+                if (!decryptedText) throw new Error("Decryption failed. Check key/iv consistency.");
+
+                const parsed = JSON.parse(decryptedText);
+
+                localStorage.setItem('token', parsed.access_token);
+                localStorage.setItem('user', btoa(JSON.stringify(parsed.user)));
+
+                const user = parsed.user;
 
                 if (user.require_pass_change) {
                     navigate('/password/change');

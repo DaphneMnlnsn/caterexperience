@@ -102,6 +102,7 @@ function AdminBookings() {
 
             <BookingCalendar
               allEvents={bookingData}
+              selectedDate={selectedDate}
               onDateClick={(dateStr) => {
                 console.log("Clicked date:", dateStr);
                 setSelectedDate(dateStr);

@@ -54,6 +54,11 @@
 .status-badge.finished {
   background-color: #a5f5b4;
 }
+
+.status-badge.cancelled {
+  background-color: #fe9595;
+}
+
 .sidebar-header {
   display: flex;
   justify-content: space-between;

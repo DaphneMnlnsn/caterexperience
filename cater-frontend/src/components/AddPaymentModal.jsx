@@ -214,12 +214,17 @@ function AddPaymentModal({ show, onClose, onSave, bookingId, remainingBalance })
             </div>
 
             <label>Remarks</label>
-            <input
-                type="text"
+            <select
                 name="remarks"
                 value={formData.remarks}
                 onChange={handleChange}
-            />
+            >
+                <option value="">Select a remark</option>
+                <option value="80% Downpayment">80% Downpayment</option>
+                <option value="Remaining Balance">Remaining Balance</option>
+                <option value="Payment for Extra Charge">Payment for Extra Charge</option>
+                <option value="Other Payment">Other Payment</option>
+            </select>
 
           <label>Proof of Payment (optional)</label>
           <div className="image-upload-container">
