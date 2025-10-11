@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ExtraCharge;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ExtraChargeController extends Controller
 {
@@ -22,6 +23,8 @@ class ExtraChargeController extends Controller
 
         $charge = ExtraCharge::create($data);
 
+        DB::statement('CALL recompute_booking_total(?)', [$data['booking_id']]);
+
         return response()->json($charge, 201);
     }
 
@@ -36,13 +39,18 @@ class ExtraChargeController extends Controller
 
         $charge->update($data);
 
+        DB::statement('CALL recompute_booking_total(?)', [$charge->booking_id]);
+
         return response()->json($charge);
     }
 
     public function destroy($id)
     {
         $charge = ExtraCharge::findOrFail($id);
+        $bookingId = $charge->booking_id;
         $charge->delete();
+
+        DB::statement('CALL recompute_booking_total(?)', [$bookingId]);
 
         return response()->json(['message' => 'Charge deleted']);
     }

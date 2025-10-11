@@ -584,37 +584,7 @@ class EventBookingController extends Controller
                 }
             }
 
-            $packagePriceId = $booking->package_price_id ?? $request->input('package_price_id') ?? null;
-            $packagePrice = $packagePriceId ? PackagePrice::find($packagePriceId) : ($booking->packagePrice ?? null);
-
-            $packageBase = 0;
-            if ($packagePrice) {
-                $packageBase = floatval($packagePrice->price_amount ?? $packagePrice->price ?? 0);
-            }
-
-            $eventDate = $booking->event_date;
-            $startTime = $booking->event_start_time;
-            $endTime   = $booking->event_end_time;
-
-            $start = Carbon::parse("$eventDate $startTime");
-            $end   = Carbon::parse("$eventDate $endTime");
-
-            if ($end->lte($start)) {
-                $end->addDay();
-            }
-
-            $durationHours = $end->floatDiffInHours($start);
-
-            $extraHours = max(0, $durationHours - 4);
-
-            $extraCharge = ceil($extraHours) * 500;
-
-            $packageBase = $booking->packagePrice ? floatval($booking->packagePrice->price_amount ?? $booking->packagePrice->price ?? 0) : 0;
-            $totalAddons = $booking->eventAddons->sum('total_price');
-
-            $newTotal = $packageBase + $totalAddons + $extraCharge;
-
-            $booking->update(['event_total_price' => $newTotal]);
+            DB::statement('CALL recompute_booking_total(?)', [$booking->booking_id]);
 
             AuditLogger::log('Updated', 'Module: Booking Details | Updated booking ID: ' . $id);
 
@@ -723,18 +693,6 @@ class EventBookingController extends Controller
                 $end->addDay();
             }
 
-            $durationHours = $end->floatDiffInHours($start);
-            $extraHours = max(0, $durationHours - 4);
-            $extraCharge = ceil($extraHours) * 500;
-
-            $packageBase = $booking->packagePrice ? floatval($booking->packagePrice->price_amount ?? $booking->packagePrice->price ?? 0) : 0;
-            $totalAddons = $booking->eventAddons->sum('total_price');
-            $newTotal = $packageBase + $totalAddons + $extraCharge;
-
-            $booking->update([
-                'event_total_price' => $newTotal,
-            ]);
-
             $eventDateTime = Carbon::parse("{$validated['event_date']} {$validated['event_start_time']}");
             foreach ($booking->tasks as $task) {
                 if (!$task->auto_generated || !$task->assignee) continue;
@@ -781,6 +739,8 @@ class EventBookingController extends Controller
             }
 
             DB::commit();
+            
+            DB::statement('CALL recompute_booking_total(?)', [$booking->booking_id]);
 
             AuditLogger::log('Updated', 'Module: Event Booking | Rescheduled booking ID: ' . $id);
 

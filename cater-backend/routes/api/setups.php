@@ -22,5 +22,6 @@ Route::middleware('role:admin,stylist,head waiter,client')->group(function () {
 Route::middleware('role:client')->group(function () {
     Route::prefix('setups')->group(function() {
         Route::put('/approve/{id}', [VenueSetupController::class, 'approve']);
+        Route::put('/reject/{id}', [VenueSetupController::class, 'reject']);
     });
 });

@@ -12,6 +12,7 @@ use App\Notifications\InformationUpdatedNotification;
 use App\Notifications\PasswordResettedNotification;
 use App\Notifications\TaskAssignedNotification;
 use App\Notifications\VenueSetupApprovedNotification;
+use App\Notifications\VenueSetupRejectedNotification;
 use App\Notifications\VenueSetupSubmittedNotification;
 use App\Notifications\VenueUpdatedNotification;
 
@@ -121,6 +122,25 @@ class NotificationService
 
         foreach ($staffUsers as $staff) {
             $staff->notify(new VenueSetupApprovedNotification($booking->booking_id));
+        }
+    }
+    public static function sendVenueSetupRejected($booking)
+    {
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new VenueSetupRejectedNotification($booking->booking_id));
+        }
+
+        $staffIds = StaffAssignment::where('booking_id', $booking->booking_id)
+            ->pluck('user_id')
+            ->toArray();
+
+        $staffUsers = User::whereIn('id', $staffIds)
+            ->whereIn('role', ['stylist', 'head waiter'])
+            ->get();
+
+        foreach ($staffUsers as $staff) {
+            $staff->notify(new VenueSetupRejectedNotification($booking->booking_id));
         }
     }
     

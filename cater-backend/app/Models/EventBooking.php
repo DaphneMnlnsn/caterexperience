@@ -114,9 +114,7 @@ class EventBooking extends Model
 
     public function getFinalAmountAttribute()
     {
-        $totalPrice = $this->event_total_price ?? 0;
-        $extraCharges = $this->extraCharges->sum('amount') ?? 0;
-        return $totalPrice + $extraCharges;
+        return $this->event_total_price ?? 0;
     }
 
 }

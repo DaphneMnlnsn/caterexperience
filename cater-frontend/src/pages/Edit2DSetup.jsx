@@ -8,7 +8,7 @@ import ObjectPalette from '../components/ObjectPalette';
 import axiosClient from '../axiosClient';
 
 function Edit2DSetup() {
-  const { id } = useParams();
+  const { id, canEdit } = useParams();
   const navigate = useNavigate();
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;

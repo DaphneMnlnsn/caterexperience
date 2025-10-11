@@ -6,12 +6,14 @@ import CryptoJS from 'crypto-js';
 import './Login.css';
 import Swal from 'sweetalert2';
 import background from '../assets/bg.jpg';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function Login() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -97,14 +99,20 @@ function Login() {
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
-                    <div className="input-group">
+                    <div className="input-group password-group">
                         <i className="fas fa-lock"></i>
-                        <input 
-                            type="password"
+                        <input
+                            type={showPassword ? 'text' : 'password'}
                             placeholder="Enter your password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        <span
+                            className="toggle-password"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
                     </div>
                     {error && <p style={{ color: 'red' }}>{error}</p>}
                     <div className="forgot">

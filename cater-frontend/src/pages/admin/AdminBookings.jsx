@@ -12,6 +12,9 @@ function AdminBookings() {
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;
   const navigate = useNavigate();
   const [bookingData, setBookingData] = React.useState([]);  
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterVenue, setFilterVenue] = useState('all');
+
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -65,9 +68,35 @@ function AdminBookings() {
     setSearchResults(results);
   };
 
+  const filteredEvents = bookingData.filter(e => {
+    const matchesStatus =
+      filterStatus === 'all' || e.booking_status === filterStatus;
+    const matchesVenue =
+      filterVenue === 'all' || e.event_location === filterVenue;
+    const matchesSearch =
+      !searchTerm ||
+      e.event_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${e.customer?.customer_firstname || ''} ${
+        e.customer?.customer_lastname || ''
+      }`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    return matchesStatus && matchesVenue && matchesSearch;
+  });
+
   const selectedBookings = selectedDate
-    ? bookingData.filter(e => e.event_date === selectedDate)
+    ? bookingData.filter(e => {
+        const matchesDate = e.event_date === selectedDate;
+        const matchesStatus = filterStatus === 'all' || e.booking_status === filterStatus;
+        const matchesVenue = filterVenue === 'all' || e.event_location === filterVenue;
+        return matchesDate && matchesStatus && matchesVenue;
+      })
     : [];
+
+  const activeBookingsCount = selectedBookings.filter(
+    e => e.booking_status !== 'Cancelled'
+  ).length;
 
   return (
     <div className="page-container">
@@ -78,30 +107,51 @@ function AdminBookings() {
 
         <section className="bookings-bottom">
           <div className="calendar-section">
-            <div className="search-box-bookings">
-              <input
-                type="text"
-                placeholder="🔍 Search event by title, client, or date..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              {searchResults.length > 0 && (
-                <ul className="search-results">
-                  {searchResults.map((result, index) => (
-                    <li key={index} onClick={() => {
-                      setSelectedDate(result.event_date);
-                      setSearchResults([]);
-                      setSearchTerm('');
-                    }}>
-                      <strong>{result.event_name}</strong> - {result.customer.customer_firstname} {result.customer.customer_middlename ? result.customer.customer_middlename + ' ' : ''}{result.customer.customer_lastname} ({result.event_date})
-                    </li>
+            <div className="filter-bar">
+              <div className="filters-container">
+                <select className='filter-input' value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                  <option value="all">All Statuses</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Finished">Finished</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+
+                <select className='filter-input' value={filterVenue} onChange={(e) => setFilterVenue(e.target.value)}>
+                  <option value="all">All Venues</option>
+                  {[...new Set(bookingData.map(b => b.event_location))].map((venue, idx) => (
+                    <option key={idx} value={venue}>{venue}</option>
                   ))}
-                </ul>
-              )}
+                </select>
+              </div>
+
+              <hr/>
+
+              <div className="search-box-bookings">
+                <input
+                  type="text"
+                  placeholder="🔍 Search event by title, client, or date..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                {searchResults.length > 0 && (
+                  <ul className="search-results">
+                    {searchResults.map((result, index) => (
+                      <li key={index} onClick={() => {
+                        setSelectedDate(result.event_date);
+                        setSearchResults([]);
+                        setSearchTerm('');
+                      }}>
+                        <strong>{result.event_name}</strong> - {result.customer.customer_firstname} {result.customer.customer_middlename ? result.customer.customer_middlename + ' ' : ''}{result.customer.customer_lastname} ({result.event_date})
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
 
+
             <BookingCalendar
-              allEvents={bookingData}
+              allEvents={filteredEvents}
               selectedDate={selectedDate}
               onDateClick={(dateStr) => {
                 console.log("Clicked date:", dateStr);
@@ -117,7 +167,7 @@ function AdminBookings() {
                 <button className="close-btn" onClick={() => setSelectedDate(null)}>×</button>
               </div>
 
-              {selectedBookings.length >= 3 ? (
+              {activeBookingsCount >= 3 ? (
                 <div className="event-limit-warning">⚠ Cannot handle more events on this day</div>
               ) : !isWithinRestrictedRange ? (
                 <button

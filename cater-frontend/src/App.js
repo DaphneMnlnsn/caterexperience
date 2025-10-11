@@ -190,7 +190,7 @@ export default function App(){
         />
 
         <Route
-          path="/edit/:id"
+          path="/edit/:id/:canEdit"
           element={
             <ProtectedRoute allowedRoles={['admin', 'stylist']}>
               <Edit2DSetup />
@@ -199,7 +199,7 @@ export default function App(){
         />
 
         <Route
-          path="/view/:id"
+          path="/view/:id/:canEdit"
           element={
             <ProtectedRoute allowedRoles={['admin', 'stylist', 'head waiter', 'client']}>
               <View2DSetup />

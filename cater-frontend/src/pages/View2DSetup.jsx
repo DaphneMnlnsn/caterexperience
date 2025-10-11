@@ -7,7 +7,8 @@ import axiosClient from '../axiosClient';
 import Header from '../components/Header';
 
 function View2DSetup() {
-  const { id } = useParams();
+  const { id, canEdit } = useParams();
+  const canEditBool = canEdit === "true";
   const navigate = useNavigate();
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;
@@ -70,7 +71,7 @@ function View2DSetup() {
         <Header user={user} />
 
         <div className="canvas-container">
-          <VenueCanvas ref={canvasRef} setupId={setupId} isClient={isClient} isWaiter={isWaiter} />
+          <VenueCanvas ref={canvasRef} canEdit={canEditBool} setupId={setupId} isClient={isClient} isWaiter={isWaiter} />
         </div>
       </div>
     </div>

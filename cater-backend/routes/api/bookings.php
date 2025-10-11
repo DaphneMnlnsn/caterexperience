@@ -19,7 +19,6 @@ Route::middleware('role:admin')->group(function () {
     });
     Route::put('/assigned-inventory/{id}', [BookingInventoryController::class, 'update']);
     Route::delete('/assigned-inventory/{id}', [BookingInventoryController::class, 'destroy']);
-    Route::put('/requests/{id}/status', [BookingChangeRequestController::class, 'updateStatus']);
 });
 
 Route::middleware('role:admin,stylist,head waiter')->group(function () {
@@ -34,7 +33,12 @@ Route::middleware('role:admin,stylist,head waiter,cook,client')->group(function 
     Route::get('/calendar/events', [EventBookingController::class, 'calendarEvents']);
     Route::prefix('bookings')->group(function () {
         Route::get('/{id}', [EventBookingController::class, 'indexSelected']);
+        Route::get('/{bookingId}/requests', [BookingChangeRequestController::class, 'index']);
     });
+});
+
+Route::middleware('role:admin,stylist,head waiter,cook')->group(function () {
+    Route::put('/requests/{id}/status', [BookingChangeRequestController::class, 'updateStatus']);
 });
 
 Route::middleware('role:stylist,head waiter,cook,client')->group(function () {
@@ -54,6 +58,5 @@ Route::middleware('role:cook')->group(function () {
 Route::middleware('role:admin,client')->group(function () {
     Route::prefix('bookings')->group(function () {
         Route::post('/{bookingId}/requests', [BookingChangeRequestController::class, 'store']);
-        Route::get('/{bookingId}/requests', [BookingChangeRequestController::class, 'index']);
     });
 });

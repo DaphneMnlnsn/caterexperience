@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import axiosClient from '../axiosClient';
 import './RequestChangesModal.css';
 
-function RequestChangesModal({ show, onClose, bookingId, onSave, isClient }) {
+function RequestChangesModal({ show, onClose, bookingId, onSave, isClient, isAdmin }) {
   const [requestText, setRequestText] = useState('');
   const [requests, setRequests] = useState([]);
 

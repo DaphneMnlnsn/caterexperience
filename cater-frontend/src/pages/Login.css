@@ -92,6 +92,22 @@ div{
   background-color: #F9EC3F;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+.password-group {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+}
+
+.toggle-password:hover {
+  color: #000;
+}
 
 @media (max-width: 768px) {
   .login-box {

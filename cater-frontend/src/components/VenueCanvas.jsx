@@ -57,7 +57,7 @@ const getAnyProp = (props, name, fallback = undefined) => {
 };
 
 function VenueCanvas(props, ref) {
-  const { setupId, bookingId, templateId, isClient, isWaiter, venueRealWidthMeters = null, venueRealAreaMeters = null } = props;
+  const { setupId, bookingId, canEdit, templateId, isClient, isWaiter, venueRealWidthMeters = null, venueRealAreaMeters = null } = props;
   const stageRef = useRef();
   const trRef = useRef();
   const groupRefs = useRef({});
@@ -1109,6 +1109,27 @@ function VenueCanvas(props, ref) {
     });
   };
 
+  const handleRejectSetup = () => {
+    Swal.fire({
+      title: 'Reject this venue setup?',
+      text: 'Once rejected, it will be finalized.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, reject',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosClient.put(`/setups/reject/${setupId}`)
+          .then(() => {
+            Swal.fire('Rejected!', 'The venue setup has been rejected. Please tell us your requested changes on the request changes function.', 'success');
+          })
+          .catch((err) => {
+            console.error(err.response?.data || err.message);
+            Swal.fire('Error', 'Could not reject the setup.', 'error');
+          });
+      }
+    });
+  };
+
   return (
     <div
       onDrop={handleDrop}
@@ -1183,6 +1204,22 @@ function VenueCanvas(props, ref) {
               opacity: savingTemplate ? 0.7 : 1
             }}>
             Approve Setup</button>
+        )}
+        {isClient && canEdit && (
+          <button onClick={() => handleRejectSetup()} 
+          style={{
+              background: "#ff4e4eff",
+              color: "#000",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: savingTemplate ? "not-allowed" : "pointer",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+              fontFamily: 'Lora, serif',
+              fontWeight: 800,
+              opacity: savingTemplate ? 0.7 : 1
+            }}>
+            Reject Setup</button>
         )}
       </div>
 

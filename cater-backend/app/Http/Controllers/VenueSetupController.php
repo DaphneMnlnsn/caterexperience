@@ -286,4 +286,23 @@ class VenueSetupController extends Controller
 
         return response()->json(['message' => 'Setup approved']);
     }
+    public function reject(Request $request, $id)
+    {
+        $setup = VenueSetup::find($id);
+
+        if (!$setup) {
+            return response()->json(['message' => 'Setup not found'], 404);
+        }
+
+        $setup->status = 'pending';
+        $setup->save();
+
+        $booking = $setup->booking;
+
+        NotificationService::sendVenueSetupRejected($booking);
+
+        AuditLogger::log('Updated', "Module: Venue Setup | Rejected Setup {$setup->layout_name}");
+
+        return response()->json(['message' => 'Setup rejected']);
+    }
 }

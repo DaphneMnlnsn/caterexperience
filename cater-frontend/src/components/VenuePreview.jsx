@@ -9,7 +9,7 @@ import poolsideImg from "../assets/Poolside.svg";
 import airconImg from "../assets/Aircon.svg";
 import OutsideVenueLayout from "./OutsideVenueLayout";
 
-function VenuePreview({ bookingId, isWaiter, isClient }) {
+function VenuePreview({ bookingId, isWaiter, isClient, canEdit }) {
   const navigate = useNavigate();
   const [status, setStatus] = useState(null);
   const [venueType, setVenueType] = useState(null);
@@ -62,7 +62,7 @@ function VenuePreview({ bookingId, isWaiter, isClient }) {
           {isVisible ? (
             <button
               className="booking-edit-btn"
-              onClick={() => navigate(`/view/${bookingId}`)}
+              onClick={() => navigate(`/view/${bookingId}/${canEdit}`)}
             >
               View 2D Design
             </button>
@@ -70,7 +70,7 @@ function VenuePreview({ bookingId, isWaiter, isClient }) {
             !(isWaiter || isClient) && (
               <button
                 className="booking-edit-btn venue-btn"
-                onClick={() => navigate(`/edit/${bookingId}`)}
+                onClick={() => navigate(`/edit/${bookingId}/${canEdit}`)}
               >
                 Edit 2D Design
               </button>

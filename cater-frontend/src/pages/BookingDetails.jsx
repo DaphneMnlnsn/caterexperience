@@ -397,6 +397,15 @@ function BookingDetails() {
     return today < oneWeekBefore;
   };
 
+  const canEditSetup = () => {
+    if (!booking) return false;
+    const today = new Date();
+    const eventDate = new Date(booking.event_start);
+    const fiveDaysBefore = new Date(eventDate);
+    fiveDaysBefore.setDate(eventDate.getDate() - 5);
+    return today < fiveDaysBefore;
+  };
+
   const handleFinishClick = () => {
     const balance = parseFloat(booking.final_amount) - parseFloat(booking.amount_paid);
 
@@ -434,7 +443,7 @@ function BookingDetails() {
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
               )}
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isAdmin && (
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && !isClient && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>See Requested Changes</button>
               )}
               {isEditing ? (
@@ -836,7 +845,7 @@ function BookingDetails() {
                   <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
                 )}
               </div>
-              <VenuePreview bookingId={booking.booking_id} isWaiter={isWaiter} isClient={isClient}/>
+              <VenuePreview bookingId={booking.booking_id} canEdit={canEditSetup()} isWaiter={isWaiter} isClient={isClient}/>
             </div>
 
             <hr className="booking-section-divider" />
@@ -1119,6 +1128,7 @@ function BookingDetails() {
         isAdmin={isAdmin}
         currentUserId={user.id}
       />
+      <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
 
       {isAdmin && (
         <>
@@ -1132,7 +1142,6 @@ function BookingDetails() {
 
       {(isClient || isAdmin) && (
         <>
-          <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
           <ExtraChargesModal show={showChargesModal} onClose={() => setShowChargesModal(false)} onSave={fetchDetails} bookingId={id} />
         </>
       )}
