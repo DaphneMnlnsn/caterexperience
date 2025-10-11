@@ -21,8 +21,9 @@ class BackupController extends Controller
 
     public function run()
     {
-        Artisan::call('backup:run');
-        return redirect()->back()->with('success', 'Backup created successfully!');
+        Artisan::queue('backup:run');
+        return response()->json(['message' => 'Backup started!']);
+
     }
 
     public function delete(Request $request)

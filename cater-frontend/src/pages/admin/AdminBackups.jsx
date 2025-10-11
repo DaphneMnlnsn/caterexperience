@@ -29,9 +29,26 @@ function AdminBackups() {
 
         axiosClient.post('/backups/run')
             .then(() => {
-                Swal.close();
-                Swal.fire('Success!', 'Backup created successfully.', 'success');
-                fetchBackups();
+                const checkBackups = (attempts = 0) => {
+                    axiosClient.get('/backups')
+                        .then(res => {
+                            setBackups(res.data.backups);
+
+                            if (attempts < 5 && (!res.data.backups.length || res.data.backups[0].createdAt < Date.now() - 5000)) {
+                                setTimeout(() => checkBackups(attempts + 1), 2000);
+                            } else {
+                                Swal.close();
+                                Swal.fire('Success!', 'Backup created successfully.', 'success');
+                            }
+                        })
+                        .catch(err => {
+                            Swal.close();
+                            Swal.fire('Error', 'Failed to fetch backups.', 'error');
+                            console.error(err);
+                        });
+                };
+
+                checkBackups();
             })
             .catch(err => {
                 Swal.close();

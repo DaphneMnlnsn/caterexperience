@@ -156,7 +156,6 @@ class PaymentController extends Controller
     public function generateReport(Request $request)
     {
         $generatedBy = $request->input('generated_by');
-        $totalAmount = Payment::sum('amount_paid');
 
         $query = DB::table('payment')
             ->join('event_booking', 'payment.booking_id', '=', 'event_booking.booking_id')
@@ -183,6 +182,8 @@ class PaymentController extends Controller
         }
 
         $payments = $query->orderBy('payment.payment_date', 'asc')->get();
+
+        $totalAmount = $query->sum('payment.amount_paid');
 
         $pdf = Pdf::loadView('reports.finance', [
             'payments' => $payments,
