@@ -130,7 +130,7 @@ function EditAddonModal({ show, onClose, onSave, addon }) {
           })
           .catch((err) => {
             console.error('Delete Error:', err.response?.data || err.message);
-            Swal.fire('Error', 'Failed to delete the addon.', 'error');
+            Swal.fire('Error', 'There was a problem deleting the addon. It may be currently linked to one or more event records.', 'error');
           });
       }
     });

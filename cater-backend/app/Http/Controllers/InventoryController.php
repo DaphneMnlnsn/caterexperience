@@ -41,6 +41,15 @@ class InventoryController extends Controller
         $validated['item_current_quantity'] = $validated['item_quantity'];
         $validated['last_updated_on'] = Carbon::now();
         $validated['last_updated_by'] = Auth::id();
+        
+        $existingItem = Inventory::whereRaw('LOWER(item_name) = ?', [strtolower($validated['item_name'])])
+        ->first();
+
+        if ($existingItem) {
+            return response()->json([
+                'message' => 'Item already exists.',
+            ], 409);
+        }
 
         $item = Inventory::create($validated);
 

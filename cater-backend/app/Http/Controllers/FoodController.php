@@ -29,6 +29,16 @@ class FoodController extends Controller
             'is_halal' => 'required|boolean',
         ]);
 
+        $existingFood = Food::whereRaw('LOWER(food_name) = ?', [strtolower($validated['food_name'])])
+        ->where('food_type', $validated['food_type'])
+        ->first();
+
+        if ($existingFood) {
+            return response()->json([
+                'message' => 'Food already exists in this type.',
+            ], 409);
+        }
+
         $food = Food::create([
             'food_name' => $validated['food_name'],
             'food_type' => $validated['food_type'],

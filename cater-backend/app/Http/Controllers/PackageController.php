@@ -32,6 +32,16 @@ class PackageController extends Controller
             'price_tiers.*.status' => 'required|string'
         ]);
 
+        $existingPackage = Package::whereRaw('LOWER(package_name) = ?', [strtolower($validated['package_name'])])
+        ->where('package_type', $validated['package_type'])
+        ->first();
+
+        if ($existingPackage) {
+            return response()->json([
+                'message' => 'Package already exists in this type.',
+            ], 409);
+        }
+
         $package = Package::create($validated);
 
         if (!empty($request->price_tiers)) {

@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('booking_id')->references('booking_id')->on('event_booking')->onDelete('cascade');
-            $table->foreign('addon_id')->references('addon_id')->on('addons')->onDelete('cascade');
+            $table->foreign('addon_id')->references('addon_id')->on('addons')->onDelete('restrict');
             $table->foreign('addon_price_id')->references('addon_price_id')->on('addon_prices')->onDelete('set null');
         });
     }

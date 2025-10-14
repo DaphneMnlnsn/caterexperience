@@ -29,6 +29,15 @@ class AddonController extends Controller
             'prices.*.price' => 'required|numeric',
         ]);
 
+        $existingAddon = Addon::whereRaw('LOWER(addon_name) = ?', [strtolower($validated['addon_name'])])
+        ->first();
+
+        if ($existingAddon) {
+            return response()->json([
+                'message' => 'Addon already exists.',
+            ], 409);
+        }
+
         $addon = Addon::create($validated);
 
         if (!empty($request->prices)) {

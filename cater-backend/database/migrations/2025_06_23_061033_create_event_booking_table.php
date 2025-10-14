@@ -43,11 +43,11 @@ return new class extends Migration
             
             $table->timestamps();
 
-            $table->foreign('customer_id')->references('customer_id')->on('customers')->onDelete('cascade');
-            $table->foreign('package_id')->references('package_id')->on('packages')->onDelete('cascade');
-            $table->foreign('package_price_id')->references('package_price_id')->on('package_price')->onDelete('cascade');
-            $table->foreign('menu_id')->references('menu_id')->on('menu')->onDelete('set null');
-            $table->foreign('theme_id')->references('theme_id')->on('themes')->onDelete('set null');
+            $table->foreign('customer_id')->references('customer_id')->on('customers')->onDelete('restrict');
+            $table->foreign('package_id')->references('package_id')->on('packages')->onDelete('restrict');
+            $table->foreign('package_price_id')->references('package_price_id')->on('package_price')->onDelete('set null');
+            $table->foreign('menu_id')->references('menu_id')->on('menu')->onDelete('restrict');
+            $table->foreign('theme_id')->references('theme_id')->on('themes')->onDelete('restrict');
         });
     }
 

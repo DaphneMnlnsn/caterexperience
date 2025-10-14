@@ -103,15 +103,19 @@ function AddThemeModal({ show, onClose, onSave }) {
         axiosClient.post('/themes', payload, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
-          .then((res) => {
-            Swal.fire('Saved!', 'Theme has been added.', 'success');
-            onSave(res.data.theme);
-            onClose();
-          })
-          .catch((err) => {
+        .then((res) => {
+          Swal.fire('Saved!', 'Theme has been added.', 'success');
+          onSave(res.data.theme);
+          onClose();
+        })
+        .catch((err) => {
+          if (err.response && err.response.status === 409) {
+            Swal.fire('Duplicate', 'This theme already exists.', 'warning');
+          } else {
             console.error('Error:', err.response?.data || err.message);
             Swal.fire('Error', 'There was a problem saving the theme.', 'error');
-          });
+          }
+        });
       }
     });
   };

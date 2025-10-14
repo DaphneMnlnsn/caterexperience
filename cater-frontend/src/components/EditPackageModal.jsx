@@ -151,7 +151,7 @@ function EditPackageModal({ show, onClose, onSave, pkg }) {
           })
           .catch((err) => {
             console.error('Delete error:', err.response?.data || err.message);
-            Swal.fire('Error', 'There was a problem deleting the package.', 'error');
+            Swal.fire('Error', 'There was a problem deleting the package. It may be currently linked to one or more event records.', 'error');
           });
       }
     });

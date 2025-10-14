@@ -22,7 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('booking_id')->references('booking_id')->on('event_booking')->onDelete('cascade');
-            $table->foreign('item_id')->references('item_id')->on('inventory')->onDelete('cascade');
+            $table->foreign('item_id')->references('item_id')->on('inventory')->onDelete('restrict');
         });
     }
 

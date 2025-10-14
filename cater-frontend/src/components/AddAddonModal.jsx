@@ -86,15 +86,19 @@ function AddAddonModal({ show, onClose, onSave }) {
     }).then((result) => {
       if (result.isConfirmed) {
         axiosClient.post('/addons', formData)
-          .then((res) => {
-            Swal.fire('Saved!', 'Addon has been added.', 'success');
-            onSave(res.data.addon);
-            onClose();
-          })
-          .catch((err) => {
+        .then((res) => {
+          Swal.fire('Saved!', 'Addon has been added.', 'success');
+          onSave(res.data.addon);
+          onClose();
+        })
+        .catch((err) => {
+          if (err.response && err.response.status === 409) {
+            Swal.fire('Duplicate', 'This addon already exists.', 'warning');
+          } else {
             console.error('Error:', err.response?.data || err.message);
             Swal.fire('Error', 'There was a problem saving the addon.', 'error');
-          });
+          }
+        });
       }
     });
   };
@@ -132,7 +136,7 @@ function AddAddonModal({ show, onClose, onSave }) {
             <option value="Other">Other</option>
           </select>
 
-          <label>Description</label>
+          <label>Description (optional)</label>
           <textarea
             name="addon_description"
             value={formData.addon_description}

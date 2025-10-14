@@ -160,7 +160,7 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
           })
           .catch((err) => {
             console.error(err.response?.data || err.message);
-            Swal.fire('Error', 'There was a problem deleting the theme.', 'error');
+            Swal.fire('Error', 'There was a problem deleting the theme. It may be currently linked to one or more event records.', 'error');
           });
       }
     });

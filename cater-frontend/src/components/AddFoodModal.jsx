@@ -111,8 +111,12 @@ function AddFoodModal({ show, onClose, onSave }) {
             });
           })
           .catch((err) => {
-            console.error('Error:', err.response?.data || err.message);
-            Swal.fire('Error', 'There was a problem saving the food.', 'error');
+            if (err.response && err.response.status === 409) {
+              Swal.fire('Duplicate', 'This food item already exists.', 'warning');
+            } else {
+              console.error('Error:', err.response?.data || err.message);
+              Swal.fire('Error', 'There was a problem saving the food.', 'error');
+            }
           });
       }
     });

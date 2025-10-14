@@ -141,7 +141,7 @@ function EditFoodModal({ show, onClose, onSave, food }) {
           })
           .catch((err) => {
             console.error('Delete Error:', err.response?.data || err.message);
-            Swal.fire('Error', 'Failed to delete food.', 'error');
+            Swal.fire('Error', 'There was a problem deleting the food. It may be currently linked to one or more event records.', 'error');
           });
       }
     });

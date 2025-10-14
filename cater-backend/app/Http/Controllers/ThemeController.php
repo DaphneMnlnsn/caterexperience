@@ -24,6 +24,15 @@ class ThemeController extends Controller
             'theme_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        $existingTheme = Theme::whereRaw('LOWER(theme_name) = ?', [strtolower($validated['theme_name'])])
+        ->first();
+
+        if ($existingTheme) {
+            return response()->json([
+                'message' => 'Theme already exists in this type.',
+            ], 409);
+        }
+
         $theme = Theme::create([
             'theme_name' => $validated['theme_name'],
             'theme_description' => $validated['theme_description'] ?? null,

@@ -18,8 +18,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'completed'])->default('pending');
             $table->timestamp('completed_at')->nullable();
 
-            $table->foreign('menu_id')->references('menu_id')->on('menu')->onDelete('cascade');
-            $table->foreign('food_id')->references('food_id')->on('food')->onDelete('cascade');
+            $table->foreign('menu_id')->references('menu_id')->on('menu')->onDelete('restrict');
+            $table->foreign('food_id')->references('food_id')->on('food')->onDelete('restrict');
         });
     }
 

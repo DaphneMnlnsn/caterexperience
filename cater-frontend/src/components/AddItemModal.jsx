@@ -77,15 +77,19 @@ function AddItemModal({ show, onClose, onSave }) {
         };
 
         axiosClient.post('/inventory', payload)
-          .then((res) => {
-            Swal.fire('Saved!', 'Item has been added.', 'success');
-            onSave(res.data.package);
-            onClose();
-          })
-          .catch((err) => {
+        .then((res) => {
+          Swal.fire('Saved!', 'Item has been added.', 'success');
+          onSave(res.data.package);
+          onClose();
+        })
+        .catch((err) => {
+          if (err.response && err.response.status === 409) {
+            Swal.fire('Duplicate', 'This item already exists.', 'warning');
+          } else {
             console.error('Error:', err.response?.data || err.message);
             Swal.fire('Error', 'There was a problem saving the item.', 'error');
-          });
+          }
+        });
       }
     });
   };
@@ -136,7 +140,7 @@ function AddItemModal({ show, onClose, onSave }) {
             </div>
         </div>
 
-          <label>Description</label>
+          <label>Description (optional)</label>
           <textarea
             name="item_description"
             value={formData.item_description}
