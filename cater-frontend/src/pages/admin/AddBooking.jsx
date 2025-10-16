@@ -211,7 +211,7 @@ function AddBooking() {
             }
         }
         setTotalAmount(total);
-    }, [selectedPackageTier, selectedAddons]);
+    }, [selectedPackageTier, selectedAddons, form.eventStart, form.eventEnd]);
 
 
     const handleCustomerSearch = e => {
@@ -831,6 +831,10 @@ function AddBooking() {
                         onChange={e => {
                             const tier = packageTiers.find(t => t.package_price_id === +e.target.value);
                             setSelectedPackageTier(tier);
+
+                            if (tier && tier.pax) {
+                                setForm(prev => ({ ...prev, pax: tier.pax }));
+                            }
                         }}
                         >
                         <option value="">Choose Tier…</option>

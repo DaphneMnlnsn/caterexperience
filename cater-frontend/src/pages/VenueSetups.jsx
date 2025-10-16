@@ -61,6 +61,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     });
   }
 
+  const canEdit = (booking) => {
+    if (!booking) return false;
+    return true;
+  };
+
   return (
     <div className="page-container">
       <Sidebar />
@@ -129,7 +134,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         <div className="venue-actions">
                         {setup.status != 'approved' && setup.status != 'submitted' ? (
                           <>
-                            <button className="edit-2d-btn" onClick={() => navigate(`/edit/${setup.booking_id}`)}>
+                            <button className="edit-2d-btn" onClick={() => navigate(`/edit/${setup.booking_id}/${canEdit(setup.booking)}`)}>
                                 Edit 2D Design
                             </button>
                             <button className="edit-2d-btn submit-client" onClick={() => handleSubmit(setup.setup_id)}>
@@ -137,7 +142,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                             </button>
                           </>
                         ) : (
-                            <button className="edit-2d-btn" onClick={() => navigate(`/view/${setup.booking_id}`)}>
+                            <button className="edit-2d-btn" onClick={() => navigate(`/view/${setup.booking_id}/${canEdit(setup.booking)}`)}>
                                 View 2D Design
                             </button>
                         )}

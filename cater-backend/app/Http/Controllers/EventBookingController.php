@@ -74,27 +74,31 @@ class EventBookingController extends Controller
         $token = PersonalAccessToken::findToken($accessToken);
         $user = $token?->tokenable;
 
-        if ($user instanceof \App\Models\User) {
-            $bookings = EventBooking::with('customer')
-                ->whereHas('staffAssignments', function ($query) use ($user) {
-                    $query->where('user_id', $user->id);
-                })
-                ->orderBy('booking_id', 'asc')
-                ->paginate(10);
+        $query = EventBooking::with('customer');
 
-            AuditLogger::log('Viewed', "Module: Event Booking | Staff ID {$user->id} viewed assigned bookings");
-
-        } elseif ($user instanceof \App\Models\Customer) {
-            $bookings = EventBooking::with('customer')
-                ->where('customer_id', $user->customer_id)
-                ->orderBy('booking_id', 'asc')
-                ->paginate(10);
-
-            AuditLogger::log('Viewed', "Module: Event Booking | Customer ID {$user->customer_id} viewed their bookings");
-
+        if ($user instanceof User) {
+            $query->whereHas('staffAssignments', fn($q) => $q->where('user_id', $user->id));
+        } elseif ($user instanceof Customer) {
+            $query->where('customer_id', $user->customer_id);
         } else {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         }
+
+        if ($status = $request->query('status')) {
+            $query->where('booking_status', $status);
+        }
+        if ($search = $request->query('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('event_name', 'like', "%{$search}%")
+                ->orWhereHas('customer', function ($cq) use ($search) {
+                    $cq->where('customer_firstname', 'like', "%{$search}%")
+                        ->orWhere('customer_middlename', 'like', "%{$search}%")
+                        ->orWhere('customer_lastname', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $bookings = $query->orderBy('booking_id', 'asc')->paginate($request->per_page ?? 5);
 
         return response()->json([
             'bookings' => $bookings->items(),
@@ -110,7 +114,7 @@ class EventBookingController extends Controller
     public function indexSelected(Request $request, $id)
     {
         $accessToken = $request->bearerToken();
-        $token = \Laravel\Sanctum\PersonalAccessToken::findToken($accessToken);
+        $token = PersonalAccessToken::findToken($accessToken);
         $user = $token?->tokenable;
 
         $booking = EventBooking::with([

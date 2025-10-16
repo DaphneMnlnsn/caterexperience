@@ -407,6 +407,27 @@ function BookingDetails() {
   };
 
   const handleFinishClick = () => {
+    const unreturnedItems = inventorySummary?.filter(
+      (item) => parseFloat(item.quantity_returned || 0) == 0
+    );
+
+    if (unreturnedItems && unreturnedItems.length > 0) {
+      const itemList = unreturnedItems
+        .map(
+          (item) =>
+            `${item.item_name} (${item.quantity_assigned - (item.quantity_returned || 0)} unreturned),`
+        )
+        .join('\n');
+
+      Swal.fire({
+        title: 'Unreturned Items Detected',
+        text: `The following items have not been fully returned:\n\n${itemList}`,
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
     const balance = parseFloat(booking.final_amount) - parseFloat(booking.amount_paid);
 
     if (balance !== 0) {

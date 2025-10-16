@@ -14,11 +14,11 @@ function Bookings() {
     const [pagination, setPagination] = useState({
         current_page: 1,
         last_page: 1,
-        per_page: 10,
+        per_page: 5,
         total: 0,
     });
     const [page, setPage] = useState(1);
-    const [perPage, setPerPage] = useState(10);
+    const [perPage, setPerPage] = useState(5);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -28,7 +28,12 @@ function Bookings() {
         setLoading(true);
         try {
             const res = await axiosClient.get('/events/assigned', {
-                params: { page, per_page: perPage }
+                params: { 
+                    page, 
+                    per_page: perPage, 
+                    status: statusFilter || undefined,
+                    search: searchTerm || undefined
+                }
             });
 
             setBookings(res.data.bookings || []);
@@ -46,7 +51,7 @@ function Bookings() {
 
     useEffect(() => {
         fetchBookings();
-    }, [page, perPage]);
+    }, [page, perPage, statusFilter, searchTerm]);
 
     const filteredBookings = bookings.filter(b => {
         const fullName = `${b.customer.customer_firstname} ${b.customer.customer_middlename ? b.customer.customer_middlename + ' ' : ''}${b.customer.customer_lastname}`.toLowerCase();

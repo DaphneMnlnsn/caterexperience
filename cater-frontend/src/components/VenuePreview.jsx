@@ -70,7 +70,7 @@ function VenuePreview({ bookingId, isWaiter, isClient, canEdit }) {
             !(isWaiter || isClient) && (
               <button
                 className="booking-edit-btn venue-btn"
-                onClick={() => navigate(`/edit/${bookingId}/${canEdit}`)}
+                onClick={() => navigate(`/edit/${bookingId}/true`)}
               >
                 Edit 2D Design
               </button>
