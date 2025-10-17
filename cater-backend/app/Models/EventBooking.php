@@ -92,7 +92,12 @@ class EventBooking extends Model
     {
         return $this->hasMany(ExtraCharge::class, 'booking_id', 'booking_id');
     }
-    
+
+    public function feedback()
+    {
+        return $this->hasOne(Feedback::class, 'booking_id', 'booking_id');
+    }
+
     protected static function generateReadableCode($length = 6)
     {
         $pool = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

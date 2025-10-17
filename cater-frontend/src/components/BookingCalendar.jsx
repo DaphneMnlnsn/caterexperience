@@ -7,7 +7,7 @@ import './BookingCalendar.css';
 export default function BookingCalendar({ onDateClick, allEvents, selectedDate }) {
   const calendarRef = useRef(null);
 
-  useEffect(() => {
+  const updateDayBadges = () => {
     const calendarApi = calendarRef.current?.getApi();
     if (!calendarApi) return;
 
@@ -31,6 +31,10 @@ export default function BookingCalendar({ onDateClick, allEvents, selectedDate }
         cell.classList.remove('selected-date');
       }
     });
+  };
+
+  useEffect(() => {
+    updateDayBadges();
   }, [allEvents, selectedDate]);
 
   return (
@@ -42,8 +46,9 @@ export default function BookingCalendar({ onDateClick, allEvents, selectedDate }
         initialView="dayGridMonth"
         height="auto"
         events={[]}
-        dateClick={(info) => {
-          onDateClick(info.dateStr);
+        dateClick={(info) => onDateClick(info.dateStr)}
+        datesSet={() => {
+          setTimeout(updateDayBadges, 0);
         }}
       />
     </div>

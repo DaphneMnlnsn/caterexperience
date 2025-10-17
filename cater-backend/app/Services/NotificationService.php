@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\BookingCancelledNotification;
 use App\Notifications\BookingChangeRequestNotification;
 use App\Notifications\BookingUpdatedNotification;
+use App\Notifications\FeedbackSubmittedNotification;
 use App\Notifications\InformationUpdatedNotification;
 use App\Notifications\PasswordResettedNotification;
 use App\Notifications\TaskAssignedNotification;
@@ -141,6 +142,14 @@ class NotificationService
 
         foreach ($staffUsers as $staff) {
             $staff->notify(new VenueSetupRejectedNotification($booking->booking_id));
+        }
+    }
+
+    public static function sendFeedbackSubmitted($booking)
+    {
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new FeedbackSubmittedNotification($booking));
         }
     }
     

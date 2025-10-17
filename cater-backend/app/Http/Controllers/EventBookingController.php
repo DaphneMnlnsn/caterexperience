@@ -54,20 +54,15 @@ class EventBookingController extends Controller
     {
         $bookings = EventBooking::with('customer')
                     ->orderBy('booking_id', 'desc')
-                    ->paginate(10);
-        
+                    ->get();
+
         AuditLogger::log('Viewed', 'Module: Event Booking | Viewed booking list');
 
         return response()->json([
-            'bookings' => $bookings->items(),
-            'pagination' => [
-                'current_page' => $bookings->currentPage(),
-                'last_page' => $bookings->lastPage(),
-                'per_page' => $bookings->perPage(),
-                'total' => $bookings->total(),
-            ],
+            'bookings' => $bookings
         ]);
     }
+
     public function indexAssigned(Request $request)
     {
         $accessToken = $request->bearerToken();

@@ -17,6 +17,7 @@ import Header from '../components/Header';
 import AddExtraChargeModal from '../components/AddExtraChargeModal';
 import ExtraChargesModal from '../components/ExtraChargesModal';
 import RescheduleModal from '../components/RescheduleModal';
+import FeedbackModal from '../components/FeedbackModal';
 
 function BookingDetails() {
   const { id } = useParams();
@@ -41,6 +42,7 @@ function BookingDetails() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [showRequestChangesModal, setShowRequestChangesModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [showAddChargeModal, setShowAddChargeModal] = useState(false);
   const [showChargesModal, setShowChargesModal] = useState(false);
@@ -466,6 +468,20 @@ function BookingDetails() {
               )}
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && !isClient && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>See Requested Changes</button>
+              )}
+              {isClient &&
+                booking.booking_status !== 'Cancelled' &&
+                new Date(booking.event_date) <= new Date() && (
+                  <>
+                    <button onClick={() => setShowFeedbackModal(true)} className="booking-edit-btn">Rate your Experience</button>
+                  </>
+              )}
+              {isAdmin &&
+                booking.booking_status !== 'Cancelled' &&
+                new Date(booking.event_date) <= new Date() && (
+                  <>
+                    <button onClick={() => setShowFeedbackModal(true)} className="booking-edit-btn">Show Customer Feedback</button>
+                  </>
               )}
               {isEditing ? (
                 <>
@@ -1150,7 +1166,8 @@ function BookingDetails() {
         currentUserId={user.id}
       />
       <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
-
+      <FeedbackModal show={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
+      
       {isAdmin && (
         <>
           <AddBookingItemModal show={showAddItemModal} onClose={() => setShowAddItemModal(false)} onSave={fetchDetails} bookingId={id} />
