@@ -4,7 +4,7 @@ import AddItemModal from '../../components/AddItemModal';
 import EditItemModal from '../../components/EditItemModal';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaArchive, FaPen, FaUndo } from 'react-icons/fa';
+import { FaArchive, FaPen, FaSearch, FaUndo } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Header from '../../components/Header';
 
@@ -95,9 +95,10 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <h3>Inventory Tracking</h3>
                     <div className="page-header-actions">
                         <div className="search-box">
+                            <FaSearch className="search-icon" />
                             <input
                             type="text"
-                            placeholder="🔍 Search items by name or type..."
+                            placeholder="Search items by name or type..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             />

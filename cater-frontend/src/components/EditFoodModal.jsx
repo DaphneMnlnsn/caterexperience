@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import './AddFoodModal.css';
 import axiosClient from '../axiosClient';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 
 function EditFoodModal({ show, onClose, onSave, food }) {
   const [formData, setFormData] = useState({
@@ -276,9 +277,15 @@ function EditFoodModal({ show, onClose, onSave, food }) {
             {!isEditing ? (
               <div className="halal-status-display">
                 Halal Status:{' '}
-                <span className={formData.is_halal ? 'halal-yes' : 'halal-no'}>
-                  {formData.is_halal ? '✅ Halal' : '❌ Not Halal'}
-                </span>
+                {formData.is_halal ? (
+                  <span className="halal-yes">
+                    <FaCheck /> Halal
+                  </span>
+                ) : (
+                  <span className="halal-no">
+                    <FaTimes /> Not Halal
+                  </span>
+                )}
               </div>
             ) : (
               <>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './AdminUsers.css';
 import Sidebar from '../../components/Sidebar';
-import { FaReceipt } from 'react-icons/fa';
+import { FaReceipt, FaSearch } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Invoice from '../../components/Invoice';
 import dayjs from 'dayjs';
@@ -100,10 +100,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <h3>Payment Records</h3>
                     <div className="page-header-actions">
                         <div className="search-box">
+                            <FaSearch className="search-icon" />
                             <input
                             type="text"
                             name="search"
-                            placeholder="🔍 Search payment record by customer name or event name..."
+                            placeholder="Search payment record by customer name or event name..."
                             value={filters.search}
                             onChange={handleFilterChange}
                             />

@@ -122,7 +122,7 @@ class BookingInventoryController extends Controller
         $usage->booking_inventory_id = $bookingInventoryId;
         $usage->save();
 
-        AuditLogger::log('Updated', 'Module: Booking Details | Item ID: ' . $bookingInventoryId . ' | Used: ' . ($validated['quantity_used'] ?? 0) . ' | Returned: ' . ($validated['quantity_returned'] ?? 0));
+        AuditLogger::log('Updated', 'Module: Booking Details | Item ID: ' . $bookingInventoryId . ' | Returned: ' . ($validated['quantity_returned'] ?? 0));
 
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {

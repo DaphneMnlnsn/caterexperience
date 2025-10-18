@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { FaInfoCircle, FaTrash } from 'react-icons/fa';
+import { FaInfoCircle, FaSearch, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import axiosClient from '../axiosClient';
 import './Bookings.css';
@@ -75,10 +75,11 @@ function Notifications() {
               <option value="read">Read</option>
             </select>
 
-            <div className="client-search-box">
+            <div className="search-box">
+              <FaSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="🔍 Search notifications..."
+                placeholder="Search notifications..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />

@@ -106,15 +106,9 @@ function ClientDetails() {
   const handleSaveChanges = (e) => {
     e.preventDefault();
 
-    const phoneDigits = editedClient.customer_phone.replace('+639', '');
-
-    if (phoneDigits.length < 9) {
-      Swal.fire({
-        title: 'Invalid Contact Number',
-        text: 'Contact number must have 9 digits after +639.',
-        icon: 'warning',
-        confirmButtonColor: '#3085d6',
-      });
+    const phoneRegex = /^\+?\d{10,15}$/;
+    if (!phoneRegex.test(editedClient.customer_phone)) {
+      Swal.fire('Invalid', 'Phone number must be 10–15 digits (including +63).', 'warning');
       return;
     }
 
@@ -191,20 +185,28 @@ function ClientDetails() {
                   />
                 </label>
 
-                <label className='phone-editing'>Contact Number:
+                <label className="phone-editing">Contact Number:
                   <div className="phone-input-details">
-                    <span className="phone-prefix-details">+639</span>
                     <input
-                      type="text"
-                      placeholder="xxxxxxxxx"
-                      value={editedClient.customer_phone.replace('+639', '')}
-                      onChange={e => {
-                        const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                        setEditedClient({
-                          ...editedClient,
-                          customer_phone: `+639${digits}`,
-                        });
+                      type="tel"
+                      value={editedClient.customer_phone}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value.trim() === '') {
+                          setEditedClient({ ...editedClient, customer_phone: '+63' });
+                          return;
+                        }
+                        value = value.replace(/[^\d+]/g, '');
+                        value = value.replace(/(?!^)\+/g, '');
+                        const digitsOnly = value.startsWith('+') ? value.slice(1) : value;
+                        if (digitsOnly.length > 15) {
+                          value = (value.startsWith('+') ? '+' : '') + digitsOnly.slice(0, 15);
+                        }
+
+                        setEditedClient({ ...editedClient, customer_phone: value });
                       }}
+                      placeholder="+63xxxxxxxxxx"
+                      inputMode="tel"
                       required
                     />
                   </div>

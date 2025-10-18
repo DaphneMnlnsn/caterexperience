@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LandingNavbar from '../components/LandingNavbar';
-import { FaFacebook, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaFacebook, FaPhone, FaMapMarkerAlt, FaSearch } from 'react-icons/fa';
 import './LandingPage';
 import axiosClient from '../axiosClient';
 import Swal from 'sweetalert2';
@@ -71,9 +71,10 @@ function LandingMenu() {
                     <h3>Menu</h3>
                     <div className="page-header-actions">
                         <div className="search-box">
+                            <FaSearch className="search-icon" />
                             <input
                                 type="text"
-                                placeholder="🔍 Search food by name..."
+                                placeholder="Search food by name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />

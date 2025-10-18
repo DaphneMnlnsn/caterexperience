@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import axiosClient from '../../axiosClient';
 import dayjs from 'dayjs';
 import Header from '../../components/Header';
+import { FaSearch } from 'react-icons/fa';
 
 function AdminAudit() {
   const [auditData, setAuditData] = useState([]);
@@ -152,10 +153,11 @@ function AdminAudit() {
           <h3>Audit Log</h3>
           <div className="page-header-actions">
             <div className="search-box">
+              <FaSearch className="search-icon" />
               <input
                 type="text"
                 name="search"
-                placeholder="🔍 Search log by user name..."
+                placeholder={"Search log by user name..."}
                 value={filters.search}
                 onChange={handleFilterChange}
                 onKeyDown={(e) => {

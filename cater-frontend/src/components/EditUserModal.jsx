@@ -74,9 +74,9 @@ function EditUserModal({ show, onClose, onSave, user }) {
       return;
     }
 
-    const phoneRegex = /^[0-9]{9}$/;
+    const phoneRegex = /^\+?\d{10,15}$/;
     if (!phoneRegex.test(phone)) {
-      Swal.fire('Invalid', 'Phone number must be 9 digits after +639.', 'warning');
+      Swal.fire('Invalid', 'Phone number must be 10-15 digits.', 'warning');
       return;
     }
 
@@ -98,7 +98,7 @@ function EditUserModal({ show, onClose, onSave, user }) {
       if (result.isConfirmed) {
         axiosClient.put(`/users/${user.id}`, {
           ...formData,
-          phone: `+639${formData.phone}`,
+          phone: `${formData.phone}`,
         })
         .then((res) => {
           Swal.fire('Saved!', 'User has been updated.', 'success');
@@ -138,15 +138,25 @@ function EditUserModal({ show, onClose, onSave, user }) {
 
           <label>Phone</label>
           <div className="phone-input">
-            <span className="phone-prefix">+639</span>
             <input
-              type="text"
-              value={formData.phone.replace('+639', '')}
+              type="tel"
+              inputMode="tel"
+              value={formData.phone}
               onChange={e => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                setFormData({ ...formData, phone: digits });
+                let value = e.target.value;
+                if (value.trim() === '') {
+                  setFormData({ ...formData});
+                  return;
+                }
+                value = value.replace(/[^\d+]/g, '');
+                value = value.replace(/(?!^)\+/g, '');
+                const digitsOnly = value.startsWith('+') ? value.slice(1) : value;
+                if (digitsOnly.length > 15) {
+                  value = (value.startsWith('+') ? '+' : '') + digitsOnly.slice(0, 15);
+                }
+                setFormData({ ...formData, phone: value });
               }}
-              placeholder="xxxxxxxxx"
+              placeholder="+63xxxxxxxxxx"
             />
           </div>
 

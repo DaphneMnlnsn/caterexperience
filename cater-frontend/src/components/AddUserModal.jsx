@@ -9,7 +9,7 @@ function AddUserModal({ show, onClose, onSave }) {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
+    phone: '+63',
     address: '',
     gender: '',
     role: '',
@@ -36,9 +36,9 @@ function AddUserModal({ show, onClose, onSave }) {
       return;
     }
 
-    const phoneRegex = /^[0-9]{9}$/;
+    const phoneRegex = /^\+?\d{10,15}$/;
     if (!phoneRegex.test(phone)) {
-      Swal.fire('Invalid', 'Phone number must be 9 digits after +639.', 'warning');
+      Swal.fire('Invalid', 'Phone number must be 10-15 digits.', 'warning');
       return;
     }
 
@@ -60,7 +60,7 @@ function AddUserModal({ show, onClose, onSave }) {
       if (result.isConfirmed) {
         axiosClient.post('/users', {
             ...formData,
-            phone: `+639${formData.phone}`,
+            phone: `${formData.phone}`,
           })
           .then((res) => {
             Swal.fire('Saved!', 'User has been added.', 'success');
@@ -99,15 +99,25 @@ function AddUserModal({ show, onClose, onSave }) {
 
           <label>Phone</label>
           <div className="phone-input">
-            <span className="phone-prefix">+639</span>
             <input
-              type="text"
+              type="tel"
               value={formData.phone}
               onChange={e => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                setFormData({ ...formData, phone: digits });
+                let value = e.target.value;
+                if (value.trim() === '') {
+                  setFormData({ ...formData, phone: '+63' });
+                  return;
+                }
+                value = value.replace(/[^\d+]/g, '');
+                value = value.replace(/(?!^)\+/g, '');
+                const digitsOnly = value.startsWith('+') ? value.slice(1) : value;
+                if (digitsOnly.length > 15) {
+                  value = (value.startsWith('+') ? '+' : '') + digitsOnly.slice(0, 15);
+                }
+                setFormData({ ...formData, phone: value });
               }}
-              placeholder="xxxxxxxxx"
+              placeholder="+63xxxxxxxxxx"
+              inputMode="tel"
             />
           </div>
 

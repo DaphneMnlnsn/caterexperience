@@ -12,6 +12,7 @@ import Header from '../components/Header';
 import axiosClient from '../axiosClient';
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { FaSearch } from 'react-icons/fa';
 
 function Packages() {
   const storedUser = localStorage.getItem('user');
@@ -80,9 +81,10 @@ function Packages() {
           <h3>Packages, Themes, and Addons</h3>
             <div className='spacer'></div>
             <div className="search-box">
+              <FaSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="🔍 Search package, addon, or theme by name..."
+                placeholder="Search package, addon, or theme by name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />

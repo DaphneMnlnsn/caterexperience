@@ -4,7 +4,7 @@ import AddUserModal from '../../components/AddUserModal';
 import EditUserModal from '../../components/EditUserModal';
 import Sidebar from '../../components/Sidebar';
 import Swal from 'sweetalert2';
-import { FaPen, FaArchive, FaUndo } from 'react-icons/fa';
+import { FaPen, FaArchive, FaUndo, FaSearch } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Header from '../../components/Header';
 
@@ -114,9 +114,10 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <h3>Staff Management</h3>
                     <div className="page-header-actions">
                         <div className="search-box">
+                            <FaSearch className="search-icon" />
                             <input
                             type="text"
-                            placeholder="🔍 Search staff by name, phone, or role..."
+                            placeholder="Search staff by name, phone, or role..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             />

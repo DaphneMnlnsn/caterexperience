@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar';
 import Swal from 'sweetalert2';
 import axiosClient from '../axiosClient';
 import Header from '../components/Header';
+import { FaSearch } from 'react-icons/fa';
 
 function Menu() {
     const storedUser = localStorage.getItem('user');
@@ -80,9 +81,10 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                     <h3>Menu</h3>
                     <div className="page-header-actions">
                         <div className="search-box">
+                            <FaSearch className="search-icon" />
                             <input
                                 type="text"
-                                placeholder="🔍 Search food by name..."
+                                placeholder="Search food by name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />

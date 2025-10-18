@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './AdminBookings.css';
 import Sidebar from '../../components/Sidebar';
 import BookingCalendar from '../../components/BookingCalendar';
-import { FaBell } from 'react-icons/fa';
+import { FaBell, FaExclamationTriangle, FaSearch } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Header from '../../components/Header';
 
@@ -127,9 +127,10 @@ function AdminBookings() {
               <hr/>
 
               <div className="search-box-bookings">
+                <FaSearch className="search-icon" />
                 <input
                   type="text"
-                  placeholder="🔍 Search event by title, client, or date..."
+                  placeholder="Search event by title, client, or date..."
                   value={searchTerm}
                   onChange={handleSearch}
                 />
@@ -168,7 +169,7 @@ function AdminBookings() {
               </div>
 
               {activeBookingsCount >= 3 ? (
-                <div className="event-limit-warning">⚠ Cannot handle more events on this day</div>
+                <div className="event-limit-warning"><FaExclamationTriangle /> Cannot handle more events on this day</div>
               ) : !isWithinRestrictedRange ? (
                 <button
                   className="add-event-btn"
@@ -178,7 +179,7 @@ function AdminBookings() {
                   + Add Event
                 </button>
               ) : (
-                <div className="event-limit-warning">⚠ Cannot add events to past, today, or close dates</div>
+                <div className="event-limit-warning"><FaExclamationTriangle /> Cannot add events to past, today, or close dates</div>
               )}
 
               {selectedBookings.length > 0 ? (

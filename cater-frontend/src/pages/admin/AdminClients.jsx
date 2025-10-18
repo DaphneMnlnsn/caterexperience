@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './AdminClients.css';
 import Sidebar from '../../components/Sidebar';
 import { Link } from 'react-router-dom';
-import { FaInfoCircle } from 'react-icons/fa';
+import { FaInfoCircle, FaSearch } from 'react-icons/fa';
 import axiosClient from '../../axiosClient';
 import Header from '../../components/Header';
 
@@ -50,10 +50,11 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                         >
                             {showArchived ? 'Show Active Clients' : 'Show Archived Clients'}
                         </button>
-                        <div className="client-search-box">
+                        <div className="search-box">
+                            <FaSearch className="search-icon" />
                             <input
                             type="text"
-                            placeholder="🔍 Search client by name, phone, or address..."
+                            placeholder="Search client by name, phone, or address..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             />

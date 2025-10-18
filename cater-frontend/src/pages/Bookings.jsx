@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { FaInfoCircle } from 'react-icons/fa';
+import { FaInfoCircle, FaSearch } from 'react-icons/fa';
 import Header from '../components/Header';
 import axiosClient from '../axiosClient';
 import { Link } from 'react-router-dom';
@@ -141,15 +141,18 @@ function Bookings() {
                             <option value="cancelled">Cancelled</option>
                         </select>
                         <div className="client-search-box">
-                            <input
-                                type="text"
-                                placeholder="🔍 Search by event, or client..."
-                                value={searchTerm}
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value);
-                                    setPage(1);
-                                }}
-                            />
+                            <div className="search-box">
+                                <FaSearch className="search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by event, or client..."
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value);
+                                        setPage(1);
+                                    }}
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>

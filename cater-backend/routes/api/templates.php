@@ -7,12 +7,12 @@ Route::middleware('role:admin,stylist')->group(function () {
     Route::prefix('templates')->group(function() {
         Route::get('/', [TemplateSetupController::class, 'index']);
         Route::put('/{id}', [TemplateSetupController::class, 'update']);
+        Route::post('/', [TemplateSetupController::class, 'store']);
     });
 });
 
 Route::middleware('role:admin')->group(function () {
     Route::prefix('templates')->group(function() {
-        Route::post('/', [TemplateSetupController::class, 'store']);
         Route::delete('/{id}', [TemplateSetupController::class, 'destroy']);
     });
 });

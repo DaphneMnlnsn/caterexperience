@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import axiosClient from '../axiosClient';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import { FaSearch } from 'react-icons/fa';
 
 function VenueSetups() {
   const storedUser = localStorage.getItem('user');
@@ -82,9 +83,10 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
               <option value="all">All</option>
             </select>
             <div className="search-box">
+              <FaSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="🔍 Search setup by event name..."
+                placeholder="Search setup by event name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />

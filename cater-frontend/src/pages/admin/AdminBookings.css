@@ -123,8 +123,8 @@
 }
 
 .search-box-bookings input {
-  width: 95%;
-  padding: 10px;
+  width: 91%;
+  padding: 0.5rem 1rem 0.5rem 2rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
@@ -160,6 +160,10 @@
   .bookings-bottom {
     flex-direction: column;
     padding: 0;
+  }
+
+  .search-box-bookings input {
+    width: 82%;
   }
 
   .booking-sidebar {

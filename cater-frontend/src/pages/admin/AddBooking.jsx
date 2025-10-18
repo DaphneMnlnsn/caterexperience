@@ -6,6 +6,7 @@ import Sidebar from '../../components/Sidebar';
 import TermsAndConditions from '../../components/TermsAndConditions';
 import axiosClient from '../../axiosClient';
 import Header from '../../components/Header';
+import { FaCheck, FaClock, FaExclamationTriangle, FaSearch, FaTimes } from 'react-icons/fa';
 
 function AddBooking() {
     const token = localStorage.getItem('token');
@@ -36,7 +37,7 @@ function AddBooking() {
 
     const [bookingData, setBookingData] = useState([]);
     const [form, setForm] = useState({
-        firstName: '', middleName: '', lastName: '', email: '', address: '', contact: '',
+        firstName: '', middleName: '', lastName: '', email: '', address: '', contact: '+63',
         eventName: '', eventType: '', eventDate: location.state?.eventDate || '', eventLocation: '', eventStart: '', eventEnd: '',
         celebrantName: '', ageYear: '', watcher: '', pax: '', waiters: '',
         package: null, motif: '', addons: [],
@@ -410,7 +411,7 @@ function AddBooking() {
             customer_firstname: form.firstName,
             customer_lastname: form.lastName,
             customer_middlename: form.middleName,
-            customer_phone: `+639${form.contact}`,
+            customer_phone: `+63${form.contact}`,
             customer_address: form.address,
             assigned_user_ids: assignedUserIds,
             created_by: user.id,
@@ -479,9 +480,10 @@ function AddBooking() {
                 <h3 className="booking-form-section-title">Customer Details</h3>
                 <hr className="booking-section-divider" />
                 <div className="search-box-customer">
+                    <FaSearch className="search-icon" />
                     <input
                     type="text"
-                    placeholder="🔍 Search customer by name or email..."
+                    placeholder="Search customer by name or email..."
                     value={custSearchTerm}
                     onChange={handleCustomerSearch}
                     />
@@ -547,23 +549,35 @@ function AddBooking() {
                     <div className="booking-field-group">
                         <label htmlFor="contact" className="booking-field-label">Contact Number</label>
                         <div className="phone-input">
-                            <span className="phone-prefix">+639</span>
                             <input
-                                id="contact"
-                                name="contact"
-                                placeholder="xxxxxxxxx"
-                                value={form.contact.replace('+639', '')}
-                                onChange={(e) => {
-                                const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                                handleChange({ target: { name: 'contact', value: digits } });
-                                }}
-                                disabled={customerPicked}
+                            id="contact"
+                            name="contact"
+                            type="tel"
+                            inputMode="tel"
+                            placeholder="+63xxxxxxxxxx"
+                            value={form.contact}
+                            onChange={(e) => {
+                                let value = e.target.value;
+                                if (value.trim() === '') {
+                                handleChange({ target: { name: 'contact', value: '+63' } });
+                                return;
+                                }
+                                value = value.replace(/[^\d+]/g, '');
+                                value = value.replace(/(?!^)\+/g, '');
+                                const digitsOnly = value.startsWith('+') ? value.slice(1) : value;
+                                if (digitsOnly.length > 15) {
+                                value = (value.startsWith('+') ? '+' : '') + digitsOnly.slice(0, 15);
+                                }
+                                handleChange({ target: { name: 'contact', value } });
+                            }}
+                            disabled={customerPicked}
                             />
                         </div>
-                        {!/^\d{9}$/.test(form.contact.replace('+639', '')) && form.contact && (
-                            <span className="error-text">Phone must be 9 digits after +639.</span>
+                        {!/^\+?\d{10,15}$/.test(form.contact) && form.contact && (
+                            <span className="error-text">Phone number must be 10–15 digits.</span>
                         )}
                     </div>
+
                     <div className="booking-field-group" style={{ gridColumn: '1/4' }}>
                     <label htmlFor="address" className="booking-field-label">Address</label>
                     <input
@@ -667,22 +681,22 @@ function AddBooking() {
                                 onChange={handleStartChange}
                             />
                             {availabilityStatus === 'error-too-early' && (
-                                <div className="availability conflict">❌ Events cannot start before 7:00 AM</div>
+                                <div className="availability conflict"><FaTimes/> Events cannot start before 7:00 AM</div>
                             )}
                             {availabilityStatus === 'available' && (
-                                <div className="availability available">✅ Time slot is available</div>
+                                <div className="availability available"><FaCheck/> Time slot is available</div>
                             )}
                             {availabilityStatus === 'conflict' && (
-                                <div className="availability conflict">❌ Time slot is unavailable or overlaps another event</div>
+                                <div className="availability conflict"><FaTimes/> Time slot is unavailable or overlaps another event</div>
                             )}
                             {availabilityStatus === 'error' && (
-                                <div className="availability error">⚠️ Failed to check availability</div>
+                                <div className="availability error"><FaExclamationTriangle /> Failed to check availability</div>
                             )}
                             {availabilityStatus === 'error-start-end' && (
-                                <div className="availability conflict">❌ End time must be after start time</div>
+                                <div className="availability conflict"><FaExclamationTriangle/> End time must be after start time</div>
                             )}
                             {availabilityStatus === 'error-duration' && (
-                                <div className="availability conflict">❌ Minimum event duration is 4 hours</div>
+                                <div className="availability conflict"><FaExclamationTriangle /> Minimum event duration is 4 hours</div>
                             )}
                             {form.eventStart && form.eventEnd && (() => {
                                 const start = new Date(`2000-01-01T${form.eventStart}`);
@@ -691,14 +705,14 @@ function AddBooking() {
                                 if (durationHours <= 0) durationHours += 24;
 
                                 if (end <= start) {
-                                    return <div className="availability note">🕛 Event ends the next day</div>;
+                                    return <div className="availability note"><FaClock /> Event ends the next day</div>;
                                 }
 
                                 if (durationHours > 4) {
                                     const extraHours = Math.ceil(durationHours - 4);
                                     return (
                                         <div className="error">
-                                            ⚠️ Every extra hour is +₱500. Current extra hours: {extraHours}
+                                            <FaExclamationTriangle /> Every extra hour is +₱500. Current extra hours: {extraHours}
                                         </div>
                                     );
                                 }

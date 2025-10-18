@@ -17,12 +17,25 @@
 
 .search-box input {
   font-family: 'Lora', serif;
-  padding: 0.3rem 1rem;
+  padding: 0.3rem 1rem 0.3rem 2rem;
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 14px;
   width: 320px;
 }
+
+.search-box{
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #888;
+}
+
 .spacer {
   flex: 1;
 }
@@ -244,7 +257,7 @@
   .search-box input {
     width: 95%;
     font-size: 13px;
-    padding: 0.4rem 0.75rem;
+    padding: 0.4rem 0.75rem 0.4rem 2rem;
   }
 
   .button-group {
@@ -297,8 +310,9 @@
   }
 
   .search-box input {
+    width: 87%;
     font-size: 12px;
-    padding: 0.35rem 0.6rem;
+    padding: 0.35rem 0.6rem 0.35rem 2rem;
   }
 
   .filter-input {

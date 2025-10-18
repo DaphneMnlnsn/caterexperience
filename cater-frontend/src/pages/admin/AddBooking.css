@@ -31,8 +31,8 @@
 }
 
 .search-box-customer input {
-  width: 96%;
-  padding: 0.7rem 1rem;
+  width: 95%;
+  padding: 0.5rem 1rem 0.5rem 2rem !important;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
@@ -236,6 +236,11 @@
     padding: 1rem;
     max-height: 80vh;
     width: 90%;
+  }
+
+  .search-box-customer input {
+    width: 80% !important;
+    padding: 0.4rem 1rem 0.4rem 2rem !important;
   }
 
   .booking-grid-3,

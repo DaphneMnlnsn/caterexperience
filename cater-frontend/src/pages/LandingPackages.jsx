@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './LandingPage';
 import axiosClient from '../axiosClient';
 import LandingNavbar from '../components/LandingNavbar';
-import { FaFacebook, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaFacebook, FaPhone, FaMapMarkerAlt, FaSearch } from 'react-icons/fa';
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 
@@ -69,9 +69,10 @@ export default function Packages() {
               <h3>Packages, Themes, and Addons</h3>
                 <div className='spacer'></div>
                 <div className="search-box">
+                  <FaSearch className="search-icon" />
                   <input
                     type="text"
-                    placeholder="🔍 Search package, addon, or theme by name..."
+                    placeholder="Search package, addon, or theme by name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />

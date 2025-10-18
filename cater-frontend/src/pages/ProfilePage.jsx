@@ -123,16 +123,26 @@ function ProfilePage() {
 
                 <div className="form-group">
                   <label>Phone</label>
-                  <div className="profile-phone-input">
-                    <span className="profile-phone-prefix">+639</span>
+                  <div className="phone-input">
                     <input
-                      type="text"
-                      value={formData.phone.replace('+639', '')}
+                      type="tel"
+                      inputMode="tel"
+                      value={formData.phone}
                       onChange={e => {
-                        const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                        setFormData({ ...formData, phone: `+639${digits}` });
+                        let value = e.target.value;
+                        if (value.trim() === '') {
+                          setFormData({ ...formData, phone: '+63' });
+                          return;
+                        }
+                        value = value.replace(/[^\d+]/g, '');
+                        value = value.replace(/(?!^)\+/g, '');
+                        const digitsOnly = value.startsWith('+') ? value.slice(1) : value;
+                        if (digitsOnly.length > 15) {
+                          value = (value.startsWith('+') ? '+' : '') + digitsOnly.slice(0, 15);
+                        }
+                        setFormData({ ...formData, phone: value });
                       }}
-                      placeholder="xxxxxxxxx"
+                      placeholder="+63xxxxxxxxxx"
                     />
                   </div>
                 </div>
