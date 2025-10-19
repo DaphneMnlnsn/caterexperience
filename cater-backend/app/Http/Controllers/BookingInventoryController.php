@@ -107,6 +107,8 @@ class BookingInventoryController extends Controller
 
         $usage = EventInventoryUsage::firstOrNew(['booking_inventory_id' => $bookingInventoryId]);
 
+        $oldReturned = $usage->quantity_returned ?? 0;
+
         if ($request->has('quantity_used') && $request->input('quantity_used') !== '') {
             $usage->quantity_used = $validated['quantity_used'];
         }
@@ -121,6 +123,23 @@ class BookingInventoryController extends Controller
 
         $usage->booking_inventory_id = $bookingInventoryId;
         $usage->save();
+
+        if ($request->has('quantity_returned')) {
+            $bookingInventory = BookingInventory::with('item')->find($bookingInventoryId);
+
+            if ($bookingInventory && $bookingInventory->item) {
+                $item = $bookingInventory->item;
+
+                $returnedDiff = ($validated['quantity_returned'] ?? 0) - $oldReturned;
+
+                if ($returnedDiff > 0) {
+                    $item->item_current_quantity += $returnedDiff;
+                    $item->save();
+
+                    AuditLogger::log('Updated', "Module: Inventory | Returned {$returnedDiff} to item '{$item->item_name}' for Booking ID: {$bookingInventory->booking_id}");
+                }
+            }
+        }
 
         AuditLogger::log('Updated', 'Module: Booking Details | Item ID: ' . $bookingInventoryId . ' | Returned: ' . ($validated['quantity_returned'] ?? 0));
 

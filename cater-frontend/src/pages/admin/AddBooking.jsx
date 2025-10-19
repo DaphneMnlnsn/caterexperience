@@ -411,7 +411,7 @@ function AddBooking() {
             customer_firstname: form.firstName,
             customer_lastname: form.lastName,
             customer_middlename: form.middleName,
-            customer_phone: `+63${form.contact}`,
+            customer_phone: `${form.contact}`,
             customer_address: form.address,
             assigned_user_ids: assignedUserIds,
             created_by: user.id,
