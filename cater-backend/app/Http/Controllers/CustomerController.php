@@ -13,20 +13,15 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $customers = Customer::orderBy('customer_id', 'desc')->paginate(10);
+        $customers = Customer::orderBy('customer_id', 'desc')->get();
 
-        AuditLogger::log('Viewed', 'Module: Customer | Viewed customer list');
+        AuditLogger::log('Viewed', 'Module: Customer | Viewed full customer list');
 
         return response()->json([
-            'customers' => $customers->items(),
-            'pagination' => [
-                'current_page' => $customers->currentPage(),
-                'last_page' => $customers->lastPage(),
-                'per_page' => $customers->perPage(),
-                'total' => $customers->total(),
-            ],
+            'customers' => $customers,
         ]);
     }
+
     public function indexSelected($id)
     {
         $customer = Customer::with('bookings')->find($id);

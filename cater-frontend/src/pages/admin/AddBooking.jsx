@@ -74,7 +74,7 @@ function AddBooking() {
         .catch(err => console.error('Failed to fetch bookings:', err.response?.data || err.message));
 
         axiosClient.get('/customers')
-        .then(res => setCustomers(res.data.customers))
+        .then(res => setCustomers(res.data.customers.filter(c => c.archived === 0)))
         .catch(err => console.error('Failed to fetch customers:', err.response?.data || err.message));
 
         axiosClient.get('/packages')
@@ -94,7 +94,7 @@ function AddBooking() {
         .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
 
         axiosClient.get('/users')
-        .then(res => setStaff(res.data.users))
+        .then(res => setStaff(res.data.users.filter(u => u.archived === 0)))
         .catch(err => console.error('Failed to fetch users:', err.response?.data || err.message));
     }, []);
 

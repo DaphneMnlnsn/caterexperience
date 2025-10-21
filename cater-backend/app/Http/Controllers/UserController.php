@@ -13,28 +13,21 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::orderBy('created_at', 'desc');
+        $users = User::withCount([
+                'tasks as tasks_count' => function ($q) {
+                    $q->where('status', '!=', 'Done');
+                }
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        $query->withCount([
-            'tasks as tasks_count' => function ($q) {
-                $q->where('status', '!=', 'Done');
-            }
-        ]);
-
-        $users = $query->paginate(10);
-
-        AuditLogger::log('Viewed', 'Module: User | Viewed user list');
+        AuditLogger::log('Viewed', 'Module: User | Viewed full user list');
 
         return response()->json([
-            'users' => $users->items(),
-            'pagination' => [
-                'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
-                'per_page' => $users->perPage(),
-                'total' => $users->total(),
-            ],
+            'users' => $users,
         ]);
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

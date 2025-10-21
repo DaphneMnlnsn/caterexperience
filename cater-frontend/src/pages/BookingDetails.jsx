@@ -353,7 +353,9 @@ function BookingDetails() {
         });
       } else {
         await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
+          quantity_used: editedRow.quantity_used,
           quantity_returned: editedRow.quantity_returned,
+          remarks: editedRow.remarks,
         });
       }
 
@@ -501,12 +503,12 @@ function BookingDetails() {
               ) : (
                 <>
                   {isAdmin &&
-                    booking.booking_status !== 'Finished' &&
-                    booking.booking_status !== 'Cancelled' &&
-                    new Date(booking.event_date) <= new Date() && (
-                      <>
-                        <button onClick={handleFinishClick} className="finish-btn">Mark as Finished</button>
-                      </>
+                  booking.booking_status !== 'Finished' &&
+                  booking.booking_status !== 'Cancelled' &&
+                  new Date(booking.event_date + ' ' + booking.event_end_time) <= new Date() && (
+                    <button onClick={handleFinishClick} className="finish-btn">
+                      Mark as Finished
+                    </button>
                   )}
                   {isAdmin &&
                     booking.booking_status !== 'Finished' &&
@@ -919,6 +921,7 @@ function BookingDetails() {
                   <thead>
                     <tr>
                       <th>Item</th>
+                      <th>Qty Available</th>
                       <th>Qty Assigned</th>
                       <th>Qty Used</th>
                       <th>Qty Returned</th>
@@ -934,6 +937,8 @@ function BookingDetails() {
                         return ( 
                           <tr key={row.booking_inventory_id}>
                             <td>{row.item_name}</td>
+
+                            <td>{row.item_current_quantity}</td>
 
                             <td>
                               {isRowEditing && isAdmin ? (
@@ -953,11 +958,10 @@ function BookingDetails() {
                             </td>
 
                             <td>
-                              {isRowEditing && isAdmin ? (
+                              {isRowEditing ? (
                                 <input
                                   type="number"
-                                  disabled
-                                  value={editedRow.quantity_used ?? ''}
+                                  value={editedRow.quantity_used ?? row.quantity_used ?? ''}
                                   onChange={(e) =>
                                     setEditedRow({
                                       ...editedRow,
