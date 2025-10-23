@@ -48,6 +48,20 @@ function AddBooking() {
         agree: false,
     });
 
+    const clearPickedCustomer = () => {
+        setCustomerPicked(false);
+        setCustSearchTerm('');
+        setCustResults([]);
+        setForm({
+            firstName: '',
+            middleName: '',
+            lastName: '',
+            email: '',
+            contact: '+63',
+            address: ''
+        });
+    };
+
     const handleStartChange = (e) => {
         const value = e.target.value;
         const start = new Date(`2000-01-01T${value}`);
@@ -451,9 +465,26 @@ function AddBooking() {
 
         try {
             const res = await axiosClient.post('/bookings', payload);
+            const { message, new_customer } = res.data;
 
-            Swal.fire('Saved!', 'Event successfully booked.', 'success');
+            if (new_customer) {
+                Swal.fire({
+                title: 'Booking Saved!',
+                text: message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+                });
+            } else {
+                Swal.fire({
+                title: 'Saved!',
+                text: 'Event successfully booked.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+                });
+            }
+
             navigate('/bookings');
+
         } catch (err) {
             console.error('Error:', err.response?.data || err.message);
             Swal.fire('Error', 'There was a problem saving the event booking.', 'error');
@@ -487,6 +518,15 @@ function AddBooking() {
                     value={custSearchTerm}
                     onChange={handleCustomerSearch}
                     />
+                    {customerPicked && (
+                        <button
+                        type="button"
+                        className="add-btn"
+                        onClick={clearPickedCustomer}
+                        >
+                        Clear
+                        </button>
+                    )}
                     {custResults.length > 0 && (
                     <ul className="search-results">
                         {custResults.map(c => (

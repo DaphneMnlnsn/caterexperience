@@ -363,6 +363,8 @@ class EventBookingController extends Controller
                 ]
             );
 
+            $isNewCustomer = $customer->wasRecentlyCreated;
+
             $booking = EventBooking::create([
                 'customer_id' => $customer->customer_id,
                 'package_id' => $validated['package_id'],
@@ -446,8 +448,16 @@ class EventBookingController extends Controller
                 NotificationService::sendTaskAssigned($userId, $booking);
             }
 
-            return response()->json(['message' => 'Booking and tasks successfully created.', 'booking' => $booking]);
+            $message = 'Booking and tasks successfully created.';
+            if ($isNewCustomer) {
+                $message .= ' A new client account was also created. Default password: ' . $validated['customer_lastname'] . '.123';
+            }
 
+            return response()->json([
+                'message' => $message,
+                'booking' => $booking,
+                'new_customer' => $isNewCustomer,
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Booking creation failed.', 'error' => $e->getMessage()], 500);

@@ -58,9 +58,10 @@ function BookingDetails() {
   const [inventorySummary, setInventorySummary] = useState([]);
   const [editingRowId, setEditingRowId] = useState(null);
   const [editedRow, setEditedRow] = useState({});
+  const [originalRow, setOriginalRow] = useState({});
   const [availableAddons, setAvailableAddons] = useState([]);
   const [addonTiersMap, setAddonTiersMap] = useState({});
-
+  
   useEffect(() => {
     fetchDetails();
   }, [id]);
@@ -346,11 +347,18 @@ function BookingDetails() {
           quantity_assigned: editedRow.quantity_assigned,
           remarks: editedRow.remarks,
         });
-        await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
-          quantity_used: editedRow.quantity_used,
-          quantity_returned: editedRow.quantity_returned,
-          remarks: editedRow.remarks,
-        });
+
+        const usageChanged =
+          editedRow.quantity_used !== originalRow.quantity_used ||
+          editedRow.quantity_returned !== originalRow.quantity_returned;
+
+        if (usageChanged) {
+          await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
+            quantity_used: editedRow.quantity_used,
+            quantity_returned: editedRow.quantity_returned,
+            remarks: editedRow.remarks,
+          });
+        }
       } else {
         await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
           quantity_used: editedRow.quantity_used,
@@ -473,14 +481,14 @@ function BookingDetails() {
               )}
               {isClient &&
                 booking.booking_status !== 'Cancelled' &&
-                new Date(booking.event_date) <= new Date() && (
+                new Date(booking.event_date + ' ' + booking.event_end_time) <= new Date() && (
                   <>
                     <button onClick={() => setShowFeedbackModal(true)} className="booking-edit-btn">Rate your Experience</button>
                   </>
               )}
               {isAdmin &&
                 booking.booking_status !== 'Cancelled' &&
-                new Date(booking.event_date) <= new Date() && (
+                new Date(booking.event_date + ' ' + booking.event_end_time) <= new Date() && (
                   <>
                     <button onClick={() => setShowFeedbackModal(true)} className="booking-edit-btn">Show Customer Feedback</button>
                   </>
@@ -591,7 +599,7 @@ function BookingDetails() {
                   <option value="Birthday">Birthday</option>
                   <option value="Wedding">Wedding</option>
                   <option value="Corporate">Corporate</option>
-                  <option value="Corporate">Others</option>
+                  <option value="Others">Others</option>
                 </select>
               ) : (
                 <span>{booking.event_type}</span>
@@ -1037,6 +1045,7 @@ function BookingDetails() {
                                               setEditedRow({
                                                 quantity_returned: row.quantity_returned ?? '',
                                               });
+                                              setOriginalRow({ ...row });
                                             } else {
                                               setEditingRowId(row.booking_inventory_id);
                                               setEditedRow({
@@ -1045,6 +1054,7 @@ function BookingDetails() {
                                                 quantity_returned: row.quantity_returned ?? '',
                                                 remarks: row.remarks ?? '',
                                               });
+                                              setOriginalRow({ ...row });
                                             }
                                           }}
                                         />
@@ -1178,12 +1188,12 @@ function BookingDetails() {
           <AddPaymentModal show={showAddPaymentModal} onClose={() => setShowAddPaymentModal(false)} onSave={fetchDetails} bookingId={id} remainingBalance={(parseFloat(booking.final_amount) - parseFloat(booking.amount_paid))} />
           <AddExtraChargeModal show={showAddChargeModal} onClose={() => setShowAddChargeModal(false)} onSave={fetchDetails} bookingId={id} />
           <RescheduleModal show={showReschedModal} onClose={() => setShowReschedModal(false)} onSave={fetchDetails} bookingId={id} isAdmin={isAdmin} />
-          <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
         </>
       )}
 
       {(isClient || isAdmin) && (
         <>
+          <Invoice show={showInvoice} onClose={() => setShowInvoice(false)} selectedPayment={selectedPayment}/>
           <ExtraChargesModal show={showChargesModal} onClose={() => setShowChargesModal(false)} onSave={fetchDetails} bookingId={id} />
         </>
       )}

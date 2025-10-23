@@ -5,6 +5,7 @@ import axiosClient from '../axiosClient';
 import Navbar from '../components/LandingNavbar';
 import './PasswordReset.css';
 import background from '../assets/bg.jpg';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function PasswordChange() {
     const navigate = useNavigate();
@@ -21,6 +22,8 @@ function PasswordChange() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword1, setShowPassword1] = useState(false);
+    const [showPassword2, setShowPassword2] = useState(false);
 
     const handleNewPassword = async (e) => {
         e.preventDefault();
@@ -92,23 +95,35 @@ function PasswordChange() {
             <div className="password-reset-box">
                 <h3>Set New Password</h3>
                 <form onSubmit={handleNewPassword}>
-                    <div className="input-group">
+                    <div className="input-group password-group">
                         <i className="fas fa-lock"></i>
                         <input
-                            type="password"
+                            type={showPassword1 ? 'text': 'password'}
                             placeholder="New password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        <span
+                            className="toggle-password"
+                            onClick={() => setShowPassword1(!showPassword1)}
+                        >
+                            {showPassword1 ? <FaEyeSlash /> : <FaEye />}
+                        </span>
                     </div>
-                    <div className="input-group">
+                    <div className="input-group password-group">
                         <i className="fas fa-lock"></i>
                         <input
-                            type="password"
+                            type={showPassword2 ? 'text': 'password'}
                             placeholder="Confirm new password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
+                        <span
+                            className="toggle-password"
+                            onClick={() => setShowPassword2(!showPassword2)}
+                        >
+                            {showPassword2 ? <FaEyeSlash /> : <FaEye />}
+                        </span>
                     </div>
                     <button type="submit" className="reset-submit" disabled={isLoading}>
                         {isLoading ? 'Resetting...' : 'Change Password'}

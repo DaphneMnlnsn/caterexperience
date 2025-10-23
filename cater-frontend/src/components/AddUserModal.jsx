@@ -63,7 +63,7 @@ function AddUserModal({ show, onClose, onSave }) {
             phone: `${formData.phone}`,
           })
           .then((res) => {
-            Swal.fire('Saved!', 'User has been added.', 'success');
+            Swal.fire('Saved!', `User has been added. Their default password is ${formData.last_name}.123.`, 'success');
             onSave(res.data.user);
             onClose();
           })

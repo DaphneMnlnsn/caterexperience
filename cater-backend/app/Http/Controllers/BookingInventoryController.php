@@ -49,13 +49,12 @@ class BookingInventoryController extends Controller
                 'booking_id' => $validated['booking_id'],
                 'item_id' => $validated['item_id'],
                 'quantity_assigned' => $validated['quantity_assigned'],
-                'quantity_used' => $validated['quantity_used'],
                 'remarks' => $validated['remarks'] ?? null,
             ]);
 
             EventInventoryUsage::create([
                 'booking_inventory_id' => $bookingInventory->booking_inventory_id,
-                'quantity_used' => $validated['quantity_used'],
+                'quantity_used' => $validated['quantity_assigned'],
                 'quantity_returned' => 0,
                 'remarks' => null,
             ]);
@@ -79,62 +78,108 @@ class BookingInventoryController extends Controller
 
     public function update(Request $request, $id)
     {
-        $inventory = BookingInventory::findOrFail($id);
+        $inventory = BookingInventory::with(['item', 'usage'])->findOrFail($id);
 
         $validated = $request->validate([
             'quantity_assigned' => 'required|integer|min:1',
             'remarks' => 'nullable|string',
         ]);
 
-        $inventory->update($validated);
+        DB::beginTransaction();
 
-        AuditLogger::log('Updated', 'Module: Booking Details | Updated item ID: ' . $inventory->item_id . ' for Booking ID: ' . $inventory->booking_id . ' (New Qty: ' . $validated['quantity_assigned'] . ')');
+        try {
+            $oldAssigned = $inventory->quantity_assigned;
+            $newAssigned = $validated['quantity_assigned'];
 
-        return response()->json(['message' => 'Inventory item updated successfully', 'inventory' => $inventory->load('item')]);
+            if ($oldAssigned == $newAssigned) {
+                return response()->json(['message' => 'No changes detected.'], 200);
+            }
+
+            $inventory->update($validated);
+
+            $usage = EventInventoryUsage::firstOrNew(['booking_inventory_id' => $inventory->booking_inventory_id]);
+            $item = $inventory->item;
+            $diff = $newAssigned - $oldAssigned;
+
+            if ($usage->quantity_used === null || $usage->quantity_used == $oldAssigned) {
+                $usage->quantity_used = $newAssigned;
+                $usage->save();
+
+                AuditLogger::log('Updated',
+                    "Module: Booking Details | Auto-synced usage for item '{$item->item_name}' ".
+                    "({$oldAssigned} to {$newAssigned}) for Booking ID: {$inventory->booking_id}"
+                );
+            }
+
+            if ($item && $diff !== 0) {
+                $item->item_current_quantity -= $diff;
+                $item->save();
+
+                $action = $diff > 0 ? 'Used' : 'Restored';
+                AuditLogger::log('Updated',
+                    "Module: Inventory | {$action} " . abs($diff) . " of '{$item->item_name}' ".
+                    "for Booking ID: {$inventory->booking_id}"
+                );
+            }
+
+            DB::commit();
+
+            AuditLogger::log('Updated',
+                "Module: Booking Details | Updated item '{$item->item_name}' ".
+                "(New Assigned: {$newAssigned}) for Booking ID: {$inventory->booking_id}"
+            );
+
+            return response()->json([
+                'message' => 'Inventory item and usage updated successfully',
+                'inventory' => $inventory->load('item'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
-    
+
+
     public function updateUsage(Request $request, $bookingInventoryId)
     {
-        $user = $request->user();
-
         $validated = $request->validate([
             'quantity_used' => 'nullable|numeric|min:0',
             'quantity_returned' => 'nullable|numeric|min:0',
             'remarks' => 'nullable|string',
         ]);
 
-        $usage = EventInventoryUsage::firstOrNew(['booking_inventory_id' => $bookingInventoryId]);
-        $bookingInventory = BookingInventory::with('item')->find($bookingInventoryId);
+        DB::beginTransaction();
 
-        if (!$bookingInventory || !$bookingInventory->item) {
-            return response()->json(['error' => 'Booking or item not found'], 404);
-        }
+        try {
+            $usage = EventInventoryUsage::firstOrNew(['booking_inventory_id' => $bookingInventoryId]);
+            $bookingInventory = BookingInventory::with('item')->find($bookingInventoryId);
 
-        $item = $bookingInventory->item;
+            if (!$bookingInventory || !$bookingInventory->item) {
+                return response()->json(['error' => 'Booking or item not found'], 404);
+            }
 
-        $oldUsed = $usage->quantity_used ?? 0;
-        $oldReturned = $usage->quantity_returned ?? 0;
+            $item = $bookingInventory->item;
 
-        if ($request->has('quantity_used') && $request->input('quantity_used') !== '') {
-            $usage->quantity_used = $validated['quantity_used'];
-        }
+            $oldUsed = $usage->quantity_used ?? 0;
+            $oldReturned = $usage->quantity_returned ?? 0;
 
-        if ($request->has('quantity_returned') && $request->input('quantity_returned') !== '') {
-            $usage->quantity_returned = $validated['quantity_returned'];
-        }
+            $newUsed = $request->input('quantity_used', $oldUsed);
+            $newReturned = $request->input('quantity_returned', $oldReturned);
 
-        if ($request->has('remarks') && $request->input('remarks') !== '') {
-            $usage->remarks = $validated['remarks'];
-        }
+            if ($newUsed > $bookingInventory->quantity_assigned) {
+                return response()->json(['error' => 'Used quantity cannot exceed assigned quantity.'], 400);
+            }
 
-        $usage->booking_inventory_id = $bookingInventoryId;
-        $usage->save();
+            $usage->fill([
+                'quantity_used' => $newUsed,
+                'quantity_returned' => $newReturned,
+                'remarks' => $validated['remarks'] ?? $usage->remarks,
+            ])->save();
 
-        if ($request->has('quantity_used')) {
-            $newUsed = $usage->quantity_used ?? 0;
             $usedDiff = $newUsed - $oldUsed;
+            $returnedDiff = $newReturned - $oldReturned;
 
-            if ($usedDiff !== 0) {
+            if ($usedDiff != 0) {
                 $item->item_current_quantity -= $usedDiff;
                 $item->save();
 
@@ -144,11 +189,6 @@ class BookingInventoryController extends Controller
                     AuditLogger::log('Updated', "Module: Inventory | Restored " . abs($usedDiff) . " of '{$item->item_name}' for Booking ID: {$bookingInventory->booking_id}");
                 }
             }
-        }
-
-        if ($request->has('quantity_returned')) {
-            $newReturned = $usage->quantity_returned ?? 0;
-            $returnedDiff = $newReturned - $oldReturned;
 
             if ($returnedDiff > 0) {
                 $item->item_current_quantity += $returnedDiff;
@@ -156,14 +196,17 @@ class BookingInventoryController extends Controller
 
                 AuditLogger::log('Updated', "Module: Inventory | Returned {$returnedDiff} of '{$item->item_name}' for Booking ID: {$bookingInventory->booking_id}");
             }
-        }
 
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new InventoryUsageUpdatedNotification($usage, 'used/returned'));
-        }
+            DB::commit();
 
-        return response()->json(['message' => 'Usage updated and stock adjusted.', 'usage' => $usage]);
+            return response()->json([
+                'message' => 'Usage updated successfully.',
+                'usage' => $usage
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy($id)

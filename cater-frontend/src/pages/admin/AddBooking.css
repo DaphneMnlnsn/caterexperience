@@ -27,21 +27,19 @@
 
 .search-box-customer {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1.2rem;
 }
 
 .search-box-customer input {
-  width: 95%;
+  flex: 1;
+  width: auto !important;
   padding: 0.5rem 1rem 0.5rem 2rem !important;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
-}
-
-.search-box-customer .search-results {
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .search-box-customer .search-results li {
