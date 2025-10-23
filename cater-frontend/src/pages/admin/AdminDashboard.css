@@ -174,3 +174,61 @@ body {
 .btn-details:hover {
   background: #fdd835;
 }
+
+.to-prepare-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: -2rem;
+}
+
+.prepare-day {
+  border-radius: 10px;
+  padding: 0.8rem;
+}
+
+.prepare-date {
+  font-weight: bold;
+  margin-bottom: -1rem;
+  color: #453c01;
+}
+
+.prepare-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.prepare-item:last-child {
+  border-bottom: none;
+}
+
+.food-name {
+  font-size: 14px;
+  color: #333;
+}
+
+.food-status {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: capitalize;
+}
+
+.food-status.pending {
+  background: #ffe082;
+  color: #6d4c00;
+}
+
+.food-status.completed {
+  background: #c8e6c9;
+  color: #256029;
+}
+
+.empty-list {
+  color: #777;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 1rem;
+}

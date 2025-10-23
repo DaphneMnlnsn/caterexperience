@@ -91,12 +91,12 @@ class DashboardController extends Controller
     public function getCookStats(Request $request)
     {
         $userId = $request->user()->id;
-
+    
         $totalEvents = DB::table('event_booking')
             ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
             ->where('staff_assignment.user_id', $userId)
             ->count();
-
+    
         $menuItemsCompleted = DB::table('menu_food')
             ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
             ->join('event_booking', 'event_booking.menu_id', '=', 'menu_food.menu_id')
@@ -104,7 +104,7 @@ class DashboardController extends Controller
             ->where('staff_assignment.user_id', $userId)
             ->where('menu_food.status', 'completed')
             ->count();
-
+    
         $menuItemsPending = DB::table('menu_food')
             ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
             ->join('event_booking', 'event_booking.menu_id', '=', 'menu_food.menu_id')
@@ -112,10 +112,10 @@ class DashboardController extends Controller
             ->where('staff_assignment.user_id', $userId)
             ->where('menu_food.status', 'pending')
             ->count();
-
+    
         $today = now()->toDateString();
         $tomorrow = now()->addDay()->toDateString();
-
+    
         $foodsToPrepare = DB::table('menu_food')
             ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
             ->join('event_booking', 'event_booking.menu_id', '=', 'menu_food.menu_id')
@@ -130,8 +130,15 @@ class DashboardController extends Controller
             )
             ->orderBy('event_booking.event_date')
             ->get()
-            ->groupBy('event_date');
-
+            ->groupBy('event_date')
+            ->map(function ($foods, $date) {
+                return [
+                    'date' => $date,
+                    'foods' => $foods->values(),
+                ];
+            })
+            ->values();
+    
         return response()->json([
             'total_events'         => $totalEvents,
             'menu_items_completed' => $menuItemsCompleted,

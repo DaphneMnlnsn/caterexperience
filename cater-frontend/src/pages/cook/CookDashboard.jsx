@@ -21,8 +21,9 @@ function CookDashboard() {
   useEffect(() => {
     axiosClient.get('/dashboard/cook/stats')
       .then(res => {
-        setStats(res.data);
-        setToPrepare(res.data.foods_to_prepare);
+        const data = res.data;
+        setStats(data);
+        setToPrepare(Array.isArray(data.foods_to_prepare) ? data.foods_to_prepare : []);
       })
       .catch(err => console.error('Error fetching stats', err));
   }, []);
@@ -39,7 +40,13 @@ function CookDashboard() {
           <p>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           <div className="stats">
             <div className="stat-box">Total Events <span>{stats.total_events}</span></div>
-            <div className="stat-box">Menu Items to Prepare <span>{stats.foods_to_prepare.length}</span></div>
+            <div className="stat-box">Menu Items to Prepare 
+              <span>
+                {Array.isArray(stats.foods_to_prepare)
+                  ? stats.foods_to_prepare.reduce((total, day) => total + (day.foods?.length || 0), 0)
+                  : 0}
+              </span>
+            </div>
             <div className="stat-box">Menu Items Completed <span>{stats.menu_items_completed}</span></div>
             <div className="stat-box">Menu Items Pending <span>{stats.menu_items_pending}</span></div>
           </div>
@@ -52,26 +59,27 @@ function CookDashboard() {
 
           <aside className="audit-log">
             <h3>To Prepare</h3>
-            <ul>
-              {toPrepare.length > 0 ? (
-                toPrepare.map(([date, foods]) => (
-                  <li key={date}>
-                    <div>
-                      <h4>{date}</h4>
-                      <ul>
-                        {foods.map((food, index) => (
-                          <li key={index}>
-                            {food.food_name} <span>({food.status})</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <li>No items to prepare for today/tomorrow</li>
-              )}
-            </ul>
+            {toPrepare.length > 0 ? (
+              <div className="to-prepare-list">
+                {toPrepare.map((day, index) => (
+                  <div className="prepare-day" key={index}>
+                    <h4 className="prepare-date">{day.date}</h4>
+                    <ul>
+                      {day.foods.map((food, i) => (
+                        <li key={i} className="prepare-item">
+                          <span className="food-name">{food.food_name}</span>
+                          <span className={`food-status ${food.status?.toLowerCase()}`}>
+                            {food.status}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-list">No items to prepare for today or tomorrow.</p>
+            )}
           </aside>
         </section>
       </div>

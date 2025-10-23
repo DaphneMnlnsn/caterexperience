@@ -56,6 +56,9 @@ function Invoice({ show, onClose, selectedPayment }) {
                 : ''}
               {paymentDetails.booking.customer.customer_lastname}
             </div>
+            <div className="customer-row">
+              Event No.: {paymentDetails.booking.event_code}
+            </div>
           </div>
 
           <div className="invoice-table">
