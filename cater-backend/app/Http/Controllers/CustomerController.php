@@ -68,6 +68,7 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'customer_firstname' => 'required|string|max:255',
             'customer_lastname' => 'required|string|max:255',
+            'customer_email' => 'required|email|unique:customers',
             'customer_phone' => 'required|string',
             'customer_address' => 'required|string',
         ]);
@@ -75,6 +76,7 @@ class CustomerController extends Controller
         $customer->update([
             'customer_firstname' => $validated['customer_firstname'],
             'customer_lastname' => $validated['customer_lastname'],
+            'customer_email' => $validated['customer_email'],
             'customer_middlename' => $request->customer_middlename,
             'customer_phone' => $validated['customer_phone'],
             'customer_address' => $validated['customer_address'],

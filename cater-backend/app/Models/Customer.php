@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Notifications\CustomResetPassword;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class Customer extends Authenticatable
+class Customer extends Authenticatable implements CanResetPassword
 {
     use HasApiTokens, Notifiable;
     
@@ -39,6 +41,21 @@ class Customer extends Authenticatable
     public function getAuthPassword()
     {
         return $this->customer_password;
+    }
+
+    public function getEmailForPasswordReset()
+    {
+        return $this->customer_email;
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->customer_email;
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new CustomResetPassword($token));
     }
 
     public function getRoleAttribute()

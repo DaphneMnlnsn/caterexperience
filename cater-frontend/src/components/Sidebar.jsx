@@ -4,6 +4,7 @@ import './Sidebar.css';
 import logo from '../assets/logo.png';
 import { FaBars, FaTimes, FaCalendarAlt, FaUser, FaMoneyCheckAlt, FaUtensils, FaBox, FaWarehouse, FaUsersCog, FaClipboardList, FaSignOutAlt, FaHome, FaMapMarkedAlt } from 'react-icons/fa';
 import axiosClient from '../axiosClient';
+import Swal from 'sweetalert2';
 
 export default function Sidebar() {
   const location = useLocation();
@@ -15,13 +16,23 @@ export default function Sidebar() {
   const role = user?.role;
 
   const handleLogout = async () => {
-    try {
-      await axiosClient.post('/logout');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      localStorage.clear();
-      navigate('/');
+    const result = await Swal.fire({
+      title: 'Log Out?',
+      text: `Are you sure you want to log out?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, log out!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axiosClient.post('/logout');
+      } catch (error) {
+        console.error(error);
+      } finally {
+        localStorage.clear();
+        navigate('/');
+      }
     }
   };
 

@@ -112,6 +112,12 @@ function ClientDetails() {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editedClient.customer_email)) {
+      Swal.fire('Invalid', 'Please enter a valid email address.', 'warning');
+      return;
+    }
+
     axiosClient.put(`/customers/${id}`, editedClient)
     .then(res => {
       setClient(res.data.customer);
@@ -241,7 +247,24 @@ function ClientDetails() {
         <section className="client-section gray-bg">
           <h3>Client Account Credentials</h3>
           <div className="credentials-row">
-            <p><strong>Email Address:</strong> {client.customer_email}</p>
+            {isEditing ? (
+              <div className="form-grid">
+                <label>Email Address:
+                  <input
+                    type="email"
+                    value={editedClient.customer_email}
+                    onChange={e =>
+                      setEditedClient({ ...editedClient, customer_email: e.target.value })
+                    }
+                    required
+                  />
+                </label>
+              </div>
+          ) : (
+            <div className="info-grid">
+              <p><strong>Email Address:</strong> {client.customer_email}</p>
+            </div>
+          )}
             <button className="reset-btn" onClick={() => handleResetPass()}>Reset Password</button>
           </div>
         </section>

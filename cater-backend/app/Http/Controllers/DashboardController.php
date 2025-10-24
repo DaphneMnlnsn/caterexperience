@@ -129,6 +129,7 @@ class DashboardController extends Controller
                 'menu_food.status'
             )
             ->orderBy('event_booking.event_date')
+            ->whereNotIn('event_booking.booking_status', ['Finished', 'Cancelled'])
             ->get()
             ->groupBy('event_date')
             ->map(function ($foods, $date) {
@@ -229,6 +230,7 @@ class DashboardController extends Controller
             ->whereHas('tasks', function ($query) use ($userId) {
                 $query->where('assigned_to', $userId);
             })
+            ->whereNotIn('event_booking.booking_status', ['Finished', 'Cancelled'])
             ->with(['bookingInventory.item', 'bookingInventory.usage'])
             ->orderBy('event_date', 'asc')
             ->orderBy('event_start_time', 'asc')
