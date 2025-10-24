@@ -17,9 +17,9 @@ function EditTaskModal({ task, onClose, onUpdate, staffOptions = [], isAdmin, cu
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const { title, priority, due_date, assigned_to, description } = formData;
+        const { title, due_date, assigned_to, description } = formData;
         
-        if (!title.trim() || !priority || !due_date || !assigned_to) {
+        if (!title.trim() || !due_date || !assigned_to) {
             Swal.fire('Incomplete', 'Please fill in all required fields.', 'warning');
             return;
         }
@@ -124,17 +124,6 @@ function EditTaskModal({ task, onClose, onUpdate, staffOptions = [], isAdmin, cu
                 onChange={e => setFormData({ ...formData, due_date: e.target.value })}
                 disabled={!isAdmin && task.created_by !== currentUserId}
             />
-
-            <label>Priority</label>
-            <select
-                value={formData.priority}
-                onChange={e => setFormData({ ...formData, priority: e.target.value })}
-            >
-                <option value="Low">Low</option>
-                <option value="Normal">Normal</option>
-                <option value="High">High</option>
-                disabled={!isAdmin && task.created_by !== currentUserId}
-            </select>
 
             <label>Assigned To </label>
             <select

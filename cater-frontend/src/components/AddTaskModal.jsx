@@ -7,7 +7,7 @@ function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOption
   const [formData, setFormData] = React.useState({
     title: '',
     description: '',
-    priority: '',
+    priority: 'Low',
     due_date: '',
     assigned_to: isAdmin ? '' : currentUserId,
   });
@@ -15,9 +15,9 @@ function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOption
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const { title, priority, due_date, assigned_to, description } = formData;
+    const { title, due_date, assigned_to, description } = formData;
 
-    if (!title.trim() || !priority || !due_date || !assigned_to) {
+    if (!title.trim() || !due_date || !assigned_to) {
       Swal.fire('Incomplete', 'Please fill in all required fields.', 'warning');
       return;
     }
@@ -92,14 +92,6 @@ function AddTaskModal({ show, onClose, onSave, bookingId, creatorId, staffOption
           <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
           <label>Description</label>
           <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
-
-          <label>Priority</label>
-          <select value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })}>
-            <option value="">Select Priority</option>
-            <option value="Low">Low</option>
-            <option value="Normal">Normal</option>
-            <option value="High">High</option>
-          </select>
 
           <label>Due Date & Time</label>
           <input

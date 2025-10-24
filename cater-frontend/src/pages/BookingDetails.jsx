@@ -88,7 +88,7 @@ function BookingDetails() {
           assignee: task.assignee || null,
           priority: task.priority,
           booking_ref: 'Task-' + (task.task_id ?? 'N/A')
-        }));
+        })).sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
         setTasks(mapped);
 
         const staffList = [
@@ -476,7 +476,7 @@ function BookingDetails() {
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
               )}
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && !isClient && (
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (isAdmin || isStylist) && (
                 <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>See Requested Changes</button>
               )}
               {isClient &&
@@ -614,7 +614,7 @@ function BookingDetails() {
               </span>
             </div>
             <div>
-              <span>Watcher/Bantay:</span>
+              <span>Contact/Watchman:</span>
               {isEditing ? (
                 <input
                   value={editedData.bantay}
@@ -716,7 +716,9 @@ function BookingDetails() {
                       }
                     >
                       <option value="">Select {category}</option>
-                      {groupedFoods[category]?.map((food) => (
+                      {groupedFoods[category]
+                      ?.filter(food => food.status !== 'archived')
+                      .map(food => (
                         <option key={food.food_id} value={food.food_id}>
                           {food.food_name}
                         </option>
@@ -755,7 +757,9 @@ function BookingDetails() {
                         }}
                       >
                         <option value="">Select Add-on…</option>
-                        {availableAddons.map(a => (
+                        {availableAddons
+                        .filter(a => a.status !== 'archived')
+                        .map(a => (
                           <option key={a.addon_id} value={a.addon_id}>
                             {a.addon_name}
                           </option>
@@ -794,7 +798,6 @@ function BookingDetails() {
                         }}
                       />
 
-                      {/* Remove button */}
                       <button
                         type="button"
                         className="close-btn"

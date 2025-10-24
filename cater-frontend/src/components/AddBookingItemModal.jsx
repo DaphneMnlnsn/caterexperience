@@ -14,7 +14,10 @@ function AddBookingItemModal({ show, onClose, onSave, bookingId }) {
 
   useEffect(() => {
     axiosClient.get('/inventory')
-      .then(res => setInventoryOptions(res.data))
+      .then(res => {
+        const filtered = res.data.filter(item => item.item_status !== 'archived');
+        setInventoryOptions(filtered);
+      })
       .catch(err => console.error('Failed to load inventory:', err));
   }, []);
 

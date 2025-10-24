@@ -52,14 +52,15 @@ function AddBooking() {
         setCustomerPicked(false);
         setCustSearchTerm('');
         setCustResults([]);
-        setForm({
+        setForm(prev => ({
+            ...prev,
             firstName: '',
             middleName: '',
             lastName: '',
             email: '',
             contact: '+63',
             address: ''
-        });
+        }));
     };
 
     const handleStartChange = (e) => {
@@ -613,8 +614,8 @@ function AddBooking() {
                             disabled={customerPicked}
                             />
                         </div>
-                        {!/^\+?\d{10,15}$/.test(form.contact) && form.contact && (
-                            <span className="error-text">Phone number must be 10–15 digits.</span>
+                        {!/^\+?\d{12}$/.test(form.contact) && form.contact && (
+                            <span className="error-text">Phone number must be 10 digits after +63.</span>
                         )}
                     </div>
 
@@ -661,6 +662,7 @@ function AddBooking() {
                                 <option value="">Type</option>
                                 <option value="Birthday">Birthday</option>
                                 <option value="Wedding">Wedding</option>
+                                <option value="Anniversary">Wedding</option>
                                 <option value="Corporate">Corporate</option>
                                 <option value="General">General</option>
                             </select>

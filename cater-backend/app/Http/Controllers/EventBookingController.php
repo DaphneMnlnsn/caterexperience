@@ -93,7 +93,7 @@ class EventBookingController extends Controller
             });
         }
 
-        $bookings = $query->orderBy('booking_id', 'asc')->paginate($request->per_page ?? 5);
+        $bookings = $query->orderBy('booking_id', 'desc')->paginate($request->per_page ?? 5);
 
         return response()->json([
             'bookings' => $bookings->items(),
@@ -231,7 +231,7 @@ class EventBookingController extends Controller
                     $tasks = [
                         ['Sketch Layout Based on Client Preferences', $eventDateTime->copy()->subDays(5)->setTime(10, 0)],
                         ['Inventory Check (Stylist)', $eventDateTime->copy()->subDays(1)->setTime(14, 0)],
-                        ['Setup Venue and Send Photo', $eventDateTime->copy()->setTime(7, 0)],
+                        ['Setup Venue and Send Photo', $eventDateTime->copy()->subHours(3)],
                     ];
                     break;
 

@@ -45,13 +45,13 @@ function ClientDashboard() {
 
           <div className="stats">
             <div className="stat-box">
-              Days Left before Event <span>{stats.days_left}</span>
+              Days Left before Event <span>{Math.round(stats.days_left)}</span>
             </div>
             <div className="stat-box">
               Remaining Balance to Pay <span>{stats.remaining_balance.toFixed(2)}</span>
             </div>
             <div className="stat-box">
-              Contact/Bantay <span>{stats.contact ? stats.contact : 'N/A'}</span>
+              Contact/Watchman <span>{stats.contact ? stats.contact : 'N/A'}</span>
             </div>
           </div>
         </section>
