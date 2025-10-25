@@ -230,7 +230,7 @@ class DashboardController extends Controller
             ->whereHas('tasks', function ($query) use ($userId) {
                 $query->where('assigned_to', $userId);
             })
-            ->whereNotIn('event_booking.booking_status', ['Finished', 'Cancelled'])
+            ->whereNotIn('booking_status', ['Finished', 'Cancelled'])
             ->with(['bookingInventory.item', 'bookingInventory.usage'])
             ->orderBy('event_date', 'asc')
             ->orderBy('event_start_time', 'asc')
@@ -292,6 +292,7 @@ class DashboardController extends Controller
 
         $event = EventBooking::with(['package', 'theme', 'payments'])
             ->where('customer_id', $userId)
+            ->whereNotIn('booking_status', ['Finished', 'Cancelled'])
             ->whereDate('event_date', '>=', now())
             ->orderBy('event_date', 'asc')
             ->first();
@@ -308,23 +309,22 @@ class DashboardController extends Controller
 
         $eventDate = Carbon::parse($event->event_date);
 
-        $eventDate = Carbon::parse($event->event_date);
-
         if (now()->greaterThan($eventDate)) {
             $timeLeft = "Event already started/ended";
+            $daysLeft = 0;
         } else {
             $daysLeft = now()->floatDiffInDays($eventDate);
 
             if ($daysLeft >= 1) {
-                $timeLeft = number_format($daysLeft, 2) . " day" . ($daysLeft >= 2 ? "s" : "");
+                $timeLeft = number_format($daysLeft, 0) . " day" . ($daysLeft >= 2 ? "s" : "");
             } else {
                 $hoursLeft = now()->floatDiffInHours($eventDate);
 
                 if ($hoursLeft >= 1) {
-                    $timeLeft = number_format($hoursLeft, 2) . " hour" . ($hoursLeft >= 2 ? "s" : "");
+                    $timeLeft = number_format($hoursLeft, 0) . " hour" . ($hoursLeft >= 2 ? "s" : "");
                 } else {
                     $minutesLeft = now()->floatDiffInMinutes($eventDate);
-                    $timeLeft = number_format($minutesLeft, 2) . " minute" . ($minutesLeft >= 2 ? "s" : "");
+                    $timeLeft = number_format($minutesLeft, 0) . " minute" . ($minutesLeft >= 2 ? "s" : "");
                 }
             }
         }
@@ -362,7 +362,8 @@ class DashboardController extends Controller
         })->values();
 
         return response()->json([
-            'days_left'         => $timeLeft,
+            'days_left'         => $daysLeft,
+            'time_left'         => $timeLeft,
             'remaining_balance' => $remainingBalance,
             'contact'           => $contactName,
             'event'             => $eventDetails,

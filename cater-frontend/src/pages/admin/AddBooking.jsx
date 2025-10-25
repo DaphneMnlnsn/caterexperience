@@ -662,7 +662,7 @@ function AddBooking() {
                                 <option value="">Type</option>
                                 <option value="Birthday">Birthday</option>
                                 <option value="Wedding">Wedding</option>
-                                <option value="Anniversary">Wedding</option>
+                                <option value="Anniversary">Anniversary</option>
                                 <option value="Corporate">Corporate</option>
                                 <option value="General">General</option>
                             </select>

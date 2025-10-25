@@ -3,12 +3,12 @@ import Swal from 'sweetalert2';
 import axiosClient from '../axiosClient';
 import './RequestChangesModal.css';
 
-function RequestChangesModal({ show, onClose, bookingId, onSave, isClient, isAdmin }) {
+function RequestChangesModal({ show, onClose, bookingId, onSave, isClient, isAdmin, seeRequests }) {
   const [requestText, setRequestText] = useState('');
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {
-    if (!isClient && show && bookingId) {
+    if (show && bookingId) {
       fetchRequests();
     }
   }, [isClient, show, bookingId]);
@@ -83,7 +83,7 @@ function RequestChangesModal({ show, onClose, bookingId, onSave, isClient, isAdm
     <div className="modal-overlay">
       <div className="modal request-changes-modal">
         <div className="modal-header">
-          {isClient ? (
+          {isClient && !seeRequests ? (
             <h2>Request Changes</h2>
           ) : (
             <h2>Requested Changes</h2>
@@ -91,7 +91,7 @@ function RequestChangesModal({ show, onClose, bookingId, onSave, isClient, isAdm
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        {isClient ? (
+        {isClient && !seeRequests ? (
           <form onSubmit={handleSubmit} className="request-form">
             <textarea
               name="request"
@@ -118,7 +118,7 @@ function RequestChangesModal({ show, onClose, bookingId, onSave, isClient, isAdm
                     <p>
                       Status: <span className={`status ${r.status}`}>{r.status}</span>
                     </p>
-                    {r.status === 'pending' && (
+                    {r.status === 'pending' && !isClient && (
                       <div className="request-action-buttons">
                         <button
                           className="approve-btn"

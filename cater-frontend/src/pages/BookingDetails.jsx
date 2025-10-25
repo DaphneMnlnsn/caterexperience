@@ -42,6 +42,7 @@ function BookingDetails() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [showRequestChangesModal, setShowRequestChangesModal] = useState(false);
+  const [seeRequests, setSeeRequests] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [showAddChargeModal, setShowAddChargeModal] = useState(false);
@@ -473,11 +474,11 @@ function BookingDetails() {
           <div className="section-title">
             <h3>Event Details</h3>
             <div className="action-buttons">
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
-                <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (isAdmin || isStylist || isClient) && (
+                <button className="booking-edit-btn" onClick={() => {setShowRequestChangesModal(true); setSeeRequests(true);}}>See Requested Changes</button>
               )}
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (isAdmin || isStylist) && (
-                <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>See Requested Changes</button>
+              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
+                <button className="booking-edit-btn" onClick={() => {setShowRequestChangesModal(true); setSeeRequests(false);}}>Request Changes</button>
               )}
               {isClient &&
                 booking.booking_status !== 'Cancelled' &&
@@ -1182,7 +1183,7 @@ function BookingDetails() {
         isAdmin={isAdmin}
         currentUserId={user.id}
       />
-      <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
+      <RequestChangesModal show={showRequestChangesModal} onClose={() => setShowRequestChangesModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} seeRequests={seeRequests} />
       <FeedbackModal show={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} onSave={fetchDetails} bookingId={id} isClient={isClient} />
       
       {isAdmin && (
