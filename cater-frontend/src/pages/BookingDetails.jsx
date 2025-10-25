@@ -62,6 +62,7 @@ function BookingDetails() {
   const [originalRow, setOriginalRow] = useState({});
   const [availableAddons, setAvailableAddons] = useState([]);
   const [addonTiersMap, setAddonTiersMap] = useState({});
+  const [totalQuantity, setTotalQuantity] = useState(0);
   
   useEffect(() => {
     fetchDetails();
@@ -328,42 +329,52 @@ function BookingDetails() {
 
   const handleSaveRow = async (bookingInventoryId) => {
     try {
+      const assigned = Number(editedRow.quantity_assigned ?? originalRow.quantity_assigned ?? 0);
+      const used = Number(editedRow.quantity_used ?? originalRow.quantity_used ?? 0);
+      const returned = Number(editedRow.quantity_returned ?? originalRow.quantity_returned ?? 0);
 
-      if (editedRow.quantity_assigned < 0) {
+      if (assigned < 0) {
         Swal.fire('Invalid', 'Assigned quantity cannot be negative.', 'warning');
         return;
       }
-      if (editedRow.quantity_used < 0 || editedRow.quantity_returned < 0) {
+      if (used > totalQuantity) {
+        Swal.fire('Invalid', 'Used quantity cannot exceed the total quantity of items.', 'warning');
+        return;
+      }
+      if (used < 0 || returned < 0) {
         Swal.fire('Invalid', 'Used/Returned quantities cannot be negative.', 'warning');
         return;
       }
-
-      if (Number(editedRow.quantity_returned) > Number(editedRow.quantity_assigned)) {
-        Swal.fire('Invalid', 'Returned quantity cannot exceed assigned.', 'warning');
+      if (returned > used) {
+        Swal.fire('Invalid', 'Returned quantity cannot exceed used.', 'warning');
         return;
       }
-      
+      if (returned > totalQuantity) {
+        Swal.fire('Invalid', 'Returned quantity cannot exceed the total quantity of items.', 'warning');
+        return;
+      }
+
       if (isAdmin) {
         await axiosClient.put(`/assigned-inventory/${bookingInventoryId}`, {
-          quantity_assigned: editedRow.quantity_assigned,
+          quantity_assigned: assigned,
           remarks: editedRow.remarks,
         });
 
         const usageChanged =
-          editedRow.quantity_used !== originalRow.quantity_used ||
-          editedRow.quantity_returned !== originalRow.quantity_returned;
+          used !== Number(originalRow.quantity_used ?? 0) ||
+          returned !== Number(originalRow.quantity_returned ?? 0);
 
         if (usageChanged) {
           await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
-            quantity_used: editedRow.quantity_used,
-            quantity_returned: editedRow.quantity_returned,
+            quantity_used: used,
+            quantity_returned: returned,
             remarks: editedRow.remarks,
           });
         }
       } else {
         await axiosClient.put(`/inventory-usage/${bookingInventoryId}`, {
-          quantity_used: editedRow.quantity_used,
-          quantity_returned: editedRow.quantity_returned,
+          quantity_used: used,
+          quantity_returned: returned,
           remarks: editedRow.remarks,
         });
       }
@@ -599,6 +610,7 @@ function BookingDetails() {
                   <option value="">Select Type</option>
                   <option value="Birthday">Birthday</option>
                   <option value="Wedding">Wedding</option>
+                  <option value="Anniversary">Anniversary</option>
                   <option value="Corporate">Corporate</option>
                   <option value="Others">Others</option>
                 </select>
@@ -949,7 +961,6 @@ function BookingDetails() {
                         return ( 
                           <tr key={row.booking_inventory_id}>
                             <td>{row.item_name}</td>
-
                             <td>{row.item_current_quantity}</td>
 
                             <td>
@@ -970,15 +981,16 @@ function BookingDetails() {
                             </td>
 
                             <td>
-                              {isRowEditing ? (
+                              {isRowEditing && new Date(booking.event_date + ' ' + booking.event_start_time) <= new Date() ? (
                                 <input
                                   type="number"
                                   value={editedRow.quantity_used ?? row.quantity_used ?? ''}
                                   onChange={(e) =>
-                                    setEditedRow({
+                                    {setEditedRow({
                                       ...editedRow,
                                       quantity_used: e.target.value,
-                                    })
+                                    });
+                                    setTotalQuantity(row.item_quantity);}
                                   }
                                 />
                               ) : (
@@ -987,15 +999,16 @@ function BookingDetails() {
                             </td>
 
                             <td>
-                              {isRowEditing ? (
+                              {isRowEditing && new Date(booking.event_date + ' ' + booking.event_end_time) <= new Date() ? (
                                 <input
                                   type="number"
                                   value={editedRow.quantity_returned ?? row.quantity_returned ?? ''}
                                   onChange={(e) =>
-                                    setEditedRow({
+                                    {setEditedRow({
                                       ...editedRow,
                                       quantity_returned: e.target.value,
-                                    })
+                                    });
+                                    setTotalQuantity(row.item_quantity);}
                                   }
                                 />
                               ) : (

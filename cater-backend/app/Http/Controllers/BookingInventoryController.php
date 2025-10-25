@@ -22,6 +22,7 @@ class BookingInventoryController extends Controller
                 return [
                     'booking_inventory_id' => $row->booking_inventory_id,
                     'item_name' => $row->item->item_name,
+                    'item_quantity' => $row->item->item_quantity,
                     'item_current_quantity' => $row->item->item_current_quantity,
                     'quantity_assigned' => $row->quantity_assigned,
                     'quantity_used' => $row->usage->quantity_used ?? null,
@@ -165,10 +166,6 @@ class BookingInventoryController extends Controller
 
             $newUsed = $request->input('quantity_used', $oldUsed);
             $newReturned = $request->input('quantity_returned', $oldReturned);
-
-            if ($newUsed > $bookingInventory->quantity_assigned) {
-                return response()->json(['error' => 'Used quantity cannot exceed assigned quantity.'], 400);
-            }
 
             $usage->fill([
                 'quantity_used' => $newUsed,
