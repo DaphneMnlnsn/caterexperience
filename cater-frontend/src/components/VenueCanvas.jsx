@@ -98,13 +98,23 @@ function VenueCanvas(props, ref) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleResetLayout = () => {
-    setSelectedId(null);
-    if (trRef.current) {
-      trRef.current.nodes([]);
-      trRef.current.getLayer() && trRef.current.getLayer().batchDraw();
+  const handleResetLayout = async () => {
+    const result = await Swal.fire({
+      title: 'Reset layout?',
+      text: `Are you sure you want to reset layout? This will clear the canvas.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, reset!'
+    });
+
+    if (result.isConfirmed) {
+      setSelectedId(null);
+      if (trRef.current) {
+        trRef.current.nodes([]);
+        trRef.current.getLayer() && trRef.current.getLayer().batchDraw();
+      }
+      setPlaced([]);
     }
-    setPlaced([]);
   };
 
   const handleSavePredefinedLayout = async () => {
