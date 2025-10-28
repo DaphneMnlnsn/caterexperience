@@ -33,11 +33,48 @@ class DashboardController extends Controller
             });
 
         return response()->json([
-            'total_events' => EventBooking::count(),
+            'total_events' => EventBooking::whereBetween('event_date', [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek()
+            ])
+            ->whereNotIn('booking_status', ['Cancelled', 'Finished'])
+            ->count(),
             'pending_bookings' => EventBooking::where('booking_status', 'Pending')->count(),
             'pending_payments' => $bookingsWithBalance->count(),
-            'staff_tasks' => Task::where('status', 'To-Do')->count()
+            'staff_tasks' => Task::where('status', 'To-Do')->count(),
         ]);
+    }
+
+    public function getTodayEvents()
+    {
+        $today = Carbon::today();
+
+        $events = EventBooking::whereDate('event_date', $today)
+            ->whereNotIn('booking_status', ['Cancelled', 'Finished'])
+            ->get(['booking_id', 'event_name', 'event_location', 'event_start_time', 'event_end_time'])
+            ->map(function ($event) {
+                return [
+                    'id' => $event->booking_id,
+                    'event_name' => $event->event_name,
+                    'venue_name' => $event->event_location ?? 'N/A',
+                    'start_time' => $event->event_start_time ? Carbon::parse($event->event_start_time)->format('g:iA') : '—',
+                    'end_time' => $event->event_end_time ? Carbon::parse($event->event_end_time)->format('g:iA') : '—',
+                    'tasks' => $event->tasks()
+                        ->with('assignee')
+                        ->get()
+                        ->map(function ($task) {
+                            return [
+                                'title' => $task->title,
+                                'status' => $task->status,
+                                'assigned_to' => $task->assignee
+                                    ? trim($task->assignee->first_name . ' ' . $task->assignee->last_name)
+                                    : 'Unassigned',
+                            ];
+                        }),
+                ];
+            });
+
+        return response()->json($events);
     }
 
     public function getStylistStats(Request $request)
@@ -45,7 +82,11 @@ class DashboardController extends Controller
         $userId = $request->user()->id;
 
         $totalEvents = EventBooking::whereHas('tasks', function ($query) use ($userId) {
-                $query->where('assigned_to', $userId);
+                $query->where('assigned_to', $userId)
+                ->whereBetween('event_date', [
+                    Carbon::now()->startOfWeek(),
+                    Carbon::now()->endOfWeek()
+                ]);
             })
             ->count();
 
@@ -77,6 +118,7 @@ class DashboardController extends Controller
                 'event_booking.event_start_time',
                 DB::raw("DATE_SUB(CONCAT(event_booking.event_date, ' ', event_booking.event_start_time), INTERVAL 7 DAY) as due_date")
             )
+            ->orderByRaw("DATE_SUB(CONCAT(event_booking.event_date, ' ', event_booking.event_start_time), INTERVAL 7 DAY) ASC")
             ->get();
 
         return response()->json([
@@ -88,6 +130,48 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function getStaffTodayEvents(Request $request)
+    {
+        $userId = $request->user()->id;
+        $today = Carbon::today();
+
+        $events = EventBooking::whereDate('event_date', $today)
+            ->whereNotIn('booking_status', ['Cancelled', 'Finished'])
+            ->whereHas('staffAssignments', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->with(['tasks.assignee'])
+            ->get(['booking_id', 'event_code', 'event_name', 'event_location', 'event_start_time', 'event_end_time'])
+            ->map(function ($event) use ($userId) {
+                return [
+                    'id' => $event->booking_id,
+                    'event_code' => $event->event_code,
+                    'event_name' => $event->event_name,
+                    'venue_name' => $event->event_location ?? 'N/A',
+                    'start_time' => $event->event_start_time
+                        ? Carbon::parse($event->event_start_time)->format('g:iA')
+                        : '—',
+                    'end_time' => $event->event_end_time
+                        ? Carbon::parse($event->event_end_time)->format('g:iA')
+                        : '—',
+                    'tasks' => $event->tasks
+                        ->filter(fn($task) => $task->assigned_to === $userId)
+                        ->map(function ($task) {
+                            return [
+                                'title' => $task->title,
+                                'status' => $task->status,
+                                'assigned_to' => $task->assignee
+                                    ? trim($task->assignee->first_name . ' ' . $task->assignee->last_name)
+                                    : 'Unassigned',
+                            ];
+                        })
+                        ->values(),
+                ];
+            });
+
+        return response()->json($events);
+    }
+
     public function getCookStats(Request $request)
     {
         $userId = $request->user()->id;
@@ -95,14 +179,10 @@ class DashboardController extends Controller
         $totalEvents = DB::table('event_booking')
             ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
             ->where('staff_assignment.user_id', $userId)
-            ->count();
-    
-        $menuItemsCompleted = DB::table('menu_food')
-            ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
-            ->join('event_booking', 'event_booking.menu_id', '=', 'menu_food.menu_id')
-            ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
-            ->where('staff_assignment.user_id', $userId)
-            ->where('menu_food.status', 'completed')
+            ->whereBetween('event_date', [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek()
+            ])
             ->count();
     
         $menuItemsPending = DB::table('menu_food')
@@ -111,10 +191,14 @@ class DashboardController extends Controller
             ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
             ->where('staff_assignment.user_id', $userId)
             ->where('menu_food.status', 'pending')
+            ->whereBetween('event_booking.event_date', [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek()
+            ])
             ->count();
     
         $today = now()->toDateString();
-        $tomorrow = now()->addDay()->toDateString();
+        $threeDaysAhead = now()->addDays(3)->toDateString();
     
         $foodsToPrepare = DB::table('menu_food')
             ->join('menu', 'menu_food.menu_id', '=', 'menu.menu_id')
@@ -122,9 +206,10 @@ class DashboardController extends Controller
             ->join('food', 'menu_food.food_id', '=', 'food.food_id')
             ->join('staff_assignment', 'event_booking.booking_id', '=', 'staff_assignment.booking_id')
             ->where('staff_assignment.user_id', $userId)
-            ->whereIn('event_booking.event_date', [$today, $tomorrow])
+            ->whereIn('event_booking.event_date', [$today, $threeDaysAhead])
             ->select(
                 'event_booking.event_date',
+                'event_booking.event_name',
                 'food.food_name as food_name',
                 'menu_food.status'
             )
@@ -142,79 +227,10 @@ class DashboardController extends Controller
     
         return response()->json([
             'total_events'         => $totalEvents,
-            'menu_items_completed' => $menuItemsCompleted,
             'menu_items_pending'   => $menuItemsPending,
             'foods_to_prepare'     => $foodsToPrepare,
         ]);
     }
-
-    /*public function getWaiterStats(Request $request)
-    {
-        $userId = $request->user()->id;
-        $today = now()->toDateString();
-
-        $totalEvents = EventBooking::whereHas('tasks', function ($query) use ($userId) {
-                $query->where('assigned_to', $userId);
-            })
-            ->count();
-
-        $upcomingEvent = EventBooking::whereDate('event_date', '>=', $today)
-            ->whereHas('tasks', function ($query) use ($userId) {
-                $query->where('assigned_to', $userId);
-            })
-            ->with(['bookingInventory.item', 'bookingInventory.usage'])
-            ->orderBy('event_date', 'asc')
-            ->orderBy('event_start_time', 'asc')
-            ->first();
-
-        $setupChecklist = collect();
-        $callTime = "N/A";
-        $inventoryItems = "N/A";
-
-        if ($upcomingEvent) {
-            $startDateTime = \Carbon\Carbon::parse($upcomingEvent->event_date . ' ' . $upcomingEvent->event_start_time);
-            $callTime = $startDateTime->copy()->subHours(2)->format('Y-m-d H:i:s');
-
-            $setupChecklist->push([
-                'event_name'      => $upcomingEvent->event_name ?? 'N/A',
-                'event_date'    => $upcomingEvent->event_date,
-                'event_start'   => $upcomingEvent->event_start_time,
-                'call_time'     => $callTime,
-                'inventory'     => $upcomingEvent->bookingInventory->map(function ($inv) {
-                    return [
-                        'item_name'        => $inv->item->item_name ?? null,
-                        'quantity_assigned'=> $inv->quantity_assigned,
-                        'quantity_returned'=> optional($inv->usage)->quantity_returned ?? 0,
-                    ];
-                }),
-            ]);
-
-            $inventoryItems = $upcomingEvent->bookingInventory
-                ->filter(function ($inv) {
-                    return optional($inv->usage)->quantity_returned == 0;
-                })
-                ->map(function ($inv) {
-                    return [
-                        'item_name'         => $inv->item->item_name ?? null,
-                        'quantity_assigned' => $inv->quantity_assigned,
-                    ];
-                });
-        }
-
-        $finishedEvents = EventBooking::where('booking_status', 'finished')
-            ->whereHas('tasks', function ($query) use ($userId) {
-                $query->where('assigned_to', $userId);
-            })
-            ->count();
-
-        return response()->json([
-            'total_events'   => $totalEvents,
-            'call_time'         => $callTime,
-            'inventory_updates' => $inventoryItems,
-            'finished_events'   => $finishedEvents,
-            'setup_checklist'   => $setupChecklist,
-        ]);
-    }*/
 
     public function getWaiterStats(Request $request)
     {
@@ -224,6 +240,10 @@ class DashboardController extends Controller
         $totalEvents = EventBooking::whereHas('tasks', function ($query) use ($userId) {
                 $query->where('assigned_to', $userId);
             })
+            ->whereBetween('event_date', [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek()
+            ])
             ->count();
 
         $upcomingEvent = EventBooking::whereDate('event_date', $today)
@@ -231,7 +251,7 @@ class DashboardController extends Controller
                 $query->where('assigned_to', $userId);
             })
             ->whereNotIn('booking_status', ['Finished', 'Cancelled'])
-            ->with(['bookingInventory.item', 'bookingInventory.usage'])
+            ->with(['bookingInventory.item', 'bookingInventory.usage'],'theme')
             ->orderBy('event_date', 'asc')
             ->orderBy('event_start_time', 'asc')
             ->first();
@@ -246,6 +266,8 @@ class DashboardController extends Controller
 
             $setupChecklist->push([
                 'event_name'      => $upcomingEvent->event_name ?? 'N/A',
+                'event_location'      => $upcomingEvent->event_location ?? 'N/A',
+                'theme_name'      => $upcomingEvent->theme->theme_name ?? 'N/A',
                 'event_date'    => $upcomingEvent->event_date,
                 'event_start'   => $upcomingEvent->event_start_time,
                 'call_time'     => $callTime,
@@ -370,38 +392,4 @@ class DashboardController extends Controller
             'payments'          => $payments,
         ]);
     }
-
-    public function getAuditLog()
-    {
-        $logs = \App\Models\AuditLog::with('auditable')
-            ->orderByDesc('auditlog_id')
-            ->take(10)
-            ->get()
-            ->transform(function ($log) {
-                $auditable = $log->auditable;
-
-                if ($auditable) {
-                    if ($log->auditable_type === 'App\Models\User') {
-                        $log->user_name = trim(($auditable->first_name ?? '') . ' ' . ($auditable->middle_name ? $auditable->middle_name . ' ' : '') . ($auditable->last_name ?? '')) ?: 'Guest';
-                        $log->role = $auditable->role ?? '-';
-                    }
-                    elseif ($log->auditable_type === 'App\Models\Customer') {
-                        $log->user_name = trim(($auditable->customer_firstname ?? '') . ' ' . ($auditable->customer_middlename ? $auditable->customer_middlename . ' ' : '') . ($auditable->customer_lastname ?? '')) ?: 'N/A';
-                        $log->role = 'client';
-                    }
-                    else {
-                        $log->user_name = $auditable->name ?? 'N/A';
-                        $log->role = $auditable->role ?? '-';
-                    }
-                } else {
-                    $log->user_name = 'Guest';
-                    $log->role = '-';
-                }
-
-                return $log;
-            });
-
-        return response()->json($logs);
-    }
-
 }

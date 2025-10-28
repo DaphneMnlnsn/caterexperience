@@ -188,7 +188,7 @@ function AdminBookings() {
                     <li
                       key={index}
                       className="clickable-event"
-                      onClick={() => navigate(`/bookings/${b.booking_id}`)}>
+                      onClick={() => navigate(`/bookings/${b.event_code}`)}>
                       <strong>{b.event_name}</strong><br />
                       Client: {b.customer.customer_firstname} {b.customer.customer_middlename ? b.customer.customer_middlename + ' ' : ''}{b.customer.customer_lastname}<br />
                       Time: {b.event_start_time} - {b.event_end_time}<br />

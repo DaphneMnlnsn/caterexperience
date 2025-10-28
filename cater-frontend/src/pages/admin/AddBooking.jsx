@@ -435,21 +435,17 @@ function AddBooking() {
 
         if (form.eventStart && form.eventEnd) {
             const start = new Date(`2000-01-01T${form.eventStart}`);
-            const end = new Date(`2000-01-01T${form.eventEnd}`);
-            const diffHours = (end - start) / (1000 * 60 * 60);
+            let end = new Date(`2000-01-01T${form.eventEnd}`);
             const minStart = new Date(`2000-01-01T07:00`);
 
-            if (start < minStart) {
-                Swal.fire('Error', 'Start time cannot be earlier than 07:00AM.', 'error');
-                return;
-            }
             if (end <= start) {
-                Swal.fire('Error', 'End time must be after start time.', 'error');
-                return;
+                end.setDate(end.getDate() + 1);
             }
 
-            if (diffHours < 4) {
-                Swal.fire('Error', 'Event duration must be at least 4 hours.', 'error');
+            const diffHours = (end - start) / (1000 * 60 * 60);
+
+            if (start < minStart) {
+                Swal.fire('Error', 'Start time cannot be earlier than 07:00 AM.', 'error');
                 return;
             }
 

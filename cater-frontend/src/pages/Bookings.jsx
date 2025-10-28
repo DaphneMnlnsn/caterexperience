@@ -187,7 +187,7 @@ function Bookings() {
                                             </td>
                                             <td>{renderStatus(booking.booking_status)}</td>
                                             <td className="booking-actions">
-                                                <Link to={`/bookings/${booking.booking_id}`} className="info-link">
+                                                <Link to={`/bookings/${booking.event_code}`} className="info-link">
                                                     <FaInfoCircle className='icon edit-icon'/>
                                                 </Link>
                                             </td>

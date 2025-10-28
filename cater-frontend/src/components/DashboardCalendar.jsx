@@ -35,9 +35,9 @@ export default function DashboardCalendar() {
           </div>
         )}
         eventClick={(info) => {
-          const bookingId = info.event.extendedProps.booking_id;
-          if (bookingId) {
-            navigate(`/bookings/${bookingId}`);
+          const eventCode = info.event.extendedProps.event_code;
+          if (eventCode) {
+            navigate(`/bookings/${eventCode}`);
           }
         }}
       />

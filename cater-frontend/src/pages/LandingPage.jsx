@@ -23,7 +23,7 @@ function LandingPage() {
     try {
       const res = await axiosClient.get(`/bookings/code/${eventCode}`);
       if (res.data.booking) {
-        navigate(`/public/booking/${res.data.booking.booking_id}`);
+        navigate(`/public/booking/${eventCode}`);
       }
     } catch (err) {
       Swal.fire({

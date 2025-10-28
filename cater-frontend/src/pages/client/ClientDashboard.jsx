@@ -48,7 +48,7 @@ function ClientDashboard() {
               Days Left before Event <span>{Math.round(stats.days_left)}</span>
             </div>
             <div className="stat-box">
-              Remaining Balance to Pay <span>{stats.remaining_balance.toFixed(2)}</span>
+              Remaining Balance to Pay <span>Php {stats.remaining_balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="stat-box">
               Contact/Watchman <span>{stats.contact ? stats.contact : 'N/A'}</span>
@@ -81,7 +81,7 @@ function ClientDashboard() {
               {payments.length > 0 ? (
                 payments.map((p, index) => (
                   <li key={index}>
-                    <p>{p.date} <br /> You paid Php {p.amount} via {p.method}</p>
+                    <p>{p.date} <br /> You paid Php {parseFloat(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} via {p.method}</p>
                     <hr />
                   </li>
                 ))

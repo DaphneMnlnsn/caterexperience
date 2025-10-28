@@ -58,7 +58,7 @@ export default function App(){
         <Route path="/" element={<LandingPage />} />
         <Route path="/landing/menu" element={<LandingMenu />} />
         <Route path="/landing/packages" element={<LandingPackages />} />
-        <Route path="/public/booking/:id" element={<PublicDetails />} />
+        <Route path="/public/booking/:eventCode" element={<PublicDetails />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ADMIN ONLY */}
@@ -99,7 +99,7 @@ export default function App(){
         />
 
         <Route
-          path="/admin/clients/:id"
+          path="/admin/clients/:uuid"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <ClientDetails />
@@ -154,7 +154,7 @@ export default function App(){
 
         {/* ADMIN AND OTHER STAFF */}
         <Route
-          path="/bookings/:id"
+          path="/bookings/:eventCode"
           element={
             <ProtectedRoute allowedRoles={['admin', 'stylist', 'cook', 'head waiter', 'client']}>
               <BookingDetails />

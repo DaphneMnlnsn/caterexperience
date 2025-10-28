@@ -32,7 +32,7 @@ class EventBookingController extends Controller
         $user = $request->user();
 
         $query = EventBooking::select(
-                'event_booking.booking_id',
+                'event_booking.event_code',
                 'event_booking.event_name as title',
                 'event_booking.event_date as date'
             )
@@ -93,7 +93,10 @@ class EventBookingController extends Controller
             });
         }
 
-        $bookings = $query->orderBy('booking_id', 'desc')->paginate($request->per_page ?? 5);
+        $bookings = $query
+        ->orderBy('event_date', 'asc')
+        ->orderBy('event_start_time', 'asc')
+        ->paginate($request->per_page ?? 5);
 
         return response()->json([
             'bookings' => $bookings->items(),
@@ -124,6 +127,72 @@ class EventBookingController extends Controller
             'eventAddons.addonPrice',
             'extraCharges'
         ])->find($id);
+
+        if (!$booking) {
+            return response()->json(['message' => 'Event booking not found'], 404);
+        }
+
+        if ($user instanceof User && strtolower($user->role) === 'admin') {
+        }
+        elseif ($user instanceof User) {
+            $isAssigned = $booking->staffAssignments()->where('user_id', $user->id)->exists();
+            if (!$isAssigned) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        }
+        elseif ($user instanceof Customer) {
+            if ($booking->customer_id !== $user->customer_id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        }
+        else {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $tasks = $booking->tasks()
+            ->when($user instanceof User && strtolower($user->role) !== 'admin', function ($q) use ($user, $booking) {
+                if (strtolower($user->role) === 'head waiter') {
+                    $headWaiterIds = $booking->staffAssignments()
+                        ->whereHas('user', fn($u) => $u->where('role', 'head waiter'))
+                        ->pluck('user_id');
+
+                    $q->whereIn('assigned_to', $headWaiterIds);
+                } else {
+                    $q->where('assigned_to', $user->id);
+                }
+            })
+            ->with('assignee')
+            ->get();
+
+        $booking->setRelation('tasks', $tasks);
+
+        if ($booking->tasks instanceof \Illuminate\Support\Collection) {
+            $booking->tasks = $booking->tasks->values();
+        }
+
+        return response()->json(['booking' => $booking]);
+    }
+
+    public function getByEventCode(Request $request, $eventCode)
+    {
+        $accessToken = $request->bearerToken();
+        $token = PersonalAccessToken::findToken($accessToken);
+        $user = $token?->tokenable;
+
+        $booking = EventBooking::with([
+            'customer',
+            'menu.foods',
+            'package',
+            'packagePrice',
+            'theme',
+            'staffAssignments.user',
+            'payments',
+            'eventAddons.addon',
+            'eventAddons.addonPrice',
+            'extraCharges'
+        ])
+        ->where('event_code', $eventCode)
+        ->firstOrFail();
 
         if (!$booking) {
             return response()->json(['message' => 'Event booking not found'], 404);

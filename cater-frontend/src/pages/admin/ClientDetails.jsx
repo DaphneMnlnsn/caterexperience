@@ -11,7 +11,8 @@ function ClientDetails() {
   const navigate = useNavigate();
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;
-  const { id } = useParams();
+  const { uuid } = useParams();
+  const [id, setId] = useState(0);
   const [client, setClient] = useState(null);
   const [editedClient, setEditedClient] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -20,9 +21,10 @@ function ClientDetails() {
   const isArchived = client?.archived === 1 || client?.archived === true;
 
   useEffect(() => {
-    axiosClient.get(`/customers/${id}`)
+    axiosClient.get(`/customers/${uuid}`)
     .then(res => {
       setClient(res.data.customer);
+      setId(res.data.customer.customer_id);
       setLoading(false);
     })
     .catch(err => {

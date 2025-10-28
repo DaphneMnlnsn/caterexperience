@@ -50,6 +50,10 @@ body {
   margin-top: -1%;
 }
 
+.todays-events h3 {
+  margin-top: 0.9%;
+}
+
 .stats {
   display: flex;
   flex-wrap: wrap;
@@ -98,28 +102,11 @@ body {
   margin-bottom: 2rem;
   box-shadow: 0 0 5px rgba(0,0,0,0.1);
   flex: 1;
-  max-width: 300px;
+  max-width: 220px;
 }
 
 .audit-log h3 {
-  margin-top: 4%;
-  margin-left: 2%;
-}
-
-.audit-log ul {
-  padding: 5%;
-  list-style: none;
-}
-
-.audit-log ul li {
-  font-size: 14px;
-  margin-bottom: 0.5rem;
-}
-
-.audit-log ul li span {
-  display: block;
-  color: #555;
-  margin-left: 10px;
+  margin-top: 2%;
 }
 
 .setup-checklist ul {
@@ -132,31 +119,6 @@ body {
   margin-top: -0.6rem;
   padding: 2px 0;
   line-height: 1.3;
-}
-
-.event-section {
-  width: 65%;
-  margin-bottom: 1rem;
-}
-
-.event-card {
-  background: #fff;
-  border: 3px solid #f9e66c;
-  border-radius: 10px;
-  padding: 1rem 1.5rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  width: 90%;
-  height: 75%;
-}
-
-.event-card h4 {
-  font-size: 1.3rem;
-  margin-bottom: 0.8rem;
-}
-
-.event-card p {
-  margin: 0.3rem 0;
-  font-size: 1rem;
 }
 
 .btn-details {
@@ -178,18 +140,39 @@ body {
 .to-prepare-list {
   display: flex;
   flex-direction: column;
-  margin-top: -2rem;
+  margin-top: -1rem;
+  gap: 1rem;
 }
 
 .prepare-day {
-  border-radius: 10px;
-  padding: 0.8rem;
+  border-radius: 12px;
+  padding: 0.2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .prepare-date {
-  font-weight: bold;
-  margin-bottom: -1rem;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 0.5rem;
   color: #453c01;
+}
+
+.event-group {
+  margin-top: 0.8rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #f0e6c6;
+  padding: 0.6rem 0.6rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.event-name {
+  font-weight: 600;
+  color: #5c4b02;
+  margin-bottom: 0.4rem;
+  font-size: 14px;
+  border-left: 3px solid #d4b44c;
+  padding-left: 0.4rem;
 }
 
 .prepare-item {
@@ -205,7 +188,7 @@ body {
 }
 
 .food-name {
-  font-size: 14px;
+  font-size: 13.5px;
   color: #333;
 }
 
@@ -214,10 +197,11 @@ body {
   padding: 3px 8px;
   border-radius: 6px;
   text-transform: capitalize;
+  font-weight: 500;
 }
 
 .food-status.pending {
-  background: #ffe082;
+  background: #fff0b3;
   color: #6d4c00;
 }
 
@@ -226,9 +210,122 @@ body {
   color: #256029;
 }
 
+.food-status.cooking {
+  background: #bbdefb;
+  color: #0d47a1;
+}
+
+.food-status.cancelled {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+
 .empty-list {
   color: #777;
   font-size: 14px;
   text-align: center;
   margin-top: 1rem;
+}
+
+.todays-events {
+  margin-bottom: 1rem;
+}
+
+.events-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.event-section {
+  width: 65%;
+  margin-bottom: 1rem;
+}
+
+.event-card p {
+  margin: 0.3rem 0;
+  font-size: 0.85rem;
+}
+
+.event-card {
+  background: #fff;
+  padding: 0.2rem 1rem;
+  width: 27%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 3px solid #f9e66c;
+  border-radius: 10px;
+}
+
+.event-card h5 {
+  font-size: 1rem;
+  margin-bottom: 0;
+  margin-top: 0.4rem;
+}
+
+.event-card:hover {
+  background: #fff8dc;
+}
+
+.event-card.selected {
+  border: 2px solid #f1c40f;
+  background-color: #fffbe6;
+}
+
+.audit-log ul {
+  list-style: none;
+  padding: 0;
+}
+
+.audit-log li {
+  margin: 2%;
+  font-size: 0.95rem;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.task-title {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #333;
+  word-break: break-word;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.staff-group h4 {
+  font-size: 0.9rem;
+  margin-bottom: -4%;
+}
+
+.status-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-tag.done {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-tag.to-do {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-tag.in-progress {
+  background: #e3f2fd;
+  color: #1976d2;
 }

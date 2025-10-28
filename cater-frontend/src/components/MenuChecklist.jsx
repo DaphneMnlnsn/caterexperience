@@ -3,7 +3,7 @@ import './MenuChecklist.css';
 import axiosClient from '../axiosClient';
 import Swal from 'sweetalert2';
 
-function MenuChecklist({ bookingId = null, items: initialItems = null, isCook }) {
+function MenuChecklist({ bookingId = null, items: initialItems = null, isCook, isToday }) {
   const [items, setItems] = useState(initialItems || []);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -99,7 +99,7 @@ function MenuChecklist({ bookingId = null, items: initialItems = null, isCook })
                   <td className="mc-cat" data-label="Category">{it.category || '-'}</td>
                   <td className="mc-deadline" data-label="Deadline">{formatDeadline(it.deadline)}</td>
                   <td className="mc-check" data-label="Done">
-                    {isCook && (
+                    {isCook && isToday && (
                       <>
                         <label className="mc-checkbox">
                           <input
@@ -120,7 +120,7 @@ function MenuChecklist({ bookingId = null, items: initialItems = null, isCook })
       )}
 
       <div className="mc-actions">
-        {isCook && (
+        {isCook && isToday && (
           <button
             className="user-save-btn"
             onClick={handleSave}

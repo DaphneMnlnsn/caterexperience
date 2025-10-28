@@ -134,7 +134,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                     <tr key={index}>
                                         <td>{item.item_name}</td>
                                         <td>{item.item_type}</td>
-                                        <td>{item.item_price}/{item.item_unit}</td>
+                                        <td>Php {parseFloat(item.item_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/{item.item_unit}</td>
                                         <td>{item.item_current_quantity}</td>
                                         <td>{item.item_quantity}</td>
                                         <td className="actions">

@@ -124,7 +124,7 @@ function Packages() {
                             <br /><br /><b>Prices:</b><br />
                             {pkg.price_tiers.map(tier => (
                               <div key={tier.package_price_id}>
-                                {tier.price_label} – <span className="price-red">Php {tier.price_amount.toLocaleString()}</span><br />
+                                {tier.price_label} – <span className="price-red">Php {parseFloat(tier.price_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span><br />
                               </div>
                             ))}
                           </div>
@@ -237,7 +237,7 @@ function Packages() {
                         <b>Prices:</b><br />
                         {addon.prices.map(price => (
                           <div key={price.addon_price_id}>
-                            {price.description} – <span className="price-red">Php {price.price.toLocaleString()}</span><br />
+                            {price.description} – <span className="price-red">Php {parseFloat(price.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span><br />
                           </div>
                         ))}
                       </div>

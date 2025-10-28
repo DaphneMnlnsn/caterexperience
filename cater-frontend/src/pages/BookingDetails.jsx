@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { FaPen, FaTrash } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import TaskBoard from '../components/TaskBoard';
@@ -20,7 +20,7 @@ import RescheduleModal from '../components/RescheduleModal';
 import FeedbackModal from '../components/FeedbackModal';
 
 function BookingDetails() {
-  const { id } = useParams();
+  const { eventCode } = useParams();
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(atob(storedUser)) : null;
 
@@ -63,13 +63,14 @@ function BookingDetails() {
   const [availableAddons, setAvailableAddons] = useState([]);
   const [addonTiersMap, setAddonTiersMap] = useState({});
   const [totalQuantity, setTotalQuantity] = useState(0);
+  const [id, setId] = useState(0);
   
   useEffect(() => {
     fetchDetails();
-  }, [id]);
+  }, [eventCode]);
 
   const fetchDetails = () => {
-    axiosClient.get(`/bookings/${id}`)
+    axiosClient.get(`/bookings/code/${eventCode}`)
       .then(res => {
         setBooking(mapBookingData(res.data.booking));
 
@@ -111,6 +112,7 @@ function BookingDetails() {
         );
 
         setAvailableStaff(uniqueStaff);
+        setId(bookingFromServer.booking_id);
       })
       .catch(err => {
         console.error('Failed to fetch booking details:', err.response?.data || err.message);
@@ -133,11 +135,16 @@ function BookingDetails() {
     axiosClient.get('/foods')
       .then(res => setFoods(res.data.foods || []))
       .catch(err => console.error('Failed to fetch foods:', err.response?.data || err.message));
-
-    axiosClient.get(`/bookings/${id}/inventory-summary`)
-      .then(res => setInventorySummary(res.data || []))
-      .catch(err => console.error('Failed to fetch inventory summary:', err.response?.data || err.message));
   };
+
+  useEffect(() => {
+    if (id) {
+      axiosClient.get(`/bookings/${id}/inventory-summary`)
+        .then(res => setInventorySummary(res.data || []))
+        .catch(err => console.error('Failed to fetch inventory summary:', err.response?.data || err.message));
+        console.log(inventorySummary);
+    }
+  }, [id]);
 
   function toTitleCase(str) {
     return (str || '')
@@ -696,20 +703,51 @@ function BookingDetails() {
         <div className="section white-bg">
           <div className="section-header">
             <h3>Menu & Packages</h3>
-            {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
-              <button className="booking-edit-btn" onClick={() => setShowRequestChangesModal(true)}>Request Changes</button>
-            )}
+            {booking.booking_status !== 'Finished' &&
+              booking.booking_status !== 'Cancelled' &&
+              isClient &&
+              canEditBooking() && (
+                <button
+                  className="booking-edit-btn"
+                  onClick={() => setShowRequestChangesModal(true)}
+                >
+                  Request Changes
+                </button>
+              )}
           </div>
+
           <div className="menu-package-container">
             <div className="menu-left">
               <p>
-                <strong>Package:</strong> {booking.package?.package_name}
+                <strong>Package:</strong> <br />
+                {booking.package?.package_name}
                 {booking.package_price && (
-                  <> | {booking.package_price.price_label}: ₱{parseFloat(booking.package_price.price_amount).toLocaleString()}</>
+                  <>
+                    {' '}
+                    | {booking.package_price.price_label}: Php {parseFloat(booking.package_price.price_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </>
                 )}
               </p>
-              <p><strong>Theme:</strong> {booking.theme?.theme_name}</p>
+
+              {booking.package?.package_description && (
+                <div className="package-inclusions inc-details">
+                  <span>Inclusions:</span>
+                  <ul>
+                    {booking.package.package_description
+                      ?.split('\n')
+                      .filter((line) => line.trim() !== '')
+                      .map((line, index) => (
+                        <li key={index}>{line}</li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+
+              <p>
+                <strong>Theme:</strong> {booking.theme?.theme_name}
+              </p>
             </div>
+
             <div className="menu-right">
               <h4 className="menu-title">Menu</h4>
               {Object.entries(booking.menu).map(([category, selectedFoodNames]) => (
@@ -730,12 +768,12 @@ function BookingDetails() {
                     >
                       <option value="">Select {category}</option>
                       {groupedFoods[category]
-                      ?.filter(food => food.status !== 'archived')
-                      .map(food => (
-                        <option key={food.food_id} value={food.food_id}>
-                          {food.food_name}
-                        </option>
-                      ))}
+                        ?.filter((food) => food.status !== 'archived')
+                        .map((food) => (
+                          <option key={food.food_id} value={food.food_id}>
+                            {food.food_name}
+                          </option>
+                        ))}
                     </select>
                   ) : (
                     <ul>
@@ -792,7 +830,7 @@ function BookingDetails() {
                           <option value="">Select Tier…</option>
                           {addonTiersMap[row.addon_id].map(t => (
                             <option key={t.addon_price_id} value={t.addon_price_id}>
-                              {t.description} – ₱{parseFloat(t.price).toLocaleString()}
+                              {t.description} – Php {parseFloat(t.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </option>
                           ))}
                         </select>
@@ -855,7 +893,7 @@ function BookingDetails() {
                         <li key={addon.id}>
                           {addon.addon?.addon_name}
                           {addon.addon_price?.description ? ` (${addon.addon_price.description})` : ''} ×{' '}
-                          {addon.quantity} = ₱{parseFloat(addon.total_price).toLocaleString()}
+                          {addon.quantity} = Php {parseFloat(addon.total_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </li>
                       ))}
                     </ul>
@@ -920,7 +958,7 @@ function BookingDetails() {
           <>
             <div className="section white-bg">
               <h3>Menu Checklist</h3>
-              <MenuChecklist bookingId={booking.booking_id} isCook={isCook} />
+              <MenuChecklist bookingId={booking.booking_id} isCook={isCook} isToday={new Date(booking.event_date + ' ' + booking.event_start_time) <= new Date()} />
             </div>
 
             <hr className="booking-section-divider" />
@@ -1127,8 +1165,8 @@ function BookingDetails() {
             </div>
 
             <div className="payments-info">
-              <p><strong>Total Amount:</strong> Php {parseFloat(booking.final_amount).toLocaleString()}.00</p>
-              <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.final_amount) - parseFloat(booking.amount_paid)).toLocaleString()}.00</p>
+              <p><strong>Total Amount:</strong> Php {parseFloat(booking.final_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <p><strong>Remaining Balance:</strong> Php {(parseFloat(booking.final_amount) - parseFloat(booking.amount_paid)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
 
             <div className="booking-table-wrapper">
@@ -1145,7 +1183,7 @@ function BookingDetails() {
                 <tbody>
                   {booking.payments?.map((payment, index) => (
                     <tr key={index}>
-                      <td>Php {parseFloat(payment.amount_paid).toLocaleString()}</td>
+                      <td>Php {parseFloat(payment.amount_paid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
                       <td>{payment.payment_method}</td>
                       <td>{payment.remarks}</td>

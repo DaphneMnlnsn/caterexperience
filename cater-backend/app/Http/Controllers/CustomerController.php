@@ -22,15 +22,15 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function indexSelected($id)
+    public function indexSelected($uuid)
     {
-        $customer = Customer::with('bookings')->find($id);
+        $customer = Customer::with('bookings')->where('uuid', $uuid)->firstOrFail();
 
         if (!$customer) {
             return response()->json(['message' => 'Customer not found'], 404);
         }
 
-        AuditLogger::log('Viewed', 'Module: Customer | Viewed customer ID: ' . $id);
+        AuditLogger::log('Viewed', 'Module: Customer | Viewed customer: ' . $customer->customer_firstname . ' ' . $customer->customer_lastname);
 
         return response()->json([
             'customer' => $customer

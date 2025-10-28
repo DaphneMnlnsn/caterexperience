@@ -33,6 +33,7 @@ Route::middleware('role:admin,stylist,head waiter,cook,client')->group(function 
     Route::get('/calendar/events', [EventBookingController::class, 'calendarEvents']);
     Route::prefix('bookings')->group(function () {
         Route::get('/{id}', [EventBookingController::class, 'indexSelected']);
+        Route::get('/code/{eventCode}', [EventBookingController::class, 'getByEventCode']);
         Route::get('/{bookingId}/requests', [BookingChangeRequestController::class, 'index']);
     });
 });

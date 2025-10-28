@@ -7,7 +7,7 @@ import axiosClient from '../axiosClient';
 import Invoice from '../components/Invoice';
 
 function BookingDetails() {
-    const { id } = useParams();
+    const { eventCode } = useParams();
     const navigate = useNavigate();
   const [showInvoice, setShowInvoice] = useState(false);
   const [booking, setBooking] = useState(null);
@@ -17,10 +17,10 @@ function BookingDetails() {
 
   useEffect(() => {
     fetchDetails();
-  }, [id]);
+  }, [eventCode]);
 
   const fetchDetails = () => {
-    axiosClient.get(`/bookings/public/${id}`)
+    axiosClient.get(`/bookings/public/${eventCode}`)
       .then(res => {
         setBooking(mapBookingData(res.data.booking));
 
@@ -210,6 +210,19 @@ function BookingDetails() {
                   <> | {booking.package_price.price_label}: ₱{parseFloat(booking.package_price.price_amount).toLocaleString()}</>
                 )}
               </p>
+              {booking.package?.package_description && (
+                <div className="package-inclusions inc-details">
+                  <span>Inclusions:</span>
+                  <ul>
+                    {booking.package.package_description
+                      ?.split('\n')
+                      .filter((line) => line.trim() !== '')
+                      .map((line, index) => (
+                        <li key={index}>{line}</li>
+                      ))}
+                  </ul>
+                </div>
+              )}
               <p><strong>Theme:</strong> {booking.theme?.theme_name}</p>
             </div>
             <div className="menu-right">

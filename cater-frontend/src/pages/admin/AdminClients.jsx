@@ -10,7 +10,7 @@ function AdminClients() {
     
     const [customerData, setCustomerData] = React.useState([]);
     const storedUser = localStorage.getItem('user');
-const user = storedUser ? JSON.parse(atob(storedUser)) : null;
+    const user = storedUser ? JSON.parse(atob(storedUser)) : null;
     const [selectedCustomer, setSelectedCustomer] = React.useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [showArchived, setShowArchived] = useState(0);
@@ -80,7 +80,7 @@ const user = storedUser ? JSON.parse(atob(storedUser)) : null;
                                         <td>{customer.customer_phone}</td>
                                         <td>{customer.customer_address}</td>
                                         <td className="actions">
-                                            <Link to={`/admin/clients/${customer.customer_id}`}>
+                                            <Link to={`/admin/clients/${customer.uuid}`}>
                                                 <FaInfoCircle className="icon edit-icon" />
                                             </Link>
                                         </td>

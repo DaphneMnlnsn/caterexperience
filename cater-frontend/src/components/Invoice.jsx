@@ -69,10 +69,7 @@ function Invoice({ show, onClose, selectedPayment }) {
             <div className="invoice-table-row">
               <span>{paymentDetails.remarks}</span>
               <span>
-                {parseFloat(paymentDetails.amount_paid).toLocaleString('en-PH', {
-                  style: 'currency',
-                  currency: 'PHP',
-                })}
+                Php {parseFloat(paymentDetails.amount_paid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -81,29 +78,20 @@ function Invoice({ show, onClose, selectedPayment }) {
             <div className="total-row">
               <span className="total-label">Total</span>
               <span>
-                {parseFloat(paymentDetails.amount_paid).toLocaleString('en-PH', {
-                  style: 'currency',
-                  currency: 'PHP',
-                })}
+                Php {parseFloat(paymentDetails.amount_paid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <div className="payment-details">
               <div className="payment-row">
                 <span>Cash</span>
                 <span>
-                  {parseFloat(paymentDetails.cash_given).toLocaleString('en-PH', {
-                    style: 'currency',
-                    currency: 'PHP',
-                  })}
+                  Php {parseFloat(paymentDetails.cash_given).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div className="payment-row">
                 <span>Change</span>
                 <span>
-                  {parseFloat(paymentDetails.change_given).toLocaleString('en-PH', {
-                    style: 'currency',
-                    currency: 'PHP',
-                  })}
+                  Php {parseFloat(paymentDetails.change_given).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>

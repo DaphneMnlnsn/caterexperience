@@ -8,7 +8,7 @@ Route::middleware('role:admin')->group(function () {
 });
 
 Route::middleware('role:admin')->group(function () {
-    Route::get('/dashboard/audit-log', [DashboardController::class, 'getAuditLog']);
+    Route::get('/dashboard/today-events', [DashboardController::class, 'getTodayEvents']);
 });
 
 Route::middleware('role:stylist')->group(function () {
@@ -25,4 +25,8 @@ Route::middleware('role:head waiter')->group(function () {
 
 Route::middleware('role:client')->group(function () {
     Route::get('/dashboard/client/stats', [DashboardController::class, 'getClientStats']);
+});
+
+Route::middleware('role:stylist,cook,head waiter')->group(function () {
+    Route::get('/dashboard/staff/today-events', [DashboardController::class, 'getStaffTodayEvents']);
 });
