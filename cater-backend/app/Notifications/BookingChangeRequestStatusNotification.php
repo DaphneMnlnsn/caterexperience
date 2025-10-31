@@ -32,7 +32,7 @@ class BookingChangeRequestStatusNotification extends Notification
             'booking_id' => $this->changeRequest->booking_id,
             'status' => $this->changeRequest->status,
             'message' => "Your change request for booking #{$this->changeRequest->booking_id} has been {$this->changeRequest->status}.",
-            'url' => "/bookings/{$this->changeRequest->booking_id}",
+            'url' => "/bookings/{$this->changeRequest->event_code}",
         ];
     }
 

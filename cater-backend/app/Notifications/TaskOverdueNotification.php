@@ -33,7 +33,7 @@ class TaskOverdueNotification extends Notification
             'title' => $this->task->title,
             'due_date' => $this->task->due_date,
             'message' => "Your task '{$this->task->title}' is overdue!",
-            'url' => "/bookings/{$this->task->booking_id}",
+            'url' => "/bookings/{$this->task->booking->event_code}",
         ];
     }
 

@@ -189,7 +189,10 @@ class EventBookingController extends Controller
             'payments',
             'eventAddons.addon',
             'eventAddons.addonPrice',
-            'extraCharges'
+            'extraCharges',
+            'changeRequests' => function ($query) {
+                $query->where('status', 'pending');
+            },
         ])
         ->where('event_code', $eventCode)
         ->firstOrFail();
@@ -250,7 +253,11 @@ class EventBookingController extends Controller
             'staffAssignments.user',
             'payments',
             'eventAddons.addon',
-            'eventAddons.addonPrice'
+            'eventAddons.addonPrice',
+            'extraCharges',
+            'changeRequests' => function ($query) {
+                $query->where('status', 'pending');
+            },
         ])->where('event_code', $code)->first();
 
         if (!$booking) {
@@ -580,8 +587,8 @@ class EventBookingController extends Controller
             'age'             => 'nullable|integer',
             'watcher'         => 'nullable|string',
             'special_request' => 'nullable|string',
-            'food_names'      => 'required|array',
-            'food_names.*'    => 'string',
+            'menu_foods'      => 'required|array',
+            'menu_foods.*'    => 'string',
             'freebies' => 'nullable|string',
             'event_addons' => 'nullable|array',
             'event_addons.*.addon_id' => 'required|integer|exists:addons,addon_id',
@@ -604,7 +611,7 @@ class EventBookingController extends Controller
                 'freebies'        => $request->input('freebies'),
             ]);
 
-            $allFoods = Food::whereIn('food_name', $validated['food_names'])
+            $allFoods = Food::whereIn('food_name', $validated['menu_foods'])
                 ->pluck('food_id')
                 ->toArray();
             $booking->menu->foods()->sync($allFoods);

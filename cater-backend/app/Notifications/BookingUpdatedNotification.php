@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class BookingUpdatedNotification extends Notification
@@ -20,7 +21,7 @@ class BookingUpdatedNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'mail'];
     }
 
     public function toArray($notifiable)
@@ -29,7 +30,7 @@ class BookingUpdatedNotification extends Notification
             'action'       => 'booking_updated',
             'message'    => 'Booking details have been updated.',
             'booking_id' => $this->booking->booking_id,
-            'url' => "/bookings/{$this->booking->booking_id}",
+            'url' => "/bookings/{$this->booking->event_code}",
         ];
     }
 
@@ -37,6 +38,16 @@ class BookingUpdatedNotification extends Notification
     {
         $this->notifiable = $notifiable;
         return new BroadcastMessage($this->toArray($notifiable));
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('Booking Updated')
+            ->greeting('Hello ' . ($notifiable->first_name ?? 'there') . '!')
+            ->line("Your booking '{$this->booking->event_name}' details has been updated.")
+            ->action('View Booking', env('FRONTEND_URL') . '/bookings/' . $this->booking->event_code)
+            ->line('Thank you for booking with Ollinati Catering!');
     }
 
     public function broadcastOn()

@@ -29,7 +29,7 @@ class TaskAssignedNotification extends Notification
             'action'    => 'task_assigned',
             'booking_id' => $this->booking->booking_id,
             'message'    => "You have been assigned a task on a booking: {$this->booking->event_name}",
-            'url' => "/bookings/{$this->booking->booking_id}",
+            'url' => "/bookings/{$this->booking->event_code}",
         ];
     }
 

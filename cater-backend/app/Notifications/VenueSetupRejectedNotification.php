@@ -29,7 +29,6 @@ class VenueSetupRejectedNotification extends Notification
             'action' => 'venue_setup_rejected',
             'booking_id' => $this->bookingId,
             'message' => "The client has rejected the venue setup for Booking ID: {$this->bookingId}.",
-            'url' => "/bookings/{$this->bookingId}",
         ];
     }
 

@@ -61,14 +61,14 @@ function ClientDashboard() {
           <section className="event-section">
             <h3>Your Upcoming Event</h3>
             {event ? (
-              <div className="event-card">
+              <div className="event-card-client">
                 <h4>{event.title}</h4>
                 <p><strong>Venue:</strong> {event.venue}</p>
                 <p><strong>Date and Time:</strong> {event.datetime}</p>
                 <p><strong>Package:</strong> {event.package}</p>
                 <p><strong>Theme:</strong> {event.theme}</p>
                 <p><strong>Additional Notes:</strong> {event.notes ? event.notes : 'N/A'}</p>
-                <button className="btn-details" onClick={() => navigate(`/bookings/${event.bookingId}`)}>View More Details</button>
+                <button className="btn-details" onClick={() => navigate(`/bookings/${event.event_code}`)}>View More Details</button>
               </div>
             ) : (
               <p>No upcoming events.</p>

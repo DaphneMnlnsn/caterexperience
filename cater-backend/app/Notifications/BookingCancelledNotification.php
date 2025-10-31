@@ -29,7 +29,7 @@ class BookingCancelledNotification extends Notification
             'action'       => 'booking_cancelled',
             'message'    => 'Booking has been cancelled.',
             'booking_id' => $this->booking->booking_id,
-            'url'        => "/bookings/{$this->booking->booking_id}",
+            'url'        => "/bookings/{$this->booking->event_code}",
         ];
     }
 

@@ -34,7 +34,7 @@ class InventoryUsageUpdatedNotification extends Notification
             'inventory_item' => $this->usage->bookingInventory->item->item_name,
             'quantity_returned' => $this->usage->quantity_returned,
             'message' => "Inventory item {$this->usage->bookingInventory->item->item_name} had its returned quantity updated.",
-            'url' => "/bookings/{$this->usage->bookingInventory->booking_id}",
+            'url' => "/bookings/{$this->usage->bookingInventory->booking->event_code}",
         ];
     }
 

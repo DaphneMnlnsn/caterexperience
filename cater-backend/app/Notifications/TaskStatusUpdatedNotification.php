@@ -33,7 +33,7 @@ class TaskStatusUpdatedNotification extends Notification
             'title' => $this->task->title,
             'status'   => $this->task->status,
             'message'  => "Task {$this->task->title} status updated to '{$this->task->status}'.",
-            'url' => "/bookings/{$this->task->booking_id}",
+            'url' => "/bookings/{$this->task->booking->event_code}",
         ];
     }
 

@@ -373,6 +373,7 @@ class DashboardController extends Controller
             'package'  => $event->package ? $event->package->package_name : null,
             'theme'    => $event->theme ? $event->theme->theme_name : null,
             'notes'    => $event->special_request ? $event->special_request : null,
+            'event_code' => $event->event_code,
         ];
 
         $payments = $event->payments->sortByDesc('payment_date')->map(function ($p) {

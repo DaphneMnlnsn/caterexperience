@@ -98,6 +98,11 @@ class EventBooking extends Model
         return $this->hasOne(Feedback::class, 'booking_id', 'booking_id');
     }
 
+    public function changeRequests()
+    {
+        return $this->hasMany(BookingChangeRequest::class, 'booking_id', 'booking_id');
+    }
+
     protected static function generateReadableCode($length = 6)
     {
         $pool = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

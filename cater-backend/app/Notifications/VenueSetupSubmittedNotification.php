@@ -29,7 +29,6 @@ class VenueSetupSubmittedNotification extends Notification
             'action' => 'venue_setup_submitted',
             'booking_id' => $this->bookingId,
             'message' => "A venue setup has been submitted for your booking (Booking ID: {$this->bookingId}). Please review it.",
-            'url' => "/bookings/{$this->bookingId}",
         ];
     }
 

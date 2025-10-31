@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('customer_id');
             $table->text('request_text');
+            $table->json('changes')->nullable();
             $table->enum('status', ['pending','approved','rejected','resolved'])->default('pending');
             $table->timestamps();
 

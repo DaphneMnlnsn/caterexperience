@@ -32,7 +32,7 @@ class PaymentLoggedNotification extends Notification
             'amount_paid'  => $this->payment->amount_paid,
             'payment_date' => $this->payment->payment_date,
             'message'      => "Your payment of ₱{$this->payment->amount_paid} has been recorded.",
-            'url' => "/bookings/{$this->payment->booking_id}",
+            'url' => "/bookings/{$this->payment->booking->event_code}",
         ];
     }
 

@@ -29,7 +29,6 @@ class VenueSetupApprovedNotification extends Notification
             'action' => 'venue_setup_approved',
             'booking_id' => $this->bookingId,
             'message' => "The client has approved the venue setup for Booking ID: {$this->bookingId}.",
-            'url' => "/bookings/{$this->bookingId}",
         ];
     }
 

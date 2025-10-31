@@ -59,5 +59,6 @@ Route::middleware('role:cook')->group(function () {
 Route::middleware('role:admin,client')->group(function () {
     Route::prefix('bookings')->group(function () {
         Route::post('/{bookingId}/requests', [BookingChangeRequestController::class, 'store']);
+        Route::post('/{bookingId}/pending-update', [BookingChangeRequestController::class, 'pendingUpdate']);
     });
 });

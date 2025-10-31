@@ -29,7 +29,6 @@ class VenueUpdatedNotification extends Notification
             'action'       => 'venue_updated',
             'message'    => "The venue setup for booking #{$this->bookingId} has been updated.",
             'booking_id' => $this->bookingId,
-            'url' => "/bookings/{$this->bookingId}",
         ];
     }
 

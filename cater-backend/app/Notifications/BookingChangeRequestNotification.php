@@ -33,7 +33,7 @@ class BookingChangeRequestNotification extends Notification
             'booking_id'  => $this->booking->booking_id,
             'request'     => $this->requestText,
             'customer_id' => $this->booking->customer_id,
-            'url'        => "/bookings/{$this->booking->booking_id}",
+            'url'        => "/bookings/{$this->booking->event_code}",
         ];
     }
 

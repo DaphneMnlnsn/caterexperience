@@ -15,7 +15,12 @@ class BookingChangeRequest extends Model
         'booking_id',
         'customer_id',
         'request_text',
+        'changes',
         'status',
+    ];
+
+    protected $casts = [
+        'changes' => 'array',
     ];
 
     public function booking()

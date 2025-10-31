@@ -29,7 +29,7 @@ class EventFinishedNotification extends Notification
             'action'     => 'event_finished',
             'message'    => "Booking {$this->booking->event_name} must be marked finished",
             'booking_id' => $this->booking->booking_id,
-            'url'        => "/bookings/{$this->booking->booking_id}",
+            'url'        => "/bookings/{$this->booking->event_code}",
         ];
     }
 

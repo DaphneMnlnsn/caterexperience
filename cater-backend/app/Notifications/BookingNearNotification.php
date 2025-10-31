@@ -6,6 +6,7 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class BookingNearNotification extends Notification
 {
@@ -20,7 +21,7 @@ class BookingNearNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'mail'];
     }
 
     public function toArray($notifiable)
@@ -29,7 +30,7 @@ class BookingNearNotification extends Notification
             'action'     => 'booking_near',
             'message'    => "Booking {$this->booking->event_name} is happening soon",
             'booking_id' => $this->booking->booking_id,
-            'url'        => "/bookings/{$this->booking->booking_id}",
+            'url'        => "/bookings/{$this->booking->event_code}",
         ];
     }
 
@@ -37,6 +38,17 @@ class BookingNearNotification extends Notification
     {
         $this->notifiable = $notifiable;
         return new BroadcastMessage($this->toArray($notifiable));
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('Upcoming Booking Reminder')
+            ->greeting('Hello ' . ($notifiable->first_name ?? 'there') . '!')
+            ->line("Your booking '{$this->booking->event_name}' is happening soon.")
+            ->line('Event Date: ' . \Carbon\Carbon::parse($this->booking->event_date)->format('F j, Y'))
+            ->action('View Booking', env('FRONTEND_URL') . '/bookings/' . $this->booking->event_code)
+            ->line('Thank you for booking with Ollinati Catering!');
     }
     
     public function broadcastOn()

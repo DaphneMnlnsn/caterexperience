@@ -64,6 +64,7 @@ function BookingDetails() {
   const [addonTiersMap, setAddonTiersMap] = useState({});
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [id, setId] = useState(0);
+  const [pendingChanges, setPendingChanges] = useState({});
   
   useEffect(() => {
     fetchDetails();
@@ -210,7 +211,7 @@ function BookingDetails() {
   }, {});
 
   const handleEdit = () => {
-    if (!isAdmin) return;
+    if (!isAdmin && !isClient) return;
 
     setEditedData({
       ...booking,
@@ -263,23 +264,35 @@ function BookingDetails() {
       age: editedData.age,
       watcher: editedData.bantay,
       special_request: editedData.special_request,
-      food_names: selectedFoodNames,
+      menu_foods: selectedFoodNames,
       freebies: editedData.freebies || null,
       event_addons: selectedAddons,
     };
 
-    axiosClient
-      .put(`/bookings/${id}`, payload)
-      .then(() => {
-        Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
+    if (isClient) {
+      axiosClient.post(`/bookings/${id}/pending-update`, { changes: payload })
+        .then(() => {
+          Swal.fire('Pending Approval', 'Your changes have been sent for manager review.', 'info');
           setIsEditing(false);
-          fetchDetails();
+        })
+        .catch(err => {
+          console.error(err);
+          Swal.fire('Error', 'Could not submit pending changes.', 'error');
         });
-      })
-      .catch(err => {
-        console.error(err.response?.data || err.message);
-        Swal.fire('Error', 'Could not save changes.', 'error');
-      });
+    } else {
+      axiosClient
+        .put(`/bookings/${id}`, payload)
+        .then(() => {
+          Swal.fire('Saved!', 'Booking updated.', 'success').then(() => {
+            setIsEditing(false);
+            fetchDetails();
+          });
+        })
+        .catch(err => {
+          console.error(err.response?.data || err.message);
+          Swal.fire('Error', 'Could not save changes.', 'error');
+        });
+    }
   };
 
   const handleFinish = () => {
@@ -419,6 +432,22 @@ function BookingDetails() {
     }
   };
 
+  const handleApproveChange = (id) => {
+    axiosClient.put(`/requests/${id}/status`, { status: 'approved' })
+      .then(() => {
+        Swal.fire('Approved!', 'Changes applied.', 'success');
+        fetchDetails();
+      });
+  };
+
+  const handleRejectChange = (id) => {
+    axiosClient.put(`/requests/${id}/status`, { status: 'rejected' })
+      .then(() => {
+        Swal.fire('Rejected', 'Changes discarded.', 'info');
+        fetchDetails();
+      });
+  };
+
   const canEditBooking = () => {
     if (!booking) return false;
     const today = new Date();
@@ -495,9 +524,6 @@ function BookingDetails() {
               {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && (isAdmin || isStylist || isClient) && (
                 <button className="booking-edit-btn" onClick={() => {setShowRequestChangesModal(true); setSeeRequests(true);}}>See Requested Changes</button>
               )}
-              {booking.booking_status !== 'Finished' && booking.booking_status !== 'Cancelled' && isClient && canEditBooking() && (
-                <button className="booking-edit-btn" onClick={() => {setShowRequestChangesModal(true); setSeeRequests(false);}}>Request Changes</button>
-              )}
               {isClient &&
                 booking.booking_status !== 'Cancelled' &&
                 new Date(booking.event_date + ' ' + booking.event_end_time) <= new Date() && (
@@ -514,8 +540,8 @@ function BookingDetails() {
               )}
               {isEditing ? (
                 <>
-                  {isAdmin && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
-                  {isAdmin && (
+                  {(isAdmin || isClient) && <button onClick={handleSave} className="save-btn-small">Save Changes</button>}
+                  {(isAdmin || isClient) && (
                     <button
                       onClick={() => {
                         setIsEditing(false);
@@ -537,7 +563,7 @@ function BookingDetails() {
                       Mark as Finished
                     </button>
                   )}
-                  {isAdmin &&
+                  {(isAdmin || isClient) &&
                     booking.booking_status !== 'Finished' &&
                     booking.booking_status !== 'Cancelled' && (
                       <>
@@ -703,17 +729,6 @@ function BookingDetails() {
         <div className="section white-bg">
           <div className="section-header">
             <h3>Menu & Packages</h3>
-            {booking.booking_status !== 'Finished' &&
-              booking.booking_status !== 'Cancelled' &&
-              isClient &&
-              canEditBooking() && (
-                <button
-                  className="booking-edit-btn"
-                  onClick={() => setShowRequestChangesModal(true)}
-                >
-                  Request Changes
-                </button>
-              )}
           </div>
 
           <div className="menu-package-container">
@@ -907,7 +922,61 @@ function BookingDetails() {
             </div>
         </div>
 
+        {/* Pending Changes */}
         <hr className="booking-section-divider" />
+
+        {isAdmin && (
+          <>
+            <div className="section white-bg">
+              <h3>Pending Client Changes</h3>
+              {booking.change_requests?.length ? (
+                booking.change_requests.map((req) => (
+                  <div key={req.id} className="pending-request">
+                    <h4>Request #{req.id}</h4>
+                    <div className="pending-changes-list">
+                      {req.changes ? (
+                        Object.entries(
+                          typeof req.changes === "string" ? JSON.parse(req.changes) : req.changes
+                        ).map(([key, value]) => (
+                          <div key={key} className="change-item">
+                            <span className="change-key">{key.replace(/_/g, " ")}</span>
+                            <span className="change-old">
+                              {value?.old !== undefined && value?.old !== null ? String(value.old) : "—"}
+                            </span>
+                            <span className="change-arrow">→</span>
+                            <span className="change-new">
+                              {value?.new !== undefined && value?.new !== null ? String(value.new) : "—"}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="no-changes">No structured changes listed.</p>
+                      )}
+                    </div>
+                    <div className="actions">
+                      <button
+                        className="save-btn-small"
+                        onClick={() => handleApproveChange(req.id)}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="cancel-btn-small"
+                        onClick={() => handleRejectChange(req.id)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No pending requests.</p>
+              )}
+            </div>
+
+            <hr className="booking-section-divider" />
+          </>
+        )}
 
         {/* Task Board */}
         {!isClient && (

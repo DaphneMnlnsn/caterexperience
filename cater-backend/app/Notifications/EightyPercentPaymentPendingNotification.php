@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class EightyPercentPaymentPendingNotification extends Notification
@@ -20,7 +21,7 @@ class EightyPercentPaymentPendingNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'mail'];
     }
 
     public function toArray($notifiable)
@@ -29,7 +30,7 @@ class EightyPercentPaymentPendingNotification extends Notification
             'action'      => 'eighty_percent_payment_pending',
             'booking_id'  => $this->booking->booking_id,
             'message'     => "80% payment is due for booking #{$this->booking->booking_id}. Please settle the payment before the event.",
-            'url'         => "/bookings/{$this->booking->booking_id}",
+            'url'         => "/bookings/{$this->booking->event_code}",
         ];
     }
 
@@ -37,6 +38,15 @@ class EightyPercentPaymentPendingNotification extends Notification
     {
         $this->notifiable = $notifiable;
         return new BroadcastMessage($this->toArray($notifiable));
+    }
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('Booking Payment Due')
+            ->greeting('Hello ' . ($notifiable->customer_firstname ?? 'there') . '!')
+            ->line("Your booking '{$this->booking->event_name}' 80% payment should be paid.")
+            ->action('View Booking', env('FRONTEND_URL') . '/bookings/' . $this->booking->event_code)
+            ->line('Thank you for booking with Ollinati Catering!');
     }
 
     public function broadcastOn()

@@ -29,7 +29,6 @@ class FeedbackSubmittedNotification extends Notification
             'action' => 'feedback_submitted',
             'booking_id' => $this->bookingId,
             'message' => "The client has submitted a feedback for Booking ID: {$this->bookingId}.",
-            'url' => "/bookings/{$this->bookingId}",
         ];
     }
 
