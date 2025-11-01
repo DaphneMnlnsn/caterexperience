@@ -71,7 +71,7 @@ function View2DSetup() {
         <Header user={user} />
 
         <div className="canvas-container">
-          <VenueCanvas ref={canvasRef} canEdit={canEditBool} setupId={setupId} isClient={isClient} isWaiter={isWaiter} />
+          <VenueCanvas ref={canvasRef} canEdit={canEditBool} bookingId={id} setupId={setupId} isClient={isClient} isWaiter={isWaiter} />
         </div>
       </div>
     </div>

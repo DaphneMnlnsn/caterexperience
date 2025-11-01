@@ -14,6 +14,9 @@ class Theme extends Model
         'theme_name',
         'theme_description',
         'theme_image_url',
+        'primary_color',
+        'secondary_color',
+        'accent_color',
         'theme_status',
     ];
 

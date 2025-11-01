@@ -214,6 +214,21 @@ function VenueCanvas(props, ref) {
   const [gridEnabled, setGridEnabled] = useState(true);
   const [gridSizeMeters, setGridSizeMeters] = useState(0.5);
 
+  const [booking, setBooking] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
+
+  useEffect(() => {
+    if (!bookingId) return;
+    axiosClient.get(`/bookings/${bookingId}`)
+      .then(res => {
+        setBooking(res.data.booking);
+      })
+      .catch(err => {
+        console.error('Error fetching booking:', err);
+      });
+  }, [bookingId]);
+
+
   useEffect(() => {
     if(!templateId)
     {
@@ -536,6 +551,10 @@ function VenueCanvas(props, ref) {
   const renderPreviewByType = (typeRaw = '', propsRaw = {}, pxPerMeterLocal = pxPerMeter, scaleForObject = 1) => {
     const type = (typeRaw || '').toString().replace(/[^a-z0-9]/gi, '').toLowerCase();
     const props = parseProps(propsRaw);
+    const tableColor = booking?.theme?.primary_color || '#dcdcdc';
+    const chairColor = booking?.theme?.secondary_color || '#f0f0f0';
+    const accentColor = booking?.theme?.accent_color || '#c0c0c0';
+    const baseFill = '#ddd';
 
     const chairWpx = (getMeterValue(props, 'chair_w', CHAIR_W_DEFAULT_M) ?? CHAIR_W_DEFAULT_M) * pxPerMeterLocal * scaleForObject;
     const chairHpx = (getMeterValue(props, 'chair_h', CHAIR_H_DEFAULT_M) ?? CHAIR_H_DEFAULT_M) * pxPerMeterLocal * scaleForObject;
@@ -547,7 +566,7 @@ function VenueCanvas(props, ref) {
       case 'chair': {
         return (
           <Group>
-            <Rect x={0} y={0} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} {...shared} />
+            <Rect x={0} y={0} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} {...shared} fill={chairColor} />
             {labelText && <Text text={labelText} x={-30} y={chairHpx/2 + 6} width={60} align="center" fontSize={fontSize} fontFamily="Lora" listening={false} />}
           </Group>
         );
@@ -556,7 +575,7 @@ function VenueCanvas(props, ref) {
         const r_px = (getMeterValue(props, 'radius', 0.75) || 0.75) * pxPerMeterLocal * scaleForObject;
         return (
           <Group>
-            <Circle x={0} y={0} radius={r_px} {...shared} />
+            <Circle x={0} y={0} radius={r_px} {...shared} fill={tableColor} />
             {labelText && <Text text={labelText} x={-r_px} y={r_px + 8} width={r_px*2} align="center" fontSize={fontSize} fontFamily="Lora" listening={false} />}
           </Group>
         );
@@ -567,13 +586,13 @@ function VenueCanvas(props, ref) {
         const chairDistance = r_px + Math.max(chairHpx, chairWpx) / 2 + 5;
         return (
           <Group>
-            <Circle x={0} y={0} radius={r_px} {...shared} />
+            <Circle x={0} y={0} radius={r_px} {...shared} fill={tableColor} />
             {[...Array(count)].map((_, i) => {
               const a = (2 * Math.PI / count) * i;
               const cx = Math.cos(a) * chairDistance;
               const cy = Math.sin(a) * chairDistance;
               const rot = (a * 180) / Math.PI + 90;
-              return <Rect key={i} x={cx} y={cy} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} rotation={rot} cornerRadius={3} {...shared} />;
+              return <Rect key={i} x={cx} y={cy} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} rotation={rot} cornerRadius={3} {...shared} fill={chairColor} />;
             })}
             {labelText && <Text text={labelText} x={-r_px} y={r_px + 8} width={r_px * 2} align="center" fontSize={fontSize} fontFamily="Lora" listening={false} />}
           </Group>
@@ -590,8 +609,8 @@ function VenueCanvas(props, ref) {
           for (let i = 0; i < topBottom; i++) {
             const cx = -w_px / 2 + gapTB * (i + 1);
             chairs.push(
-              <Rect key={`t${i}`} x={cx} y={-h_px/2 - chairHpx/2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} {...shared} cornerRadius={3} />,
-              <Rect key={`b${i}`} x={cx} y={h_px/2 + chairHpx/2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} rotation={180} {...shared} cornerRadius={3} />
+              <Rect key={`t${i}`} x={cx} y={-h_px/2 - chairHpx/2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} {...shared} cornerRadius={3} fill={chairColor} />,
+              <Rect key={`b${i}`} x={cx} y={h_px/2 + chairHpx/2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} rotation={180} {...shared} cornerRadius={3} fill={chairColor} />
             );
           }
         }
@@ -600,14 +619,14 @@ function VenueCanvas(props, ref) {
           for (let i = 0; i < sides; i++) {
             const cy = -h_px/2 + gapS * (i+1);
             chairs.push(
-              <Rect key={`l${i}`} x={-w_px/2 - chairWpx/2} y={cy} width={chairHpx} height={chairWpx} offset={{ x: chairHpx/2, y: chairWpx/2 }} rotation={270} {...shared} cornerRadius={3} />,
-              <Rect key={`r${i}`} x={w_px/2 + chairWpx/2} y={cy} width={chairHpx} height={chairWpx} offset={{ x: chairHpx/2, y: chairWpx/2 }} rotation={90} {...shared} cornerRadius={3} />
+              <Rect key={`l${i}`} x={-w_px/2 - chairWpx/2} y={cy} width={chairHpx} height={chairWpx} offset={{ x: chairHpx/2, y: chairWpx/2 }} rotation={270} {...shared} cornerRadius={3} fill={chairColor} />,
+              <Rect key={`r${i}`} x={w_px/2 + chairWpx/2} y={cy} width={chairHpx} height={chairWpx} offset={{ x: chairHpx/2, y: chairWpx/2 }} rotation={90} {...shared} cornerRadius={3} fill={chairColor} />
             );
           }
         }
         return (
           <Group>
-            <Rect x={-w_px/2} y={-h_px/2} width={w_px} height={h_px} {...shared} />
+            <Rect x={-w_px/2} y={-h_px/2} width={w_px} height={h_px} {...shared} fill={tableColor} />
             {chairs}
             {labelText && <Text text={labelText} x={-w_px/2} y={h_px/2 + 8} width={w_px} align="center" fontSize={fontSize} fontFamily="Lora" listening={false} />}
           </Group>
@@ -618,11 +637,11 @@ function VenueCanvas(props, ref) {
         const half = w_px / 2;
         return (
           <Group>
-            <Rect x={-half} y={-half} width={w_px} height={w_px} {...shared} />
-            <Rect x={0} y={-half - chairHpx / 2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx / 2, y: chairHpx / 2 }} {...shared} cornerRadius={3} />
-            <Rect x={0} y={half + chairHpx / 2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx / 2, y: chairHpx / 2 }} rotation={180} {...shared} cornerRadius={3} />
-            <Rect x={-half - chairWpx / 2} y={0} width={chairHpx} height={chairWpx} offset={{ x: chairHpx / 2, y: chairWpx / 2 }} rotation={270} {...shared} cornerRadius={3} />
-            <Rect x={half + chairWpx / 2} y={0} width={chairHpx} height={chairWpx} offset={{ x: chairHpx / 2, y: chairWpx / 2 }} rotation={90} {...shared} cornerRadius={3} />
+            <Rect x={-half} y={-half} width={w_px} height={w_px} {...shared} fill={tableColor} />
+            <Rect x={0} y={-half - chairHpx / 2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx / 2, y: chairHpx / 2 }} {...shared} cornerRadius={3} fill={chairColor} />
+            <Rect x={0} y={half + chairHpx / 2} width={chairWpx} height={chairHpx} offset={{ x: chairWpx / 2, y: chairHpx / 2 }} rotation={180} {...shared} cornerRadius={3} fill={chairColor} />
+            <Rect x={-half - chairWpx / 2} y={0} width={chairHpx} height={chairWpx} offset={{ x: chairHpx / 2, y: chairWpx / 2 }} rotation={270} {...shared} cornerRadius={3} fill={chairColor} />
+            <Rect x={half + chairWpx / 2} y={0} width={chairHpx} height={chairWpx} offset={{ x: chairHpx / 2, y: chairWpx / 2 }} rotation={90} {...shared} cornerRadius={3} fill={chairColor} />
             {labelText && <Text text={labelText} x={-half} y={half + 8} width={w_px} align="center" fontSize={fontSize} fontFamily="Lora" listening={false} />}
           </Group>
         );
@@ -635,13 +654,13 @@ function VenueCanvas(props, ref) {
         const chairDistanceY = ry_px + Math.max(chairWpx, chairHpx) / 2 + 5;
         return (
           <Group>
-            <Ellipse x={0} y={0} radiusX={rx_px} radiusY={ry_px} {...shared} />
+            <Ellipse x={0} y={0} radiusX={rx_px} radiusY={ry_px} {...shared} fill={tableColor} />
             {[...Array(count)].map((_, i) => {
               const a = (2 * Math.PI / count) * i;
               const cx = Math.cos(a) * chairDistanceX;
               const cy = Math.sin(a) * chairDistanceY;
               const rot = (a * 180) / Math.PI + 90;
-              return <Rect key={i} x={cx} y={cy} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} rotation={rot} cornerRadius={3} {...shared} />;
+              return <Rect key={i} x={cx} y={cy} width={chairWpx} height={chairHpx} offset={{ x: chairWpx/2, y: chairHpx/2 }} rotation={rot} cornerRadius={3} {...shared} fill={chairColor} />;
             })}
             {labelText && <Text text={labelText} x={-rx_px} y={ry_px + 8} width={rx_px * 2} align="center" fontSize={fontSize} fontFamily="Lora" listening={false} />}
           </Group>
@@ -654,8 +673,8 @@ function VenueCanvas(props, ref) {
         const spacing = w_px / (count + 1);
         return (
           <Group>
-            <Rect x={-w_px/2} y={-h_px/2} width={w_px} height={h_px} {...shared} cornerRadius={5} />
-            {[...Array(count)].map((_,i)=>(<Circle key={i} x={-w_px/2 + spacing*(i+1)} y={0} radius={Math.max(3, spacing*0.12)} {...shared} />))}
+            <Rect x={-w_px/2} y={-h_px/2} width={w_px} height={h_px} {...shared} cornerRadius={5} fill={tableColor} />
+            {[...Array(count)].map((_,i)=>(<Circle key={i} x={-w_px/2 + spacing*(i+1)} y={0} radius={Math.max(3, spacing*0.12)} {...shared} fill={"#ddd"} />))}
             {labelText && <Text text={labelText} x={-w_px/2} y={h_px/2 + 8} width={w_px} align="center" fontSize={fontSize} fontFamily="Lora" listening={false} />}
           </Group>
         );
@@ -1158,7 +1177,6 @@ function VenueCanvas(props, ref) {
           <input type="number" step="0.1" min="0.1" value={gridSizeMeters} onChange={(e)=>setGridSizeMeters(parseFloat(e.target.value)||0.1)} style={{width: 70, padding: 4}} />
           <span style={{fontSize: 12}}>m</span>
         </div>
-
       </div>
 
       <div style={{ position: "absolute", top: 100, left: 10, display: "flex", flexDirection: "column", gap: "10px", zIndex: 1000 }}>
@@ -1230,6 +1248,47 @@ function VenueCanvas(props, ref) {
               opacity: savingTemplate ? 0.7 : 1
             }}>
             Reject Setup</button>
+        )}
+      </div>
+
+      <div className="theme-info-toggle">
+        <button onClick={() => setShowInfo(!showInfo)}>
+          🎨 Theme & Package
+        </button>
+
+        {showInfo && booking && (
+          <div className="theme-info-box">
+            <p><strong>Theme:</strong> {booking.theme?.theme_name || 'N/A'}</p>
+
+            {booking.theme && (
+              <>
+                <div className="theme-colors">
+                  <div className="color-block" style={{ background: booking.theme.primary_color || '#ccc' }} />
+                  <div className="color-block" style={{ background: booking.theme.secondary_color || '#ccc' }} />
+                  <div className="color-block" style={{ background: booking.theme.accent_color || '#ccc' }} />
+                </div>
+              </>
+            )}
+            <p><strong>Package:</strong> {booking.package?.package_name || 'N/A'}</p>
+            {booking.package && (
+              <>
+                <p><strong>Package Tier:</strong> {booking.pax || 'N/A'} pax</p>
+                {booking.package?.package_description && (
+                  <div className="package-inclusions inc-details">
+                    <span>Inclusions:</span>
+                    <ul>
+                      {booking.package.package_description
+                        ?.split('\n')
+                        .filter((line) => line.trim() !== '')
+                        .map((line, index) => (
+                          <li key={index}>{line}</li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
 

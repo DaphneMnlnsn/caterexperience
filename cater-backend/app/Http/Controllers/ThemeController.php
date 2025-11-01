@@ -22,6 +22,9 @@ class ThemeController extends Controller
             'theme_description' => 'nullable|string',
             'theme_status' => 'required|string',
             'theme_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'primary_color' => 'nullable|string|max:7',
+            'secondary_color' => 'nullable|string|max:7',
+            'accent_color' => 'nullable|string|max:7',
         ]);
 
         $existingTheme = Theme::whereRaw('LOWER(theme_name) = ?', [strtolower($validated['theme_name'])])
@@ -37,6 +40,9 @@ class ThemeController extends Controller
             'theme_name' => $validated['theme_name'],
             'theme_description' => $validated['theme_description'] ?? null,
             'theme_status' => $validated['theme_status'],
+            'primary_color' => $validated['primary_color'],
+            'secondary_color' => $validated['secondary_color'],
+            'accent_color' => $validated['accent_color'],
         ]);
 
         if ($request->hasFile('theme_images')) {
@@ -65,12 +71,18 @@ class ThemeController extends Controller
             'theme_description' => 'nullable|string',
             'theme_status' => 'required|string',
             'theme_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'primary_color' => 'nullable|string|max:7',
+            'secondary_color' => 'nullable|string|max:7',
+            'accent_color' => 'nullable|string|max:7',
         ]);
 
         $theme->update([
             'theme_name' => $validated['theme_name'],
             'theme_description' => $validated['theme_description'] ?? null,
             'theme_status' => $validated['theme_status'],
+            'primary_color' => $validated['primary_color'] ?? $theme->primary_color,
+            'secondary_color' => $validated['secondary_color'] ?? $theme->secondary_color,
+            'accent_color' => $validated['accent_color'] ?? $theme->accent_color,
         ]);
 
         if ($request->hasFile('theme_images')) {

@@ -7,6 +7,9 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
   const [formData, setFormData] = useState({
     theme_name: '',
     description: '',
+    primary_color: '#ffffff',
+    secondary_color: '#ffffff',
+    accent_color: '#ffffff',
     imageFiles: [],
     imagePreviews: [],
     theme_status: ''
@@ -17,6 +20,9 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
       setFormData({
         theme_name: theme.theme_name || '',
         description: theme.theme_description || '',
+        primary_color: theme.primary_color || '#ffffff',
+        secondary_color: theme.secondary_color || '#ffffff',
+        accent_color: theme.accent_color || '#ffffff',
         imageFiles: [],
         imagePreviews: theme.images
         ? theme.images.map(img => ({
@@ -109,6 +115,9 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
     const payload = new FormData();
     payload.append('theme_name', formData.theme_name);
     payload.append('theme_description', formData.description);
+    payload.append('primary_color', formData.primary_color);
+    payload.append('secondary_color', formData.secondary_color);
+    payload.append('accent_color', formData.accent_color);
     payload.append('theme_status', formData.theme_status);
     formData.imageFiles.forEach(file => payload.append('theme_images[]', file));
     formData.deletedImageIds.forEach(id =>
@@ -189,6 +198,33 @@ function EditThemeModal({ show, onClose, onSave, onDelete, theme }) {
             name="description"
             value={formData.description}
             onChange={handleChange}
+          />
+
+          <label>Primary/Table Color</label>
+          <input
+            type="color"
+            name="primary_color"
+            value={formData.primary_color}
+            onChange={handleChange}
+            className='color-picker'
+          />
+
+          <label>Secondary/Chair Color</label>
+          <input
+            type="color"
+            name="secondary_color"
+            value={formData.secondary_color}
+            onChange={handleChange}
+            className='color-picker'
+          />
+
+          <label>Accent/Other Color</label>
+          <input
+            type="color"
+            name="accent_color"
+            value={formData.accent_color}
+            onChange={handleChange}
+            className='color-picker'
           />
 
           <label>Images</label>

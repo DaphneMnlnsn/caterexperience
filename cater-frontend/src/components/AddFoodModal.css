@@ -105,6 +105,16 @@
   border: 1px solid #ddd;
 }
 
+.color-picker {
+  width: 80px;
+  height: 40px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
 @media (max-width: 480px) {
   .image-upload-container {
     margin-bottom: 1rem;

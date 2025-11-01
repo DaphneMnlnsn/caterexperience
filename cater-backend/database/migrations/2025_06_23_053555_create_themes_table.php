@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('theme_name');
             $table->text('theme_description')->nullable();
             $table->string('theme_image_url')->nullable();
+            $table->string('primary_color')->nullable();
+            $table->string('secondary_color')->nullable();
+            $table->string('accent_color')->nullable();
             $table->string('theme_status')->default('available');
         });
     }
